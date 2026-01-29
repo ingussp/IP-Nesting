@@ -1,0 +1,1 @@
+Šeit atrodas tikai pēdējā strādājošā versija
