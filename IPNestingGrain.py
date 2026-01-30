@@ -34,7 +34,7 @@ class GrainPreparer:
                 continue
             if hasattr(o, "Shape") and o.Shape is not None:
                 bb = o.Shape.BoundBox
-                if bb.XMax <= bb.XMin: 
+                if bb.XMax <= bb.XMin:
                     continue
                 min_x = min(min_x, bb.XMin)
                 min_y = min(min_y, bb.YMin)
@@ -138,6 +138,183 @@ class GrainPreparer:
             pass
         return False
 
+    # -----------------------------
+    # Shared helpers (refactor)
+    # -----------------------------
+    @staticmethod
+    def _collect_subset_bbox(p_doc, subset_names=None):
+        """
+        Collect bounding extents for the subset using the same rules as perimeter drawing.
+        Returns:
+          (found, min_x, min_y, max_x, max_y, subset_part_count)
+        """
+        found = False
+        min_x = min_y = float("inf")
+        max_x = max_y = float("-inf")
+        subset_part_count = 0
+
+        objects_to_process = []
+        if subset_names is not None:
+            for name in subset_names:
+                o = p_doc.getObject(name)
+                if o:
+                    objects_to_process.append(o)
+        else:
+            objects_to_process = p_doc.Objects
+
+        for o in objects_to_process:
+            try:
+                n = getattr(o, "Name", "")
+                if "GrainPerimeter" in n or "GrainArrow" in n:
+                    continue
+
+                shp = getattr(o, "Shape", None)
+                if shp is None:
+                    continue
+                bb = shp.BoundBox
+                if bb.XMax <= bb.XMin and bb.YMax <= bb.YMin:
+                    continue
+
+                min_x = min(min_x, bb.XMin)
+                min_y = min(min_y, bb.YMin)
+                max_x = max(max_x, bb.XMax)
+                max_y = max(max_y, bb.YMax)
+                found = True
+                subset_part_count += 1
+            except Exception:
+                continue
+
+        return found, min_x, min_y, max_x, max_y, subset_part_count
+
+    @staticmethod
+    def _compute_font_and_margin(preview_doc_name, p_doc, min_x, min_y, max_x, max_y, subset_part_count):
+        """
+        Compute (world_font_size, final_margin, scale_multiplier) using the same logic
+        perimeter drawing needs. Centralizing this allows UI to use identical margin
+        (so expanded perimeters never overlap).
+        """
+        # Use GLOBAL document metrics so font stays consistent between subsets.
+        global_diag, global_count = GrainPreparer._get_global_bbox_diag(p_doc)
+
+        # View / screen metrics
+        view = None
+        try:
+            view = Gui.getDocument(preview_doc_name).ActiveView
+        except Exception:
+            pass
+
+        screen_diag = None
+        try:
+            if view:
+                size = view.getSize()
+                if isinstance(size, (tuple, list)) and len(size) >= 2:
+                    screen_diag = math.hypot(size[0], size[1])
+        except Exception:
+            screen_diag = None
+
+        pixels_per_unit = None
+        if screen_diag and global_diag > 1e-9:
+            pixels_per_unit = screen_diag / global_diag
+
+        # Calculate based on GLOBAL count so font stays consistent
+        desired_text_px = int(max(10, min(120, 40 + 4 * math.log(max(1, global_count)))))
+        desired_margin_px = int(max(8, min(200, 25 + 3 * math.sqrt(max(1, global_count)))))
+
+        world_font_size = None
+        final_margin = None
+
+        try:
+            if pixels_per_unit and pixels_per_unit > 0:
+                world_per_pixel = 1.0 / pixels_per_unit
+                world_font_size = desired_text_px * world_per_pixel
+                final_margin = desired_margin_px * world_per_pixel
+
+                # Clamp based on global diag
+                max_font = max(1.0, global_diag * 0.05)
+                world_font_size = max(1.0, min(world_font_size, max_font))
+
+                # Margin
+                final_margin = max(1.0, min(final_margin, global_diag * 0.05))
+            else:
+                # Fallback if no view
+                world_font_size = max(1.0, min(global_diag * 0.03, 12.0))
+                final_margin = max(1.0, min(global_diag * 0.05, 10.0))
+        except Exception:
+            world_font_size = 12.0
+            final_margin = 10.0
+
+        # (1) Apply "scale method" for both labels (with/without grain)
+        label_scale, margin_scale = GrainPreparer._safe_get_scale_factors()
+        try:
+            world_font_size = max(1.0, float(world_font_size) * float(label_scale))
+        except Exception:
+            pass
+        try:
+            final_margin = max(1.0, float(final_margin) * float(margin_scale))
+        except Exception:
+            pass
+
+        # --- NEW: scale font by perimeter square side (sqrt(area)) ---
+        # Variant 2: scale by "side length" = sqrt(area)
+        # We normalize against global_diag to keep it stable across docs.
+        side_scale = 1.0
+        try:
+            subset_w = max(0.0, float(max_x - min_x))
+            subset_h = max(0.0, float(max_y - min_y))
+            square_side = math.sqrt(max(1e-9, subset_w * subset_h))  # sqrt(area)
+            if global_diag and global_diag > 1e-9:
+                side_scale = square_side / float(global_diag)
+            else:
+                side_scale = 1.0
+            # clamp: prevent extreme values
+            side_scale = max(0.6, min(side_scale, 3.0))
+        except Exception:
+            side_scale = 1.0
+
+        try:
+            world_font_size = max(1.0, float(world_font_size) * float(side_scale))
+        except Exception:
+            pass
+
+        # --- NEW: FreeCAD 1.0.2 specific: ScaleMultiplier support ---
+        scale_multiplier = None
+        try:
+            # side_scale in [0.6..3.0] -> multiplier in about [2.0..12.0]
+            scale_multiplier = 1.0 - 2 * float(side_scale)
+            scale_multiplier = max(1.0, min(scale_multiplier, 10.0))
+        except Exception:
+            scale_multiplier = None
+
+        return float(world_font_size), float(final_margin), scale_multiplier
+
+    @staticmethod
+    def get_subset_bbox_and_margin(preview_doc_name, subset_names=None):
+        """
+        Public helper for both UI placement and perimeter drawing.
+
+        Returns:
+          (found, min_x, min_y, max_x, max_y, subset_part_count, final_margin)
+        """
+        try:
+            if preview_doc_name not in App.listDocuments():
+                return (False, 0.0, 0.0, 0.0, 0.0, 0, 0.0)
+            p_doc = App.getDocument(preview_doc_name)
+            if p_doc is None:
+                return (False, 0.0, 0.0, 0.0, 0.0, 0, 0.0)
+
+            found, min_x, min_y, max_x, max_y, subset_part_count = GrainPreparer._collect_subset_bbox(
+                p_doc, subset_names=subset_names
+            )
+            if not found or subset_part_count == 0:
+                return (False, 0.0, 0.0, 0.0, 0.0, 0, 0.0)
+
+            _, final_margin, _ = GrainPreparer._compute_font_and_margin(
+                preview_doc_name, p_doc, min_x, min_y, max_x, max_y, subset_part_count
+            )
+            return (True, float(min_x), float(min_y), float(max_x), float(max_y), int(subset_part_count), float(final_margin))
+        except Exception:
+            return (False, 0.0, 0.0, 0.0, 0.0, 0, 0.0)
+
     @staticmethod
     def draw_perimeter_and_label(
         preview_doc_name,
@@ -212,142 +389,17 @@ class GrainPreparer:
                     except Exception:
                         continue
 
-            # --- Collect bounding extents for the SUBSET ---
-            found = False
-            min_x = min_y = float("inf")
-            max_x = max_y = float("-inf")
-            subset_part_count = 0
-
-            # Filter objects
-            objects_to_process = []
-            if subset_names is not None:
-                for name in subset_names:
-                    o = p_doc.getObject(name)
-                    if o:
-                        objects_to_process.append(o)
-            else:
-                objects_to_process = p_doc.Objects
-
-            for o in objects_to_process:
-                try:
-                    # Skip helper objects themselves
-                    n = getattr(o, "Name", "")
-                    if "GrainPerimeter" in n or "GrainArrow" in n:
-                        continue
-
-                    shp = getattr(o, "Shape", None)
-                    if shp is None:
-                        continue
-                    bb = shp.BoundBox
-                    if bb.XMax <= bb.XMin and bb.YMax <= bb.YMin:
-                        continue
-                    min_x = min(min_x, bb.XMin)
-                    min_y = min(min_y, bb.YMin)
-                    max_x = max(max_x, bb.XMax)
-                    max_y = max(max_y, bb.YMax)
-                    found = True
-                    subset_part_count += 1
-                except Exception:
-                    continue
-
+            # --- Collect bbox extents for the SUBSET (shared helper) ---
+            found, min_x, min_y, max_x, max_y, subset_part_count = GrainPreparer._collect_subset_bbox(
+                p_doc, subset_names=subset_names
+            )
             if not found or subset_part_count == 0:
                 return
 
-            # --- FONT SIZING LOGIC ---
-            # Use GLOBAL document metrics so font stays consistent between subsets.
-            global_diag, global_count = GrainPreparer._get_global_bbox_diag(p_doc)
-
-            # View / screen metrics
-            view = None
-            try:
-                view = Gui.getDocument(preview_doc_name).ActiveView
-            except Exception:
-                pass
-
-            screen_diag = None
-            try:
-                if view:
-                    size = view.getSize()
-                    if isinstance(size, (tuple, list)) and len(size) >= 2:
-                        screen_diag = math.hypot(size[0], size[1])
-            except Exception:
-                screen_diag = None
-
-            pixels_per_unit = None
-            if screen_diag and global_diag > 1e-9:
-                pixels_per_unit = screen_diag / global_diag
-
-            # Calculate based on GLOBAL count so font stays consistent
-            desired_text_px = int(max(10, min(120, 40 + 4 * math.log(max(1, global_count)))))
-            desired_margin_px = int(max(8, min(200, 25 + 3 * math.sqrt(max(1, global_count)))))
-
-            world_font_size = None
-            final_margin = None
-
-            try:
-                if pixels_per_unit and pixels_per_unit > 0:
-                    world_per_pixel = 1.0 / pixels_per_unit
-                    world_font_size = desired_text_px * world_per_pixel
-                    final_margin = desired_margin_px * world_per_pixel
-
-                    # Clamp based on global diag
-                    max_font = max(1.0, global_diag * 0.05)
-                    world_font_size = max(1.0, min(world_font_size, max_font))
-
-                    # Margin
-                    final_margin = max(1.0, min(final_margin, global_diag * 0.05))
-                else:
-                    # Fallback if no view
-                    world_font_size = max(1.0, min(global_diag * 0.03, 12.0))
-                    final_margin = max(1.0, min(global_diag * 0.05, 10.0))
-            except Exception:
-                world_font_size = 12.0
-                final_margin = 10.0
-
-            # (1) Apply "scale method" for both labels (with/without grain)
-            label_scale, margin_scale = GrainPreparer._safe_get_scale_factors()
-            try:
-                world_font_size = max(1.0, float(world_font_size) * float(label_scale))
-            except Exception:
-                pass
-            try:
-                final_margin = max(1.0, float(final_margin) * float(margin_scale))
-            except Exception:
-                pass
-
-            # --- NEW: scale font by perimeter square side (sqrt(area)) ---
-            # Variant 2: scale by "side length" = sqrt(area)
-            # We normalize against global_diag to keep it stable across docs.
-            side_scale = 1.0
-            try:
-                subset_w = max(0.0, float(max_x - min_x))
-                subset_h = max(0.0, float(max_y - min_y))
-                square_side = math.sqrt(max(1e-9, subset_w * subset_h))  # sqrt(area)
-                if global_diag and global_diag > 1e-9:
-                    side_scale = square_side / float(global_diag)
-                else:
-                    side_scale = 1.0
-                # clamp: prevent extreme values
-                side_scale = max(0.6, min(side_scale, 3.0))
-            except Exception:
-                side_scale = 1.0
-
-            try:
-                world_font_size = max(1.0, float(world_font_size) * float(side_scale))
-            except Exception:
-                pass
-
-            # --- NEW: FreeCAD 1.0.2 specific: ScaleMultiplier support ---
-            # Many FreeCAD 1.0.x text viewproviders expose ScaleMultiplier which affects visible size.
-            # We'll compute a multiplier from side_scale as well.
-            scale_multiplier = None
-            try:
-                # make it noticeably bigger; tune as needed
-                # side_scale in [0.6..3.0] -> multiplier in about [2.0..12.0]
-                scale_multiplier = 1.0 - 2 * float(side_scale)
-                scale_multiplier = max(1.0, min(scale_multiplier, 10.0))
-            except Exception:
-                scale_multiplier = None
+            # --- FONT + MARGIN (shared helper) ---
+            world_font_size, final_margin, scale_multiplier = GrainPreparer._compute_font_and_margin(
+                preview_doc_name, p_doc, min_x, min_y, max_x, max_y, subset_part_count
+            )
 
             # Draw Box (apply margin expansion after sizing computations)
             min_x -= final_margin

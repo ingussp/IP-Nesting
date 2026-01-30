@@ -21,16 +21,16 @@ class GrainUIController:
     Controller for grain-related UI operations.
     Operates on a panel instance (NestingTaskPanel).
     """
-    
+
     def __init__(self, panel):
         """
         Initialize the grain UI controller.
-        
+
         Args:
             panel: NestingTaskPanel instance
         """
         self.panel = panel
-        
+
         # Setup blinking Apply Grain timer
         try:
             self._apply_blink_timer = QtCore.QTimer()
@@ -47,7 +47,7 @@ class GrainUIController:
             # ignore if timer setup fails in some environment
             self._apply_blink_timer = None
             self._apply_original_style = ""
-    
+
     # --- Apply Grain blinking helpers ---
     def _on_apply_blink_tick(self):
         """Timer callback that toggles orange border on Apply Grain button."""
@@ -69,7 +69,7 @@ class GrainUIController:
                 pass
         except Exception:
             App.Console.PrintError("Apply blink tick error:\n" + traceback.format_exc())
-    
+
     def _start_apply_blink(self):
         """Start blinking timer when grain checkbox is checked."""
         try:
@@ -85,7 +85,7 @@ class GrainUIController:
                     self._apply_blink_timer.start()
         except Exception:
             App.Console.PrintError("Failed to start apply blink:\n" + traceback.format_exc())
-    
+
     def _stop_apply_blink(self):
         """Stop blinking timer and restore button style."""
         try:
@@ -99,7 +99,7 @@ class GrainUIController:
                 pass
         except Exception:
             App.Console.PrintError("Failed to stop apply blink:\n" + traceback.format_exc())
-    
+
     def _update_apply_blink_state(self):
         """Check if any per-row grain checkbox is checked; start/stop blinking accordingly."""
         try:
@@ -122,7 +122,7 @@ class GrainUIController:
                 self._stop_apply_blink()
         except Exception:
             App.Console.PrintError("Failed to update apply blink state:\n" + traceback.format_exc())
-    
+
     # --- Grain arrow helpers (connect widgets + callbacks) ---
     def _on_grain_checkbox_state_changed(self, preview_obj_name, grain_cb, grain_combo, state):
         """Callback for per-row grain checkbox state change."""
@@ -206,7 +206,7 @@ class GrainUIController:
                 pass
         except Exception:
             App.Console.PrintError("grain checkbox callback failed:\n" + traceback.format_exc())
-            
+
     def _on_grain_axis_changed(self, preview_obj_name, grain_cb, grain_combo, index):
         """Callback for per-row grain axis combobox change (redraw only if checked)."""
         try:
@@ -295,7 +295,7 @@ class GrainUIController:
                                                            preview_obj_name, grain_cb, grain_combo))
         except Exception:
             App.Console.PrintError("Failed to connect grain widgets:\n" + traceback.format_exc())
-    
+
     def _on_bulk_grain_changed(self, index):
         """When bottom bulk combobox is changed, set per-row combobox only for checked rows and update arrows."""
         try:
@@ -347,25 +347,16 @@ class GrainUIController:
                     continue
         except Exception:
             App.Console.PrintError("bulk grain changed callback failed:\n" + traceback.format_exc())
-    
+
     def update_grain_layout_and_perimeters(self):
         """
         Splits parts into Standard and Grain groups.
 
-        NEW RULE (requested):
-          - Blue (grain) perimeter top line must be 10% LOWER than the red (standard) perimeter bottom line.
-          - 10% is taken from the BLUE square height (grain group bbox height in Y).
+        RULE (UPDATED):
+          - Ensure expanded (margin-inflated) blue perimeter never overlaps expanded red perimeter.
+          - gap is taken as a fraction of BLUE bbox height.
 
-        In other words:
-          blue_top_y = red_bottom_y - 0.10 * blue_height
-
-        Implementation:
-          1) Collect standard_parts and grain_parts from table state.
-          2) Pack grain parts to a temporary location (target_y = 0) to get stable bbox.
-          3) Compute red_bottom_y from standard bbox.
-          4) Compute blue_height and current blue_top_y from grain bbox.
-          5) Shift all grain parts by dy so that blue_top_y matches the rule.
-          6) Draw perimeters for both groups.
+        (Legacy wording kept in UI docstring may mention "10% lower".)
         """
         if GrainPreparer is None:
             return
@@ -457,10 +448,8 @@ class GrainUIController:
             # 1) Pack grain parts to temporary location y=0 (stable bbox)
             if grain_parts:
                 try:
-                    # Use default packing params; only need stable bbox first
                     GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, grain_parts, target_x=0.0, target_y=0.0)
                 except TypeError:
-                    # Backward compat if pack_grain_parts doesn't accept target_x/target_y yet
                     GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, grain_parts)
 
             # 2) Compute red bottom (standard min_y)
@@ -469,11 +458,37 @@ class GrainUIController:
             # 3) Compute blue bbox after packing
             blue_found, _, blue_min_y, _, blue_max_y = _bbox_for_names(grain_parts)
 
-            # 4) Apply rule if both groups exist
+            # 4) Apply non-overlapping rule using actual perimeter margins
             if grain_parts and red_found and blue_found:
                 blue_h = max(1e-6, float(blue_max_y - blue_min_y))
-                desired_blue_top = float(red_min_y) - 0.10 * blue_h
-                dy = desired_blue_top - float(blue_max_y)
+
+                # Keep original factor (0.10) unless you intentionally want larger spacing.
+                gap = 0.30 * blue_h
+
+                red_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=standard_parts)
+                blue_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=grain_parts)
+
+                red_margin = float(red_info[6]) if red_info and red_info[0] else 0.0
+                blue_margin = float(blue_info[6]) if blue_info and blue_info[0] else 0.0
+
+                # Optional: make bbox values consistent with perimeter bbox collector
+                try:
+                    if red_info and red_info[0]:
+                        red_min_y = float(red_info[2])
+                except Exception:
+                    pass
+                try:
+                    if blue_info and blue_info[0]:
+                        blue_min_y = float(blue_info[2])
+                        blue_max_y = float(blue_info[4])
+                        blue_h = max(1e-6, float(blue_max_y - blue_min_y))
+                except Exception:
+                    pass
+
+                # Want: (blue_max_y + blue_margin) <= (red_min_y - red_margin) - gap
+                desired_blue_max_y = float(red_min_y) - float(red_margin) - float(gap) - float(blue_margin)
+                dy = desired_blue_max_y - float(blue_max_y)
+
                 _shift_names_y(grain_parts, dy)
 
             try:
