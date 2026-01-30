@@ -30,6 +30,9 @@ class GrainUIController:
             panel: NestingTaskPanel instance
         """
         self.panel = panel
+        
+        # Snapshot of checkbox states when "Apply Grain" was last pressed
+        self._last_applied_grain_state = None
 
         # Setup blinking Apply Grain timer
         try:
@@ -100,26 +103,54 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("Failed to stop apply blink:\n" + traceback.format_exc())
 
-    def _update_apply_blink_state(self):
-        """Check if any per-row grain checkbox is checked; start/stop blinking accordingly."""
+    def _get_current_grain_state(self):
+        """
+        Return a stable snapshot of grain checkbox states for all data rows.
+        Use tuple of (row_index, is_checked) so we can compare later.
+        """
         try:
             data_rows = self.panel.table.rowCount() - self.panel.control_rows
-            any_checked = False
+            state = []
             for r in range(data_rows):
+                checked = False
                 try:
                     grain_widget = self.panel.table.cellWidget(r, 4)
-                    if not grain_widget:
-                        continue
-                    cb = grain_widget.findChild(QtGui.QCheckBox)
-                    if cb and cb.isChecked():
-                        any_checked = True
-                        break
+                    if grain_widget:
+                        cb = grain_widget.findChild(QtGui.QCheckBox)
+                        checked = bool(cb and cb.isChecked())
                 except Exception:
-                    continue
-            if any_checked:
+                    checked = False
+                state.append((r, checked))
+            return tuple(state)
+        except Exception:
+            return tuple()
+
+    def _update_apply_blink_state(self):
+        """
+        Blink Apply Grain button only when there are UNSAVED changes in grain checkboxes
+        compared to the last-applied snapshot.
+        """
+        try:
+            current = self._get_current_grain_state()
+
+            # If we have never applied yet:
+            # - blink if any checkbox is checked (user is making a selection)
+            if self._last_applied_grain_state is None:
+                any_checked = any(chk for (_, chk) in current)
+                if any_checked:
+                    self._start_apply_blink()
+                else:
+                    self._stop_apply_blink()
+                return
+
+            # After we have applied:
+            # - blink only if state differs from the last applied snapshot
+            is_dirty = (current != self._last_applied_grain_state)
+            if is_dirty:
                 self._start_apply_blink()
             else:
                 self._stop_apply_blink()
+
         except Exception:
             App.Console.PrintError("Failed to update apply blink state:\n" + traceback.format_exc())
 
@@ -544,6 +575,13 @@ class GrainUIController:
                     subset_names=[],
                     custom_label="Parts with grain direction"
                 )
+                
+            # After successful apply/layout update, record snapshot and stop blinking
+            try:
+                self._last_applied_grain_state = self._get_current_grain_state()
+                self._stop_apply_blink()
+            except Exception:
+                pass
 
         except Exception:
             App.Console.PrintError("update_grain_layout_and_perimeters failed:\n" + traceback.format_exc())
