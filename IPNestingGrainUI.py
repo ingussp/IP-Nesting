@@ -445,6 +445,34 @@ class GrainUIController:
                     except Exception:
                         continue
 
+            # --- NEW: Re-pack STANDARD (red) group too, so red parts compact after moving items back ---
+            # Keep the red group's current TOP as an anchor so it doesn't jump around.
+            red_anchor_y = None
+            try:
+                red_found0, _, _, _, red_max_y0 = _bbox_for_names(standard_parts)
+                if red_found0:
+                    red_anchor_y = float(red_max_y0)
+            except Exception:
+                red_anchor_y = None
+
+            if standard_parts:
+                try:
+                    target_y_red = red_anchor_y if red_anchor_y is not None else 0.0
+                    GrainPreparer.pack_grain_parts(
+                        self.panel.preview_doc_name,
+                        standard_parts,
+                        target_x=0.0,
+                        target_y=target_y_red
+                    )
+                except TypeError:
+                    # Backward compat if pack_grain_parts signature differs
+                    try:
+                        GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, standard_parts)
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
+            
             # 1) Pack grain parts to temporary location y=0 (stable bbox)
             if grain_parts:
                 try:
@@ -463,7 +491,7 @@ class GrainUIController:
                 blue_h = max(1e-6, float(blue_max_y - blue_min_y))
 
                 # Keep original factor (0.10) unless you intentionally want larger spacing.
-                gap = 0.30 * blue_h
+                gap = max(300.0, 0.30 * blue_h)
 
                 red_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=standard_parts)
                 blue_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=grain_parts)
