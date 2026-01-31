@@ -443,15 +443,128 @@ class NestingTaskPanel:
                                 target = p
                                 break
 
-                    new_obj = p_doc.copyObject(target, False)
-                    new_obj.Label = target.Label
+                    # Prefer stable preview geometry for PartDesign::Body: use Tip.Shape as Part::Feature
+                    new_obj = None
+                    try:
+                        if getattr(target, "TypeId", "") == "PartDesign::Body":
+                            tip = getattr(target, "Tip", None)
+                            tip_shape = getattr(tip, "Shape", None) if tip else None
+
+                            if tip_shape is not None:
+                                new_obj = p_doc.addObject("Part::Feature", "PreviewShape")
+                                new_obj.Label = target.Label
+                                new_obj.Shape = tip_shape.copy()
+                            else:
+                                # fallback to copying if Tip.Shape not available
+                                new_obj = p_doc.copyObject(target, False)
+                                new_obj.Label = target.Label
+                        else:
+                            new_obj = p_doc.copyObject(target, False)
+                            new_obj.Label = target.Label
+                    except Exception:
+                        # final fallback
+                        try:
+                            new_obj = p_doc.copyObject(target, False)
+                            new_obj.Label = target.Label
+                        except Exception:
+                            new_obj = None
+
+                    if new_obj is None:
+                        App.Console.PrintError("Failed to create preview object for '%s'\n" % getattr(target, "Label", "<unknown>"))
+                        continue
+                    
+                    # --- FIX: PartDesign::Body in preview may have invalid Shape/BoundBox; use Tip.Shape as fallback ---
+                    try:
+                        p_doc.recompute()
+                    except Exception:
+                        pass
+
+                    def _bbox_is_valid(bb):
+                        try:
+                            # valid bbox must have positive extents in XY at least
+                            return (bb.XMax > bb.XMin) and (bb.YMax > bb.YMin)
+                        except Exception:
+                            return False
+
+                    try:
+                        if getattr(new_obj, "TypeId", "") == "PartDesign::Body":
+                            shp = getattr(new_obj, "Shape", None)
+                            bb = shp.BoundBox if shp else None
+
+                            if (shp is None) or (bb is None) or (not _bbox_is_valid(bb)):
+                                tip = getattr(new_obj, "Tip", None)
+                                tip_shape = getattr(tip, "Shape", None) if tip else None
+
+                                if tip_shape is not None:
+                                    feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
+                                    feat.Label = new_obj.Label
+                                    feat.Shape = tip_shape.copy()
+
+                                    # Hide the broken Body container copy (optional, but keeps preview clean)
+                                    try:
+                                        new_obj.ViewObject.Visibility = False
+                                    except Exception:
+                                        pass
+
+                                    # IMPORTANT: from now on treat this Part::Feature as the preview object
+                                    new_obj = feat
+
+                                    try:
+                                        p_doc.recompute()
+                                    except Exception:
+                                        pass
+                    except Exception:
+                        pass
+                    # --- end fix ---
 
                     alignment_rot = self.align_to_largest_face(new_obj)
                     new_obj.Placement = App.Placement(App.Vector(0, 0, 0), alignment_rot)
-
+                    
                     p_doc.recompute()
 
                     bbox = new_obj.Shape.BoundBox
+
+                    # FIX: if bbox invalid, create a stable Part::Feature from Body.Tip.Shape and use it for layout/preview
+                    try:
+                        if not (bbox.XMax > bbox.XMin and bbox.YMax > bbox.YMin):
+                            # only try fallback for PartDesign::Body
+                            if getattr(new_obj, "TypeId", "") == "PartDesign::Body":
+                                App.Console.PrintMessage("add_selected_objects: invalid bbox for %s; trying Tip.Shape fallback\n" % new_obj.Name)
+
+                                tip = getattr(new_obj, "Tip", None)
+                                tip_shape = getattr(tip, "Shape", None) if tip else None
+
+                                if tip_shape is not None:
+                                    feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
+                                    feat.Label = new_obj.Label
+                                    feat.Shape = tip_shape
+
+                                    # hide broken body copy
+                                    try:
+                                        new_obj.ViewObject.Visibility = False
+                                    except Exception:
+                                        pass
+
+                                    # switch to the new stable preview object
+                                    new_obj = feat
+
+                                    try:
+                                        p_doc.recompute()
+                                    except Exception:
+                                        pass
+
+                                    bbox = new_obj.Shape.BoundBox  # refresh bbox after fallback
+
+                            # If still invalid after fallback -> skip placement safely
+                            if not (bbox.XMax > bbox.XMin and bbox.YMax > bbox.YMin):
+                                App.Console.PrintMessage(
+                                    "add_selected_objects: still invalid bbox for %s (%s); skipping grid placement\n" %
+                                    (getattr(new_obj, "Name", "<unknown>"), getattr(new_obj, "TypeId", ""))
+                                )
+                                continue
+                    except Exception:
+                        continue
+                        
                     part_w = bbox.XMax - bbox.XMin
                     part_h = bbox.YMax - bbox.YMin
 
@@ -459,7 +572,7 @@ class NestingTaskPanel:
                         current_x = 0.0
                         current_y += max_row_height + padding
                         max_row_height = 0.0
-
+                    
                     offset_x = -bbox.XMin
                     offset_y = -bbox.YMin
                     offset_z = -bbox.ZMin
@@ -711,6 +824,11 @@ class NestingTaskPanel:
                 for i in range(desired - current_count):
                     try:
                         new_obj = p_doc.copyObject(base_obj, False)
+                    except Exception:
+                        pass
+                    try:
+                        bb = new_obj.Shape.BoundBox
+                    except Exception as e:
                         try:
                             new_obj.Label = base_obj.Label
                         except Exception:

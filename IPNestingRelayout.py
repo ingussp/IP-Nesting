@@ -175,6 +175,13 @@ class NestingRelayoutManager:
                     # bounding box
                     try:
                         bb = o.Shape.BoundBox
+                        # Skip objects with invalid bbox to avoid inf placements
+                        try:
+                            if not (bb.XMax > bb.XMin and bb.YMax > bb.YMin):
+                                App.Console.PrintMessage("relayout_preview: skipping invalid bbox for %s\n" % getattr(o, "Name", "<unknown>"))
+                                continue
+                        except Exception:
+                            continue
                         part_w = bb.XMax - bb.XMin
                         part_h = bb.YMax - bb.YMin
                     except Exception:
