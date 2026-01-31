@@ -431,7 +431,7 @@ class NestingTaskPanel:
         Returns:
             A new independent Shape or the original shape if serialization fails
         """
-        temp_step_file = None
+        temp_step_path = None
         try:
             # Create temporary STEP file
             temp_step_file = tempfile.NamedTemporaryFile(suffix=".step", delete=False)
@@ -456,7 +456,7 @@ class NestingTaskPanel:
             
         finally:
             # Clean up temporary file
-            if temp_step_file is not None:
+            if temp_step_path is not None:
                 try:
                     os.unlink(temp_step_path)
                 except Exception:
@@ -576,8 +576,8 @@ class NestingTaskPanel:
                     try:
                         _ = new_obj.Shape.BoundBox
                         _ = new_obj.Shape.Volume
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        App.Console.PrintWarning(f"Failed to access shape properties for hash validation: {e}\n")
 
                     bbox = new_obj.Shape.BoundBox
 
