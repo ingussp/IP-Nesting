@@ -459,8 +459,8 @@ class NestingTaskPanel:
             if temp_step_path is not None:
                 try:
                     os.unlink(temp_step_path)
-                except Exception:
-                    pass
+                except Exception as e:
+                    App.Console.PrintWarning(f"Failed to clean up temporary STEP file {temp_step_path}: {e}\n")
 
     def add_selected_objects(self):
         selection = Gui.Selection.getSelection()
