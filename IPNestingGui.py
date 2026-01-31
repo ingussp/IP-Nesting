@@ -502,18 +502,39 @@ class NestingTaskPanel:
                                 new_obj = p_doc.addObject("Part::Feature", "PreviewShape")
                                 new_obj.Label = target.Label
                                 new_obj.Shape = clean_shape
+                                App.Console.PrintMessage(
+                                    "add_selected_objects: Created Part::Feature (not Body) from Tip.Shape for '%s'\n" % target.Label
+                                )
                             else:
-                                # fallback to copying if Tip.Shape not available
-                                new_obj = p_doc.copyObject(target, False)
-                                new_obj.Label = target.Label
+                                # Fallback: try Body.Shape directly (NEVER use copyObject for Body)
+                                body_shape = getattr(target, "Shape", None)
+                                if body_shape is not None:
+                                    clean_shape = self._serialize_shape_to_avoid_hash_issues(body_shape)
+                                    new_obj = p_doc.addObject("Part::Feature", "PreviewShape")
+                                    new_obj.Label = target.Label
+                                    new_obj.Shape = clean_shape
+                                    App.Console.PrintMessage(
+                                        "add_selected_objects: Created Part::Feature (not Body) from Body.Shape for '%s'\n" % target.Label
+                                    )
+                                else:
+                                    App.Console.PrintError(
+                                        "add_selected_objects: Failed to extract shape from Body '%s' (no Tip.Shape or Body.Shape)\n" % target.Label
+                                    )
+                                    new_obj = None
                         else:
                             new_obj = p_doc.copyObject(target, False)
                             new_obj.Label = target.Label
-                    except Exception:
-                        # final fallback
+                    except Exception as e:
+                        # final fallback - but NEVER use copyObject for PartDesign::Body
                         try:
-                            new_obj = p_doc.copyObject(target, False)
-                            new_obj.Label = target.Label
+                            if getattr(target, "TypeId", "") == "PartDesign::Body":
+                                App.Console.PrintError(
+                                    "add_selected_objects: Exception handling Body '%s': %s\n" % (target.Label, str(e))
+                                )
+                                new_obj = None
+                            else:
+                                new_obj = p_doc.copyObject(target, False)
+                                new_obj.Label = target.Label
                         except Exception:
                             new_obj = None
 
@@ -536,6 +557,10 @@ class NestingTaskPanel:
 
                     try:
                         if getattr(new_obj, "TypeId", "") == "PartDesign::Body":
+                            # NOTE: This should not happen with the improved logic above, but kept as safety measure
+                            App.Console.PrintWarning(
+                                "add_selected_objects: Unexpected PartDesign::Body in preview doc '%s'; fixing\n" % new_obj.Name
+                            )
                             shp = getattr(new_obj, "Shape", None)
                             bb = shp.BoundBox if shp else None
 
@@ -549,6 +574,9 @@ class NestingTaskPanel:
                                     feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
                                     feat.Label = new_obj.Label
                                     feat.Shape = clean_shape
+                                    App.Console.PrintMessage(
+                                        "add_selected_objects: Replaced broken Body with Part::Feature from Tip.Shape for '%s'\n" % new_obj.Label
+                                    )
 
                                     # Hide the broken Body container copy (optional, but keeps preview clean)
                                     try:
@@ -563,6 +591,30 @@ class NestingTaskPanel:
                                         p_doc.recompute()
                                     except Exception:
                                         pass
+                                else:
+                                    # Try Body.Shape as fallback
+                                    body_shape = getattr(new_obj, "Shape", None)
+                                    if body_shape is not None:
+                                        clean_shape = self._serialize_shape_to_avoid_hash_issues(body_shape)
+                                        feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
+                                        feat.Label = new_obj.Label
+                                        feat.Shape = clean_shape
+                                        App.Console.PrintMessage(
+                                            "add_selected_objects: Replaced broken Body with Part::Feature from Body.Shape for '%s'\n" % new_obj.Label
+                                        )
+
+                                        # Hide the broken Body container copy
+                                        try:
+                                            new_obj.ViewObject.Visibility = False
+                                        except Exception:
+                                            pass
+
+                                        new_obj = feat
+
+                                        try:
+                                            p_doc.recompute()
+                                        except Exception:
+                                            pass
                     except Exception:
                         pass
                     # --- end fix ---
@@ -597,6 +649,9 @@ class NestingTaskPanel:
                                     feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
                                     feat.Label = new_obj.Label
                                     feat.Shape = clean_shape
+                                    App.Console.PrintMessage(
+                                        "add_selected_objects: Replaced invalid bbox Body with Part::Feature from Tip.Shape for '%s'\n" % new_obj.Label
+                                    )
 
                                     # hide broken body copy
                                     try:
@@ -613,6 +668,32 @@ class NestingTaskPanel:
                                         pass
 
                                     bbox = new_obj.Shape.BoundBox  # refresh bbox after fallback
+                                else:
+                                    # Try Body.Shape as fallback
+                                    body_shape = getattr(new_obj, "Shape", None)
+                                    if body_shape is not None:
+                                        clean_shape = self._serialize_shape_to_avoid_hash_issues(body_shape)
+                                        feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
+                                        feat.Label = new_obj.Label
+                                        feat.Shape = clean_shape
+                                        App.Console.PrintMessage(
+                                            "add_selected_objects: Replaced invalid bbox Body with Part::Feature from Body.Shape for '%s'\n" % new_obj.Label
+                                        )
+
+                                        # hide broken body copy
+                                        try:
+                                            new_obj.ViewObject.Visibility = False
+                                        except Exception:
+                                            pass
+
+                                        new_obj = feat
+
+                                        try:
+                                            p_doc.recompute()
+                                        except Exception:
+                                            pass
+
+                                        bbox = new_obj.Shape.BoundBox  # refresh bbox after fallback
 
                             # If still invalid after fallback -> skip placement safely
                             if not (bbox.XMax > bbox.XMin and bbox.YMax > bbox.YMin):
