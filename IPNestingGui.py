@@ -10,6 +10,8 @@ import math
 import traceback
 import time
 import re
+import tempfile
+import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
 from IPNestingExport import execute_nesting as execute_nesting_impl
@@ -416,6 +418,50 @@ class NestingTaskPanel:
         """Delete preview objects - delegates to preview manager."""
         return self._preview.delete_preview_objects(names)
 
+    def _serialize_shape_to_avoid_hash_issues(self, shape):
+        """
+        Serialize shape to STEP and re-import to break hash chain.
+        
+        This prevents "hasher mismatch" errors when copying PartDesign::Body
+        objects by fully serializing the geometry through STEP format.
+        
+        Args:
+            shape: The shape to serialize
+            
+        Returns:
+            A new independent Shape or the original shape if serialization fails
+        """
+        temp_step_path = None
+        try:
+            # Create temporary STEP file
+            temp_step_file = tempfile.NamedTemporaryFile(suffix=".step", delete=False)
+            temp_step_path = temp_step_file.name
+            temp_step_file.close()
+            
+            # Export shape to STEP
+            App.Console.PrintMessage(f"Serializing shape via STEP to avoid hash issues: {temp_step_path}\n")
+            shape.exportStep(temp_step_path)
+            
+            # Re-import from STEP to get clean, independent shape
+            imported_shape = Part.Shape()
+            imported_shape.read(temp_step_path)
+            
+            App.Console.PrintMessage("Shape successfully serialized and re-imported\n")
+            return imported_shape
+            
+        except Exception as e:
+            App.Console.PrintWarning(f"Shape serialization failed, using direct copy: {e}\n")
+            # Fallback to direct copy if serialization fails
+            return shape.copy()
+            
+        finally:
+            # Clean up temporary file
+            if temp_step_path is not None:
+                try:
+                    os.unlink(temp_step_path)
+                except Exception as e:
+                    App.Console.PrintWarning(f"Failed to clean up temporary STEP file {temp_step_path}: {e}\n")
+
     def add_selected_objects(self):
         selection = Gui.Selection.getSelection()
         if not selection:
@@ -451,9 +497,11 @@ class NestingTaskPanel:
                             tip_shape = getattr(tip, "Shape", None) if tip else None
 
                             if tip_shape is not None:
+                                # Serialize shape to avoid hash mismatch issues
+                                clean_shape = self._serialize_shape_to_avoid_hash_issues(tip_shape)
                                 new_obj = p_doc.addObject("Part::Feature", "PreviewShape")
                                 new_obj.Label = target.Label
-                                new_obj.Shape = tip_shape.copy()
+                                new_obj.Shape = clean_shape
                             else:
                                 # fallback to copying if Tip.Shape not available
                                 new_obj = p_doc.copyObject(target, False)
@@ -496,9 +544,11 @@ class NestingTaskPanel:
                                 tip_shape = getattr(tip, "Shape", None) if tip else None
 
                                 if tip_shape is not None:
+                                    # Serialize shape to avoid hash mismatch issues
+                                    clean_shape = self._serialize_shape_to_avoid_hash_issues(tip_shape)
                                     feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
                                     feat.Label = new_obj.Label
-                                    feat.Shape = tip_shape.copy()
+                                    feat.Shape = clean_shape
 
                                     # Hide the broken Body container copy (optional, but keeps preview clean)
                                     try:
@@ -522,6 +572,13 @@ class NestingTaskPanel:
                     
                     p_doc.recompute()
 
+                    # Access Shape properties to trigger hash recomputation and validate stability
+                    try:
+                        _ = new_obj.Shape.BoundBox
+                        _ = new_obj.Shape.Volume
+                    except Exception as e:
+                        App.Console.PrintWarning(f"Failed to access shape properties for hash validation: {e}\n")
+
                     bbox = new_obj.Shape.BoundBox
 
                     # FIX: if bbox invalid, create a stable Part::Feature from Body.Tip.Shape and use it for layout/preview
@@ -535,9 +592,11 @@ class NestingTaskPanel:
                                 tip_shape = getattr(tip, "Shape", None) if tip else None
 
                                 if tip_shape is not None:
+                                    # Serialize shape to avoid hash mismatch issues
+                                    clean_shape = self._serialize_shape_to_avoid_hash_issues(tip_shape)
                                     feat = p_doc.addObject("Part::Feature", "PreviewShape_" + new_obj.Name)
                                     feat.Label = new_obj.Label
-                                    feat.Shape = tip_shape
+                                    feat.Shape = clean_shape
 
                                     # hide broken body copy
                                     try:
