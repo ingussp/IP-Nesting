@@ -518,7 +518,8 @@ class NestingTaskPanel:
                                     )
                                 else:
                                     App.Console.PrintError(
-                                        "add_selected_objects: Failed to extract shape from Body '%s' (no Tip.Shape or Body.Shape)\n" % target.Label
+                                        "add_selected_objects: Failed to extract shape from Body '%s' (no Tip.Shape or Body.Shape available). "
+                                        "Please verify the Body contains valid features.\n" % target.Label
                                     )
                                     new_obj = None
                         else:
@@ -558,6 +559,7 @@ class NestingTaskPanel:
                     try:
                         if getattr(new_obj, "TypeId", "") == "PartDesign::Body":
                             # NOTE: This should not happen with the improved logic above, but kept as safety measure
+                            # for edge cases like exceptions during initial object creation or external code creating Bodies
                             App.Console.PrintWarning(
                                 "add_selected_objects: Unexpected PartDesign::Body in preview doc '%s'; fixing\n" % new_obj.Name
                             )
