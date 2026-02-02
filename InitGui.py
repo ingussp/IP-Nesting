@@ -41,7 +41,7 @@ class IPNestingWorkbench(Workbench):
 class RunNestingCommand:
     def GetResources(self):
         # Path to your custom png icon
-        icon_path = os.path.join(App.getUserAppDataDir(), "Mod", "IPNesting", "nesting_icon.png")
+        icon_path = os.path.join(App.getUserAppDataDir(), "Mod", "IP-Nesting", "nesting_icon.png")
         
         return {
             'MenuText': 'Nesting Tool',

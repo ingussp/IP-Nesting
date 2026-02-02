@@ -17,6 +17,7 @@ from functools import partial
 from IPNestingExport import execute_nesting as execute_nesting_impl
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
+from IPNestingGrainAngleDialog import GrainAngleDialog
 
 try:
     from IPNestingRotate import NestingRotator
@@ -67,6 +68,11 @@ class NestingTaskPanel:
 
         def addSelection(self, doc, obj, sub, pos=None):
             try:
+                # Te liec savu GrainArrow loģiku
+                if doc == self.panel.preview_doc_name and isinstance(obj, str) and obj.startswith("GrainArrow_"):
+                    self.panel._open_grain_angle_dialog_for_selected_arrows()
+                    return
+            
                 if not self._panel_table_alive():
                     return
                 if getattr(self.panel, "_suppress_selection_update", False):
@@ -253,6 +259,7 @@ class NestingTaskPanel:
         self.run_btn.setStyleSheet("background-color: #CF3519; color: white; font-weight: bold; height: 35px;")
         self.run_btn.clicked.connect(self.execute_nesting)
         self.layout.addWidget(self.run_btn)
+        self._grain_angle_dialog_open = False
 
         try:
             self._selection_observer = NestingTaskPanel._SelectionObserver(self)
@@ -1371,3 +1378,159 @@ class NestingTaskPanel:
 
     def getStandardButtons(self):
         return int(QtGui.QDialogButtonBox.Cancel)
+        
+    def _open_grain_angle_dialog_for_selected_arrows(self):
+        try:
+            App.Console.PrintMessage("\n[IPNesting][DEBUG] _open_grain_angle_dialog_for_selected_arrows: ENTER\n")
+            try:
+                App.Console.PrintMessage("[IPNesting][DEBUG] _grain_angle_dialog_open=%r\n" % getattr(self, "_grain_angle_dialog_open", None))
+            except Exception:
+                pass
+
+            if getattr(self, "_grain_angle_dialog_open", False):
+                App.Console.PrintMessage("[IPNesting][DEBUG] Dialog already open -> RETURN\n")
+                return
+
+            self._grain_angle_dialog_open = True
+            App.Console.PrintMessage("[IPNesting][DEBUG] Set _grain_angle_dialog_open=True\n")
+
+            # doc check
+            try:
+                App.Console.PrintMessage("[IPNesting][DEBUG] preview_doc_name=%r\n" % self.preview_doc_name)
+                App.Console.PrintMessage("[IPNesting][DEBUG] App.listDocuments()=%r\n" % list(App.listDocuments().keys()))
+            except Exception:
+                pass
+
+            if self.preview_doc_name not in App.listDocuments():
+                App.Console.PrintMessage("[IPNesting][DEBUG] preview doc not in listDocuments -> RETURN\n")
+                return
+
+            p_doc = App.getDocument(self.preview_doc_name)
+            App.Console.PrintMessage("[IPNesting][DEBUG] p_doc=%r\n" % p_doc)
+
+            # dump SelectionEx
+            sel_ex = Gui.Selection.getSelectionEx()
+            App.Console.PrintMessage("[IPNesting][DEBUG] SelectionEx count=%d\n" % len(sel_ex))
+
+            arrow_objs = []
+            for i, ex in enumerate(sel_ex):
+                try:
+                    dname = ex.Doc.Name if getattr(ex, "Doc", None) else None
+                except Exception:
+                    dname = "<err>"
+                try:
+                    o = ex.Object
+                except Exception:
+                    o = None
+
+                App.Console.PrintMessage("[IPNesting][DEBUG]  ex[%d].Doc=%r ex[%d].Object=%r\n" % (i, dname, i, o))
+                if not o:
+                    continue
+
+                nm = getattr(o, "Name", None)
+                lbl = getattr(o, "Label", None)
+                tid = getattr(o, "TypeId", None)
+                App.Console.PrintMessage("[IPNesting][DEBUG]   obj Name=%r Label=%r TypeId=%r\n" % (nm, lbl, tid))
+
+                if isinstance(nm, str) and nm.startswith("GrainArrow_"):
+                    arrow_objs.append(o)
+
+            App.Console.PrintMessage("[IPNesting][DEBUG] arrow_objs found=%d\n" % len(arrow_objs))
+            if not arrow_objs:
+                App.Console.PrintMessage("[IPNesting][DEBUG] No arrow objs in SelectionEx -> RETURN\n")
+                return
+
+            # Prepare list for dialog
+            part_labels = []
+            for ao in arrow_objs:
+                try:
+                    arrow_name = getattr(ao, "Name", "") or ""
+                    arrow_label = getattr(ao, "Label", "") or ""
+
+                    part_label = "<unknown part>"
+                    if arrow_name.startswith("GrainArrow_"):
+                        part_name = arrow_name[len("GrainArrow_"):]
+                        part_obj = p_doc.getObject(part_name) if p_doc else None
+                        if part_obj:
+                            part_label = getattr(part_obj, "Label", "") or getattr(part_obj, "Name", part_name)
+
+                    # vēlamais formāts: "Neregulāra detaļa | GrainArrow_Neregulāra detaļa"
+                    part_labels.append("%s | %s" % (part_label, arrow_label))
+                except Exception:
+                    part_labels.append(str(ao))
+
+            parent = QtGui.QApplication.activeWindow()
+
+            dlg = GrainAngleDialog(parent=parent, part_labels=part_labels, initial_angle=0)
+            res = dlg.exec_()
+
+            # NOTE: for now do nothing else
+
+        except Exception:
+            App.Console.PrintError("[IPNesting][DEBUG] _open_grain_angle_dialog_for_selected_arrows FAILED:\n" + traceback.format_exc())
+        finally:
+            try:
+                self._grain_angle_dialog_open = False
+                App.Console.PrintMessage("[IPNesting][DEBUG] Set _grain_angle_dialog_open=False (finally)\n")
+            except Exception:
+                pass
+            
+    def _rotate_preview_parts_about_z(self, p_doc, part_names, delta_deg):
+        try:
+            axis = App.Vector(0, 0, 1)
+            rot = App.Rotation(axis, float(delta_deg))
+
+            for nm in part_names or []:
+                try:
+                    o = p_doc.getObject(nm)
+                    if not o or not hasattr(o, "Shape") or o.Shape is None:
+                        continue
+
+                    bb = o.Shape.BoundBox
+                    cx = 0.5 * (bb.XMin + bb.XMax)
+                    cy = 0.5 * (bb.YMin + bb.YMax)
+                    cz = 0.5 * (bb.ZMin + bb.ZMax)
+                    center = App.Vector(cx, cy, cz)
+
+                    P_move = App.Placement(App.Vector(-center.x, -center.y, -center.z), App.Rotation())
+                    P_rot = App.Placement(App.Vector(0, 0, 0), rot)
+                    P_back = App.Placement(center, App.Rotation())
+
+                    new_pl = P_back.multiply(P_rot.multiply(P_move.multiply(o.Placement)))
+                    o.Placement = new_pl
+                except Exception:
+                    continue
+
+            try:
+                p_doc.recompute()
+            except Exception:
+                pass
+
+            # pēc rotācijas pārkārtošanu var gribēt:
+            # self.update_grain_layout_and_perimeters()
+        except Exception:
+            App.Console.PrintError("_rotate_preview_parts_about_z failed:\n" + traceback.format_exc())
+            
+    def _redraw_grain_arrows_for_parts(self, part_names):
+        try:
+            if GrainPreparer is None:
+                return
+            if self.preview_doc_name not in App.listDocuments():
+                return
+            p_doc = App.getDocument(self.preview_doc_name)
+            if not p_doc:
+                return
+
+            for nm in part_names or []:
+                try:
+                    o = p_doc.getObject(nm)
+                    if not o:
+                        continue
+
+                    # Te vajag "current grain angle" – minimāli var paņemt no objekta Placement
+                    # un bultu zīmēt pēc objekta rotācijas (skat. 3.2)
+                    GrainPreparer.update_grain_arrow(self.preview_doc_name, nm, enable=True, axis='X')
+                except Exception:
+                    continue
+        except Exception:
+            App.Console.PrintError("_redraw_grain_arrows_for_parts failed:\n" + traceback.format_exc())
