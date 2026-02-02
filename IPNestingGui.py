@@ -68,11 +68,6 @@ class NestingTaskPanel:
 
         def addSelection(self, doc, obj, sub, pos=None):
             try:
-                # Te liec savu GrainArrow loģiku
-                if doc == self.panel.preview_doc_name and isinstance(obj, str) and obj.startswith("GrainArrow_"):
-                    self.panel._open_grain_angle_dialog_for_selected_arrows()
-                    return
-            
                 if not self._panel_table_alive():
                     return
                 if getattr(self.panel, "_suppress_selection_update", False):
@@ -396,7 +391,15 @@ class NestingTaskPanel:
             self.bulk_grain_apply_btn = QtGui.QPushButton("Apply Grain")
             self.bulk_grain_apply_btn.setFixedWidth(100)
             self.bulk_grain_apply_btn.clicked.connect(self.apply_change_grain)
+            self.set_angle_btn = QtGui.QPushButton("Set angle")
+            self.set_angle_btn.setToolTip("Set grain angle for selected GrainArrow objects")
             hbot.addWidget(self.bulk_grain_apply_btn)
+            hbot.addWidget(self.set_angle_btn)
+            
+            try:
+                self.set_angle_btn.clicked.connect(self._on_set_angle_clicked)
+            except Exception:
+                pass
 
             hbot.addStretch()
 
@@ -409,6 +412,27 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("Failed to create control rows:\n" + traceback.format_exc())
 
+    def _on_set_angle_clicked(self):
+        try:
+            # optional: ja nav atlasīta neviena bulta -> paziņojums
+            sel_ex = Gui.Selection.getSelectionEx()
+            arrow_count = 0
+            for ex in sel_ex:
+                try:
+                    o = ex.Object
+                    if o and isinstance(getattr(o, "Name", ""), str) and o.Name.startswith("GrainArrow_"):
+                        arrow_count += 1
+                except Exception:
+                    continue
+
+            if arrow_count == 0:
+                QtGui.QMessageBox.information(None, "Set angle", "Select one or more GrainArrow objects first.")
+                return
+
+            self._open_grain_angle_dialog_for_selected_arrows()
+        except Exception:
+            App.Console.PrintError("_on_set_angle_clicked failed:\n" + traceback.format_exc())
+    
     def _on_bulk_grain_changed(self, index):
         """When bulk grain combobox changes - delegates to grain controller."""
         self._grain._on_bulk_grain_changed(index)
@@ -1381,36 +1405,19 @@ class NestingTaskPanel:
         
     def _open_grain_angle_dialog_for_selected_arrows(self):
         try:
-            App.Console.PrintMessage("\n[IPNesting][DEBUG] _open_grain_angle_dialog_for_selected_arrows: ENTER\n")
-            try:
-                App.Console.PrintMessage("[IPNesting][DEBUG] _grain_angle_dialog_open=%r\n" % getattr(self, "_grain_angle_dialog_open", None))
-            except Exception:
-                pass
 
             if getattr(self, "_grain_angle_dialog_open", False):
-                App.Console.PrintMessage("[IPNesting][DEBUG] Dialog already open -> RETURN\n")
                 return
 
             self._grain_angle_dialog_open = True
-            App.Console.PrintMessage("[IPNesting][DEBUG] Set _grain_angle_dialog_open=True\n")
-
-            # doc check
-            try:
-                App.Console.PrintMessage("[IPNesting][DEBUG] preview_doc_name=%r\n" % self.preview_doc_name)
-                App.Console.PrintMessage("[IPNesting][DEBUG] App.listDocuments()=%r\n" % list(App.listDocuments().keys()))
-            except Exception:
-                pass
 
             if self.preview_doc_name not in App.listDocuments():
-                App.Console.PrintMessage("[IPNesting][DEBUG] preview doc not in listDocuments -> RETURN\n")
                 return
 
             p_doc = App.getDocument(self.preview_doc_name)
-            App.Console.PrintMessage("[IPNesting][DEBUG] p_doc=%r\n" % p_doc)
 
             # dump SelectionEx
             sel_ex = Gui.Selection.getSelectionEx()
-            App.Console.PrintMessage("[IPNesting][DEBUG] SelectionEx count=%d\n" % len(sel_ex))
 
             arrow_objs = []
             for i, ex in enumerate(sel_ex):
@@ -1423,21 +1430,17 @@ class NestingTaskPanel:
                 except Exception:
                     o = None
 
-                App.Console.PrintMessage("[IPNesting][DEBUG]  ex[%d].Doc=%r ex[%d].Object=%r\n" % (i, dname, i, o))
                 if not o:
                     continue
 
                 nm = getattr(o, "Name", None)
                 lbl = getattr(o, "Label", None)
                 tid = getattr(o, "TypeId", None)
-                App.Console.PrintMessage("[IPNesting][DEBUG]   obj Name=%r Label=%r TypeId=%r\n" % (nm, lbl, tid))
 
                 if isinstance(nm, str) and nm.startswith("GrainArrow_"):
                     arrow_objs.append(o)
 
-            App.Console.PrintMessage("[IPNesting][DEBUG] arrow_objs found=%d\n" % len(arrow_objs))
             if not arrow_objs:
-                App.Console.PrintMessage("[IPNesting][DEBUG] No arrow objs in SelectionEx -> RETURN\n")
                 return
 
             # Prepare list for dialog
@@ -1454,8 +1457,7 @@ class NestingTaskPanel:
                         if part_obj:
                             part_label = getattr(part_obj, "Label", "") or getattr(part_obj, "Name", part_name)
 
-                    # vēlamais formāts: "Neregulāra detaļa | GrainArrow_Neregulāra detaļa"
-                    part_labels.append("%s | %s" % (part_label, arrow_label))
+                    part_labels.append("%s " % (part_label))
                 except Exception:
                     part_labels.append(str(ao))
 
