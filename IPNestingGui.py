@@ -1441,9 +1441,45 @@ class NestingTaskPanel:
 
                 if isinstance(nm, str) and nm.startswith("GrainArrow_"):
                     arrow_objs.append(o)
-
+            
             if not arrow_objs:
                 return
+                
+            arrow_names = []
+            for ao in arrow_objs:
+                try:
+                    nm = getattr(ao, "Name", None)
+                    if isinstance(nm, str) and nm.startswith("GrainArrow_"):
+                        arrow_names.append(nm)
+                except Exception:
+                    pass
+
+            if not arrow_names:
+                return
+                
+            initial_placements = {}
+            for nm in arrow_names:
+                try:
+                    o = p_doc.getObject(nm)
+                    if o:
+                        initial_placements[nm] = o.Placement
+                except Exception:
+                    pass
+                    
+            pivot_centers = {}
+            for nm in arrow_names:
+                try:
+                    o = p_doc.getObject(nm)
+                    if not o or not hasattr(o, "Shape") or o.Shape is None:
+                        continue
+                    bb = o.Shape.BoundBox
+                    pivot_centers[nm] = App.Vector(
+                        0.5 * (bb.XMin + bb.XMax),
+                        0.5 * (bb.YMin + bb.YMax),
+                        0.5 * (bb.ZMin + bb.ZMax),
+                    )
+                except Exception:
+                    pass       
 
             # Prepare list for dialog
             part_labels = []
@@ -1464,9 +1500,68 @@ class NestingTaskPanel:
                     part_labels.append(str(ao))
 
             parent = QtGui.QApplication.activeWindow()
+            def _apply_angle_to_arrows(angle_deg):
+                try:
+                    angle_deg = int(angle_deg) % 360
+                except Exception:
+                    angle_deg = 0
 
+                axis = App.Vector(0, 0, 1)
+                rotZ = App.Rotation(axis, float(angle_deg))
+
+                for nm in arrow_names:
+                    try:
+                        o = p_doc.getObject(nm)
+                        if not o:
+                            continue
+
+                        # start from original placement (prevents drift)
+                        base_pl = initial_placements.get(nm, o.Placement)
+
+                        
+                        center = pivot_centers.get(nm)
+                        if center is None:
+                            continue
+                        base_pl = initial_placements.get(nm)
+                        if base_pl is None:
+                            continue
+
+                        P_move = App.Placement(App.Vector(-center.x, -center.y, -center.z), App.Rotation())
+                        P_rot  = App.Placement(App.Vector(0, 0, 0), rotZ)
+                        P_back = App.Placement(center, App.Rotation())
+
+                        # apply around center, based on base placement
+                        o.Placement = P_back.multiply(P_rot.multiply(P_move.multiply(base_pl)))
+                    except Exception:
+                        continue
+
+                # IMPORTANT: parasti NEVAJAG p_doc.recompute() katrā grādā (tas būs lēni)
+                try:
+                    Gui.updateGui()
+                except Exception:
+                    pass
             dlg = GrainAngleDialog(parent=parent, part_labels=part_labels, initial_angle=0)
+            try:
+                dlg.angleChanged.connect(_apply_angle_to_arrows)
+            except Exception:
+                pass
             res = dlg.exec_()
+            try:
+                if res != QtGui.QDialog.Accepted:
+                    # restore original placements on cancel/close
+                    for nm, pl in initial_placements.items():
+                        try:
+                            o = p_doc.getObject(nm)
+                            if o:
+                                o.Placement = pl
+                        except Exception:
+                            pass
+                    try:
+                        Gui.updateGui()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
             # NOTE: for now do nothing else
 

@@ -2,6 +2,7 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 
 class GrainAngleDialog(QtGui.QDialog):
+    angleChanged = QtCore.Signal(int)
     def __init__(self, parent=None, part_labels=None, initial_angle=0):
         super(GrainAngleDialog, self).__init__(parent)
         self.setWindowTitle("Grain angle")
@@ -49,6 +50,10 @@ class GrainAngleDialog(QtGui.QDialog):
                 self.spin.setValue(int(v))
             finally:
                 self.spin.blockSignals(False)
+            try:
+                self.angleChanged.emit(int(v) % 360)
+            except Exception:
+                pass
 
         def _spin_changed(v):
             try:
@@ -56,6 +61,10 @@ class GrainAngleDialog(QtGui.QDialog):
                 self.dial.setValue(int(v))
             finally:
                 self.dial.blockSignals(False)
+            try:
+                self.angleChanged.emit(int(v) % 360)
+            except Exception:
+                pass
 
         self.dial.valueChanged.connect(_dial_changed)
         self.spin.valueChanged.connect(_spin_changed)
