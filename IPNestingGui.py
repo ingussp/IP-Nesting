@@ -914,17 +914,19 @@ class NestingTaskPanel:
                 for i in range(desired - current_count):
                     try:
                         new_obj = p_doc.copyObject(base_obj, False)
-                    except Exception:
-                        pass
-                    try:
-                        bb = new_obj.Shape.BoundBox
-                    except Exception as e:
+                        if not new_obj:
+                            continue
+
+                        # keep label consistent (optional but nice)
                         try:
                             new_obj.Label = base_obj.Label
                         except Exception:
                             pass
+
+                        # IMPORTANT: always track the new copy in row list + created list
                         created_names.append(new_obj.Name)
                         obj_names.append(new_obj.Name)
+
                     except Exception:
                         App.Console.PrintError("Failed to create copy in Qty change:\n" + traceback.format_exc())
                         break

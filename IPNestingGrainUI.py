@@ -401,6 +401,7 @@ class GrainUIController:
 
             standard_parts = []
             grain_parts = []
+            grain_axis_by_name = {}
 
             for r in range(data_rows):
                 name_item = self.panel.table.item(r, 0)
@@ -439,6 +440,20 @@ class GrainUIController:
 
                 if is_grain:
                     grain_parts.extend(names)
+
+                    # remember per-object axis so we can redraw arrows correctly after moving parts
+                    axis = "X"
+                    try:
+                        grain_widget = self.panel.table.cellWidget(r, 4)
+                        if grain_widget:
+                            combo = grain_widget.findChild(QtGui.QComboBox)
+                            if combo:
+                                axis = combo.currentText() or "X"
+                    except Exception:
+                        axis = "X"
+
+                    for nm in names:
+                        grain_axis_by_name[nm] = axis
                 else:
                     standard_parts.extend(names)
 
@@ -576,6 +591,24 @@ class GrainUIController:
                     custom_label="Parts with grain direction"
                 )
                 
+            # 7) Redraw grain arrows AFTER parts have been moved (otherwise arrows stay at old coords)
+            try:
+                if grain_parts:
+                    for nm in grain_parts:
+                        try:
+                            axis = grain_axis_by_name.get(nm, "X")
+                            GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, nm, enable=True, axis=axis)
+                        except Exception:
+                            pass
+                else:
+                    # optional: if no grain parts, remove all arrows (keeps scene clean)
+                    try:
+                        GrainPreparer.remove_all_grain_arrows(self.panel.preview_doc_name)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            
             # After successful apply/layout update, record snapshot and stop blinking
             try:
                 self._last_applied_grain_state = self._get_current_grain_state()
