@@ -29,7 +29,12 @@ class GrainAngleDialog(QtGui.QDialog):
 
         self.dial = QtGui.QDial()
         self.dial.setMinimum(0)
-        self.dial.setMaximum(360)
+        self.dial.setMaximum(359)
+        try:
+            self.dial.setInvertedAppearance(True)
+            self.dial.setInvertedControls(True)
+        except Exception:
+            pass
         self.dial.setNotchesVisible(True)
         self.dial.setMinimumSize(200, 200)
         self.dial.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -40,7 +45,7 @@ class GrainAngleDialog(QtGui.QDialog):
 
         self.spin = QtGui.QSpinBox()
         self.spin.setMinimum(0)
-        self.spin.setMaximum(360)
+        self.spin.setMaximum(359)
         self.spin.setValue(int(initial_angle) % 360)
         angle_row.addWidget(self.spin)
 

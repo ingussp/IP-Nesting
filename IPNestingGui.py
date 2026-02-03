@@ -391,7 +391,8 @@ class NestingTaskPanel:
             self.bulk_grain_apply_btn = QtGui.QPushButton("Apply Grain")
             self.bulk_grain_apply_btn.setFixedWidth(100)
             self.bulk_grain_apply_btn.clicked.connect(self.apply_change_grain)
-            self.set_angle_btn = QtGui.QPushButton("Set angle")
+            self.set_angle_btn = QtGui.QPushButton("Set custom angle")
+            self.set_angle_btn.setMinimumWidth(160)
             self.set_angle_btn.setToolTip("Set grain angle for selected GrainArrow objects")
             hbot.addWidget(self.bulk_grain_apply_btn)
             hbot.addWidget(self.set_angle_btn)
@@ -414,24 +415,80 @@ class NestingTaskPanel:
 
     def _on_set_angle_clicked(self):
         try:
-            # optional: ja nav atlasīta neviena bulta -> paziņojums
-            sel_ex = Gui.Selection.getSelectionEx()
-            arrow_count = 0
-            for ex in sel_ex:
+            arrow_names = self._collect_grain_arrow_names_from_table()
+            if not arrow_names:
+                QtGui.QMessageBox.information(
+                    None,
+                    "Set custom angle",
+                    "No grain parts selected.\nCheck 'Grain direction' checkbox in the table first."
+                )
+                return
+
+            self._open_grain_angle_dialog_for_arrows(arrow_names)
+
+        except Exception:
+            App.Console.PrintError("_on_set_angle_clicked failed:\n" + traceback.format_exc())
+    
+    def _collect_grain_arrow_names_from_table(self):
+        """Return list of GrainArrow_<previewObjName> for ALL rows where Grain Direction checkbox is checked."""
+        names = []
+        try:
+            if self.preview_doc_name not in App.listDocuments():
+                return names
+            p_doc = App.getDocument(self.preview_doc_name)
+            if not p_doc:
+                return names
+
+            data_rows = self.table.rowCount() - self.control_rows
+            seen = set()
+
+            for r in range(data_rows):
                 try:
-                    o = ex.Object
-                    if o and isinstance(getattr(o, "Name", ""), str) and o.Name.startswith("GrainArrow_"):
-                        arrow_count += 1
+                    # grain checkbox in column 4
+                    grain_widget = self.table.cellWidget(r, 4)
+                    if not grain_widget:
+                        continue
+                    cb = grain_widget.findChild(QtGui.QCheckBox)
+                    if not (cb and cb.isChecked()):
+                        continue
+
+                    name_item = self.table.item(r, 0)
+                    if not name_item:
+                        continue
+
+                    row_obj_names = []
+                    try:
+                        list_data = name_item.data(QtCore.Qt.UserRole + 1)
+                        if list_data:
+                            if isinstance(list_data, list):
+                                row_obj_names = list(list_data)
+                            else:
+                                row_obj_names = json.loads(list_data)
+                        else:
+                            primary = name_item.data(QtCore.Qt.UserRole)
+                            if primary:
+                                row_obj_names = [primary]
+                    except Exception:
+                        row_obj_names = []
+
+                    for obj_name in row_obj_names:
+                        if not obj_name:
+                            continue
+                        arrow_name = "GrainArrow_" + str(obj_name)
+                        # include only if arrow object exists
+                        try:
+                            if p_doc.getObject(arrow_name) and arrow_name not in seen:
+                                seen.add(arrow_name)
+                                names.append(arrow_name)
+                        except Exception:
+                            pass
+
                 except Exception:
                     continue
 
-            if arrow_count == 0:
-                QtGui.QMessageBox.information(None, "Set angle", "Select one or more GrainArrow objects first.")
-                return
-
-            self._open_grain_angle_dialog_for_selected_arrows()
         except Exception:
-            App.Console.PrintError("_on_set_angle_clicked failed:\n" + traceback.format_exc())
+            pass
+        return names
     
     def _on_bulk_grain_changed(self, index):
         """When bulk grain combobox changes - delegates to grain controller."""
@@ -1405,7 +1462,7 @@ class NestingTaskPanel:
     def getStandardButtons(self):
         return int(QtGui.QDialogButtonBox.Cancel)
         
-    def _open_grain_angle_dialog_for_selected_arrows(self):
+    def _open_grain_angle_dialog_for_arrows(self, arrow_names):
         try:
 
             if getattr(self, "_grain_angle_dialog_open", False):
@@ -1417,45 +1474,43 @@ class NestingTaskPanel:
                 return
 
             p_doc = App.getDocument(self.preview_doc_name)
-
-            # dump SelectionEx
-            sel_ex = Gui.Selection.getSelectionEx()
-
-            arrow_objs = []
-            for i, ex in enumerate(sel_ex):
-                try:
-                    dname = ex.Doc.Name if getattr(ex, "Doc", None) else None
-                except Exception:
-                    dname = "<err>"
-                try:
-                    o = ex.Object
-                except Exception:
-                    o = None
-
-                if not o:
-                    continue
-
-                nm = getattr(o, "Name", None)
-                lbl = getattr(o, "Label", None)
-                tid = getattr(o, "TypeId", None)
-
-                if isinstance(nm, str) and nm.startswith("GrainArrow_"):
-                    arrow_objs.append(o)
             
-            if not arrow_objs:
-                return
-                
-            arrow_names = []
-            for ao in arrow_objs:
+            arrow_objs = []
+            for nm in arrow_names:
                 try:
-                    nm = getattr(ao, "Name", None)
-                    if isinstance(nm, str) and nm.startswith("GrainArrow_"):
-                        arrow_names.append(nm)
+                    o = p_doc.getObject(nm)
+                    if o:
+                        arrow_objs.append(o)
                 except Exception:
                     pass
 
+            if not arrow_objs:
+                return
+                
+            arrow_names = [n for n in arrow_names if isinstance(n, str) and n.startswith("GrainArrow_")]
+
             if not arrow_names:
                 return
+                
+            initial_angle = 0
+            try:
+                angles = []
+                for nm in arrow_names:
+                    o = p_doc.getObject(nm)
+                    if o and hasattr(o, "GrainAngleDeg"):
+                        try:
+                            angles.append(int(o.GrainAngleDeg) % 360)
+                        except Exception:
+                            pass
+
+                if angles:
+                    # ja visas vienādas -> rādi to; ja atšķiras -> rādi pirmo
+                    if all(a == angles[0] for a in angles):
+                        initial_angle = angles[0]
+                    else:
+                        initial_angle = angles[0]
+            except Exception:
+                initial_angle = 0
                 
             initial_placements = {}
             for nm in arrow_names:
@@ -1500,14 +1555,24 @@ class NestingTaskPanel:
                     part_labels.append(str(ao))
 
             parent = QtGui.QApplication.activeWindow()
+            last_ui_angle = int(initial_angle) % 360
+            
             def _apply_angle_to_arrows(angle_deg):
+                nonlocal last_ui_angle
                 try:
-                    angle_deg = int(angle_deg) % 360
+                    ui_angle = int(angle_deg) % 360
                 except Exception:
-                    angle_deg = 0
+                    ui_angle = 0
 
-                axis = App.Vector(0, 0, 1)
-                rotZ = App.Rotation(axis, float(angle_deg))
+                delta_ui = ui_angle - last_ui_angle
+                if delta_ui > 180:
+                    delta_ui -= 360
+                elif delta_ui < -180:
+                    delta_ui += 360
+
+                last_ui_angle = ui_angle
+
+                rotZ = App.Rotation(App.Vector(0, 0, 1), float(delta_ui))
 
                 for nm in arrow_names:
                     try:
@@ -1515,37 +1580,90 @@ class NestingTaskPanel:
                         if not o:
                             continue
 
-                        # start from original placement (prevents drift)
-                        base_pl = initial_placements.get(nm, o.Placement)
-
-                        
                         center = pivot_centers.get(nm)
                         if center is None:
-                            continue
-                        base_pl = initial_placements.get(nm)
-                        if base_pl is None:
                             continue
 
                         P_move = App.Placement(App.Vector(-center.x, -center.y, -center.z), App.Rotation())
                         P_rot  = App.Placement(App.Vector(0, 0, 0), rotZ)
                         P_back = App.Placement(center, App.Rotation())
 
-                        # apply around center, based on base placement
-                        o.Placement = P_back.multiply(P_rot.multiply(P_move.multiply(base_pl)))
+                        o.Placement = P_back.multiply(P_rot.multiply(P_move.multiply(o.Placement)))
                     except Exception:
                         continue
 
-                # IMPORTANT: parasti NEVAJAG p_doc.recompute() katrā grādā (tas būs lēni)
                 try:
                     Gui.updateGui()
                 except Exception:
                     pass
-            dlg = GrainAngleDialog(parent=parent, part_labels=part_labels, initial_angle=0)
+                    
+            dlg = GrainAngleDialog(parent=parent, part_labels=part_labels, initial_angle=initial_angle)
+
+            # --- THROTTLE: apply at most every 50ms ---
+            pending_angle = None
+
+            def _on_angle_changed(a):
+                nonlocal pending_angle
+                pending_angle = a
+
+            def _on_apply_tick():
+                nonlocal pending_angle
+                if pending_angle is None:
+                    return
+                a = pending_angle
+                pending_angle = None
+                _apply_angle_to_arrows(a)
+
+            apply_timer = QtCore.QTimer()
+            apply_timer.setInterval(50)
+            apply_timer.timeout.connect(_on_apply_tick)
+            apply_timer.start()
+
             try:
-                dlg.angleChanged.connect(_apply_angle_to_arrows)
+                dlg.angleChanged.connect(_on_angle_changed)
             except Exception:
                 pass
+
             res = dlg.exec_()
+
+            # stop timer after dialog closes
+            try:
+                apply_timer.stop()
+            except Exception:
+                pass
+            
+            if res == QtGui.QDialog.Accepted:
+                try:
+                    final_angle = int(dlg.angle_degrees()) % 360
+                except Exception:
+                    final_angle = 0
+
+                for nm in arrow_names:
+                    try:
+                        o = p_doc.getObject(nm)
+                        if not o:
+                            continue
+
+                        # izveido īpašību, ja tās vēl nav
+                        if not hasattr(o, "GrainAngleDeg"):
+                            try:
+                                o.addProperty(
+                                    "App::PropertyInteger",
+                                    "GrainAngleDeg",
+                                    "IPNesting",
+                                    "Saved grain arrow angle in degrees"
+                                )
+                            except Exception:
+                                pass
+
+                        try:
+                            o.GrainAngleDeg = int(final_angle) % 360
+                        except Exception:
+                            pass
+
+                    except Exception:
+                        pass
+            
             try:
                 if res != QtGui.QDialog.Accepted:
                     # restore original placements on cancel/close
