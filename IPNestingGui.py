@@ -1663,6 +1663,29 @@ class NestingTaskPanel:
 
                     except Exception:
                         pass
+                        
+                    # NEW: also save angle on the PART object referenced by this GrainArrow_<partName>
+                    try:
+                        if isinstance(nm, str) and nm.startswith("GrainArrow_"):
+                            part_name = nm[len("GrainArrow_"):]
+                            part_obj = p_doc.getObject(part_name) if p_doc else None
+                            if part_obj:
+                                if not hasattr(part_obj, "GrainAngleDeg"):
+                                    try:
+                                        part_obj.addProperty(
+                                            "App::PropertyInteger",
+                                            "GrainAngleDeg",
+                                            "IPNesting",
+                                            "Absolute grain angle in degrees vs +X"
+                                        )
+                                    except Exception:
+                                        pass
+                                try:
+                                    part_obj.GrainAngleDeg = int(final_angle) % 360
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
             
             try:
                 if res != QtGui.QDialog.Accepted:

@@ -222,6 +222,19 @@ class GrainUIController:
                                 GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
                         except Exception:
                             App.Console.PrintError("grain checkbox per-object update failed for '%s':\n" % (str(n),) + traceback.format_exc())
+                            
+                        # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
+                        try:
+                            part_obj = App.getDocument(self.panel.preview_doc_name).getObject(n)
+                            if part_obj:
+                                if not hasattr(part_obj, "GrainAngleDeg"):
+                                    try:
+                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", "Absolute grain angle in degrees vs +X")
+                                    except Exception:
+                                        pass
+                                part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
+                        except Exception:
+                            pass
                     break
                 except Exception:
                     continue
@@ -301,6 +314,18 @@ class GrainUIController:
                                 GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
                         except Exception:
                             App.Console.PrintError("grain axis per-object update failed for '%s':\n" % (str(n),) + traceback.format_exc())
+                        # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
+                        try:
+                            part_obj = App.getDocument(self.panel.preview_doc_name).getObject(n)
+                            if part_obj:
+                                if not hasattr(part_obj, "GrainAngleDeg"):
+                                    try:
+                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", "Absolute grain angle in degrees vs +X")
+                                    except Exception:
+                                        pass
+                                part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
+                        except Exception:
+                            pass
                     break
                 except Exception:
                     continue
@@ -379,6 +404,20 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("bulk grain changed callback failed:\n" + traceback.format_exc())
 
+    def _delta_to_align_grain_to_pos_x(self, angle_deg):
+        """
+        Compute delta degrees (range [-180..180]) so that after rotation
+        the grain angle becomes 0 (arrow parallel to +X).
+        """
+        try:
+            a = int(angle_deg) % 360
+        except Exception:
+            a = 0
+        delta = (-a) % 360
+        if delta > 180:
+            delta -= 360
+        return int(delta)
+    
     def update_grain_layout_and_perimeters(self):
         """
         Splits parts into Standard and Grain groups.
@@ -519,6 +558,62 @@ class GrainUIController:
                 except Exception:
                     pass
             
+            # NEW STEP: rotate all grain parts so their grain direction becomes parallel to +X
+            try:
+                for nm in grain_parts:
+                    try:
+                        obj = p_doc.getObject(nm)
+                        if not obj:
+                            continue
+
+                        # Read absolute grain angle (degrees vs +X)
+                        angle = 0
+                        if hasattr(obj, "GrainAngleDeg"):
+                            try:
+                                angle = int(obj.GrainAngleDeg) % 360
+                            except Exception:
+                                angle = 0
+                        else:
+                            # If no custom angle exists yet, derive from UI axis:
+                            # X -> 0°, Y -> 90°
+                            axis = grain_axis_by_name.get(nm, "X")
+                            angle = 0 if str(axis).upper() == "X" else 90
+
+                            # Persist it so next Apply Grain is stable
+                            try:
+                                obj.addProperty(
+                                    "App::PropertyInteger",
+                                    "GrainAngleDeg",
+                                    "IPNesting",
+                                    "Absolute grain angle in degrees vs +X"
+                                )
+                            except Exception:
+                                pass
+                            try:
+                                obj.GrainAngleDeg = int(angle) % 360
+                            except Exception:
+                                pass
+
+                        delta = self._delta_to_align_grain_to_pos_x(angle)
+                        if delta != 0:
+                            self.panel._rotate_preview_parts_about_z(p_doc, [nm], delta)
+
+                        # After normalization, grain is aligned to +X
+                        try:
+                            obj.GrainAngleDeg = 0
+                        except Exception:
+                            pass
+
+                    except Exception:
+                        continue
+
+                try:
+                    p_doc.recompute()
+                except Exception:
+                    pass
+            except Exception:
+                pass
+            
             # 1) Pack grain parts to temporary location y=0 (stable bbox)
             if grain_parts:
                 try:
@@ -564,6 +659,47 @@ class GrainUIController:
                 dy = desired_blue_max_y - float(blue_max_y)
 
                 _shift_names_y(grain_parts, dy)
+                
+            # --- NEW: auto-rotate grain parts to X if GrainAngleDeg not 0/180 ---
+            try:
+                # Only rotate checked grain parts; apply once after moving
+                for nm in grain_parts:
+                    try:
+                        obj = p_doc.getObject(nm)
+                        if not obj:
+                            continue
+
+                        # If no GrainAngleDeg -> treat as 0 (already parallel to X)
+                        angle = 0
+                        if hasattr(obj, "GrainAngleDeg"):
+                            try:
+                                angle = int(obj.GrainAngleDeg) % 360
+                            except Exception:
+                                angle = 0
+
+                        # If already parallel to X (0 or 180) -> skip
+                        if angle in (0, 180):
+                            continue
+
+                        # Rotate to nearest of 0 or 180
+                        target = 0 if angle < 90 or angle > 270 else 180
+                        delta = (target - angle) % 360
+                        if delta > 180:
+                            delta -= 360  # keep minimal rotation (-180..180)
+
+                        # Use existing helper from IPNestingGui
+                        self.panel._rotate_preview_parts_about_z(p_doc, [nm], delta)
+
+                        # Persist corrected angle
+                        try:
+                            obj.GrainAngleDeg = int(target) % 360
+                        except Exception:
+                            pass
+
+                    except Exception:
+                        continue
+            except Exception:
+                pass    
 
             try:
                 p_doc.recompute()
@@ -596,7 +732,7 @@ class GrainUIController:
                 if grain_parts:
                     for nm in grain_parts:
                         try:
-                            axis = grain_axis_by_name.get(nm, "X")
+                            axis = "X"
                             GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, nm, enable=True, axis=axis)
                         except Exception:
                             pass
