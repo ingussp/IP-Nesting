@@ -294,6 +294,9 @@ class NestingTaskPanel:
             Gui.Selection.addObserver(self._selection_observer)
         except Exception:
             App.Console.PrintError("Failed to add selection observer:\n" + traceback.format_exc())
+            
+        self._load_settings_from_prefs()
+        self._connect_settings_persistence()
 
     def create_input_in_layout(self, parent_layout, label, default, tooltip):
         row = QtGui.QHBoxLayout()
@@ -1779,3 +1782,107 @@ class NestingTaskPanel:
                     continue
         except Exception:
             App.Console.PrintError("_redraw_grain_arrows_for_parts failed:\n" + traceback.format_exc())
+            
+    def _prefs(self):
+        # helper so we can call it anywhere
+        try:
+            return App.ParamGet("User parameter:BaseApp/Preferences/Mod/IPNesting")
+        except Exception:
+            return None
+
+    def _load_settings_from_prefs(self):
+        p = self._prefs()
+        if not p:
+            return
+        try:
+            # block signals while setting values
+            widgets = [
+                self.sheet_w, self.sheet_h, self.sheet_margin,
+                self.sheet_grain_combo,
+                self.spacing, self.res,
+                self.select_strategy,
+                self.nesting_algorithm,
+                self.gen, self.pop,
+            ]
+            for w in widgets:
+                try:
+                    w.blockSignals(True)
+                except Exception:
+                    pass
+
+            # QLineEdits
+            self.sheet_w.setText(str(p.GetString("SheetWidth", self.sheet_w.text())))
+            self.sheet_h.setText(str(p.GetString("SheetHeight", self.sheet_h.text())))
+            self.sheet_margin.setText(str(p.GetString("SheetMargin", self.sheet_margin.text())))
+            self.spacing.setText(str(p.GetString("PartSpacing", self.spacing.text())))
+            self.res.setText(str(p.GetString("BoundaryResolution", self.res.text())))
+            self.gen.setText(str(p.GetString("Generations", self.gen.text())))
+            self.pop.setText(str(p.GetString("PopulationSize", self.pop.text())))
+
+            # Combos: store by index (robust) or by text (more readable)
+            try:
+                self.sheet_grain_combo.setCurrentIndex(int(p.GetInt("SheetGrainIndex", self.sheet_grain_combo.currentIndex())))
+            except Exception:
+                pass
+            try:
+                self.select_strategy.setCurrentIndex(int(p.GetInt("StrategyIndex", self.select_strategy.currentIndex())))
+            except Exception:
+                pass
+            try:
+                self.nesting_algorithm.setCurrentIndex(int(p.GetInt("AlgorithmIndex", self.nesting_algorithm.currentIndex())))
+            except Exception:
+                pass
+
+        finally:
+            for w in widgets:
+                try:
+                    w.blockSignals(False)
+                except Exception:
+                    pass
+
+    def _save_settings_to_prefs(self):
+        p = self._prefs()
+        if not p:
+            return
+        try:
+            p.SetString("SheetWidth", self.sheet_w.text().strip())
+            p.SetString("SheetHeight", self.sheet_h.text().strip())
+            p.SetString("SheetMargin", self.sheet_margin.text().strip())
+            p.SetInt("SheetGrainIndex", int(self.sheet_grain_combo.currentIndex()))
+
+            p.SetString("PartSpacing", self.spacing.text().strip())
+            p.SetString("BoundaryResolution", self.res.text().strip())
+
+            p.SetInt("StrategyIndex", int(self.select_strategy.currentIndex()))
+            p.SetInt("AlgorithmIndex", int(self.nesting_algorithm.currentIndex()))
+
+            p.SetString("Generations", self.gen.text().strip())
+            p.SetString("PopulationSize", self.pop.text().strip())
+        except Exception:
+            pass
+
+    def _connect_settings_persistence(self):
+        # Save on change
+        try:
+            # line edits
+            for le in [self.sheet_w, self.sheet_h, self.sheet_margin, self.spacing, self.res, self.gen, self.pop]:
+                try:
+                    le.editingFinished.connect(self._save_settings_to_prefs)
+                except Exception:
+                    pass
+
+            # combos
+            try:
+                self.sheet_grain_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+            try:
+                self.select_strategy.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+            try:
+                self.nesting_algorithm.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+        except Exception:
+            pass
