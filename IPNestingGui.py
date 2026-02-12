@@ -143,13 +143,28 @@ class NestingTaskPanel:
 
         self.form = QtGui.QWidget()
         self.layout = QtGui.QVBoxLayout(self.form)
+        
+        # NEW: two-column configuration area
+        cfg = QtGui.QWidget()
+        cfg_grid = QtGui.QGridLayout(cfg)
+        cfg_grid.setContentsMargins(0, 0, 0, 0)
+        cfg_grid.setHorizontalSpacing(12)
+        cfg_grid.setVerticalSpacing(8)
 
-        # Sheet Settings
-        self.layout.addWidget(QtGui.QLabel("<b>Sheet Settings</b>"))
-        self.sheet_w = self.create_input("Sheet Width (mm):", "2500.00", "Total width.")
-        self.sheet_h = self.create_input("Sheet Height (mm):", "1250.00", "Total height.")
-        self.sheet_margin = self.create_input("Sheet Margin (mm):", "5.00", "Edge margin.")
-        # New: Sheet grain direction
+        self.layout.addWidget(cfg)
+
+        # -------------------------
+        # Two-column configuration
+        # -------------------------
+
+        # Sheet Settings (LEFT, row 0)
+        sheet_box = QtGui.QGroupBox("Sheet Settings")
+        sheet_lay = QtGui.QVBoxLayout(sheet_box)
+
+        self.sheet_w = self.create_input_in_layout(sheet_lay, "Sheet Width (mm):", "2500.00", "Total width.")
+        self.sheet_h = self.create_input_in_layout(sheet_lay, "Sheet Height (mm):", "1250.00", "Total height.")
+        self.sheet_margin = self.create_input_in_layout(sheet_lay, "Sheet Margin (mm):", "5.00", "Edge margin.")
+
         row = QtGui.QHBoxLayout()
         row.addWidget(QtGui.QLabel("Sheet grain direction:"))
         self.sheet_grain_combo = QtGui.QComboBox()
@@ -157,23 +172,25 @@ class NestingTaskPanel:
         self.sheet_grain_combo.setCurrentIndex(2)
         self.sheet_grain_combo.setToolTip("Sheet grain direction: Width/Height/None")
         row.addWidget(self.sheet_grain_combo)
-        self.layout.addLayout(row)
+        sheet_lay.addLayout(row)
 
-        # General Parameters
-        self.layout.addWidget(QtGui.QLabel("<b>General Parameters</b>"))
-        self.spacing = self.create_input("Part Spacing (mm):", "2.00", "Part gap.")
-        self.res = self.create_input("Boundary Resolution:", "0.1", "Curve resolution.")
+        # General Parameters (LEFT, row 1)
+        general_box = QtGui.QGroupBox("General Parameters")
+        general_lay = QtGui.QVBoxLayout(general_box)
+        self.spacing = self.create_input_in_layout(general_lay, "Part Spacing (mm):", "2.00", "Part gap.")
+        self.res = self.create_input_in_layout(general_lay, "Boundary Resolution:", "0.1", "Curve resolution.")
 
-        # Nesting Strategy and Algorithm
-        self.layout.addWidget(QtGui.QLabel("<b>Nesting Strategy</b>"))
+        # Nesting Strategy (RIGHT, row 0)
+        strategy_box = QtGui.QGroupBox("Nesting Strategy")
+        strategy_lay = QtGui.QVBoxLayout(strategy_box)
         self.select_strategy = QtGui.QComboBox()
         self.select_strategy.addItems(["Largest Area First", "Smallest Area First", "None"])
-        self.layout.addWidget(self.select_strategy)
+        strategy_lay.addWidget(self.select_strategy)
 
-        # New: Nesting Algorithm (for libnest2d)
-        self.layout.addWidget(QtGui.QLabel("<b>Nesting Algorithm</b>"))
+        # Nesting Algorithm (RIGHT, row 1)
+        algo_box = QtGui.QGroupBox("Nesting Algorithm")
+        algo_lay = QtGui.QVBoxLayout(algo_box)
         self.nesting_algorithm = QtGui.QComboBox()
-        # Typical algorithms; adjust as needed to match libnest2d supported algorithms
         self.nesting_algorithm.addItems([
             "Bottom-Left",
             "Guillotine",
@@ -183,12 +200,28 @@ class NestingTaskPanel:
             "None"
         ])
         self.nesting_algorithm.setCurrentIndex(0)
-        self.layout.addWidget(self.nesting_algorithm)
+        algo_lay.addWidget(self.nesting_algorithm)
 
-        # Optimization
-        self.layout.addWidget(QtGui.QLabel("<b>Optimization</b>"))
-        self.gen = self.create_input("Generations:", "5", "Iterations.")
-        self.pop = self.create_input("Population Size:", "20", "Solutions.")
+        # Optimization (RIGHT, row 2)
+        opt_box = QtGui.QGroupBox("Optimization")
+        opt_lay = QtGui.QVBoxLayout(opt_box)
+        self.gen = self.create_input_in_layout(opt_lay, "Generations:", "5", "Iterations.")
+        self.pop = self.create_input_in_layout(opt_lay, "Population Size:", "20", "Solutions.")
+
+        # Place boxes in 2-column grid
+        cfg_grid.addWidget(sheet_box,   0, 0)
+        cfg_grid.addWidget(general_box, 1, 0)
+
+        cfg_grid.addWidget(strategy_box, 0, 1)
+        cfg_grid.addWidget(algo_box,     1, 1)
+        cfg_grid.addWidget(opt_box,      2, 1)
+
+        # Make columns expand nicely
+        try:
+            cfg_grid.setColumnStretch(0, 1)
+            cfg_grid.setColumnStretch(1, 1)
+        except Exception:
+            pass
 
         # Table (with control_rows at the bottom)
         self.layout.addWidget(QtGui.QLabel("<b>Selected Parts (Preview Mode)</b>"))
@@ -262,6 +295,15 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("Failed to add selection observer:\n" + traceback.format_exc())
 
+    def create_input_in_layout(self, parent_layout, label, default, tooltip):
+        row = QtGui.QHBoxLayout()
+        edit = QtGui.QLineEdit(default)
+        edit.setToolTip(tooltip)
+        row.addWidget(QtGui.QLabel(label))
+        row.addWidget(edit)
+        parent_layout.addLayout(row)
+        return edit
+    
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
         edit = QtGui.QLineEdit(default)
