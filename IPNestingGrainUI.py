@@ -214,6 +214,53 @@ class GrainUIController:
                     except Exception:
                         axis = "X"
 
+                    # inside _on_grain_checkbox_state_changed, after you compute `names`:
+
+                    p_doc = App.getDocument(self.panel.preview_doc_name) if self.panel.preview_doc_name in App.listDocuments() else None
+
+                    if checked:
+                        # Save once: use the first (pattern) object as reference
+                        try:
+                            if p_doc and names:
+                                pat = p_doc.getObject(names[0])
+                                self._ensure_saved_std_rotation(pat)
+                        except Exception:
+                            pass
+                    else:
+                        # Restore standard rotation for all copies (pattern applies to all)
+                        try:
+                            if p_doc and names:
+                                # Prefer reading from pattern object; if it has saved rotation, apply to all
+                                pat = p_doc.getObject(names[0])
+                                if pat and hasattr(pat, "IPNestingStdRotAngleDeg"):
+                                    # build rotation from pattern and apply to every copy
+                                    ax = float(getattr(pat, "IPNestingStdRotAxisX", 0.0))
+                                    ay = float(getattr(pat, "IPNestingStdRotAxisY", 0.0))
+                                    az = float(getattr(pat, "IPNestingStdRotAxisZ", 1.0))
+                                    ang = float(getattr(pat, "IPNestingStdRotAngleDeg", 0.0))
+                                    restored_rot = App.Rotation(App.Vector(ax, ay, az), float(ang))
+
+                                    for n in names:
+                                        o = p_doc.getObject(n)
+                                        if not o:
+                                            continue
+                                        base = o.Placement.Base
+                                        o.Placement = App.Placement(base, restored_rot)
+                                else:
+                                    # fallback: try restore per-object (if you later decide to store per-object)
+                                    for n in names:
+                                        o = p_doc.getObject(n)
+                                        if o:
+                                            self._restore_saved_std_rotation(o)
+                        except Exception:
+                            pass
+
+                        # After restoring orientation, you likely want immediate visual + perimeter correctness
+                        try:
+                            self.panel.update_grain_layout_and_perimeters()
+                        except Exception:
+                            pass
+                    
                     for n in names:
                         try:
                             if checked:
@@ -754,3 +801,69 @@ class GrainUIController:
 
         except Exception:
             App.Console.PrintError("update_grain_layout_and_perimeters failed:\n" + traceback.format_exc())
+            
+    # inside class GrainUIController:
+
+    def _ensure_saved_std_rotation(self, obj):
+        """Save object's current rotation as 'standard' rotation (only once)."""
+        try:
+            if obj is None:
+                return
+
+            # If already saved, do not overwrite (first-time only)
+            if hasattr(obj, "IPNestingStdRotAngleDeg"):
+                return
+
+            rot = obj.Placement.Rotation
+            axis = rot.Axis
+            # FreeCAD's Rotation.Angle is radians in many versions; convert to degrees safely
+            try:
+                angle_deg = float(rot.Angle) * 180.0 / 3.141592653589793
+            except Exception:
+                angle_deg = 0.0
+
+            try:
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisX", "IPNesting", "Saved standard rotation axis X")
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisY", "IPNesting", "Saved standard rotation axis Y")
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisZ", "IPNesting", "Saved standard rotation axis Z")
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAngleDeg", "IPNesting", "Saved standard rotation angle (deg)")
+            except Exception:
+                # properties might already exist or addProperty can fail in some contexts
+                pass
+
+            try:
+                obj.IPNestingStdRotAxisX = float(axis.x)
+                obj.IPNestingStdRotAxisY = float(axis.y)
+                obj.IPNestingStdRotAxisZ = float(axis.z)
+                obj.IPNestingStdRotAngleDeg = float(angle_deg)
+            except Exception:
+                pass
+
+        except Exception:
+            pass
+
+
+    def _restore_saved_std_rotation(self, obj):
+        """Restore object's saved 'standard' rotation if available; keeps Base position intact."""
+        try:
+            if obj is None:
+                return False
+            if not hasattr(obj, "IPNestingStdRotAngleDeg"):
+                return False
+
+            try:
+                ax = float(getattr(obj, "IPNestingStdRotAxisX", 0.0))
+                ay = float(getattr(obj, "IPNestingStdRotAxisY", 0.0))
+                az = float(getattr(obj, "IPNestingStdRotAxisZ", 1.0))
+                ang = float(getattr(obj, "IPNestingStdRotAngleDeg", 0.0))
+            except Exception:
+                return False
+
+            # Rebuild rotation and apply while preserving translation
+            base = obj.Placement.Base
+            rot = App.Rotation(App.Vector(ax, ay, az), float(ang))
+            obj.Placement = App.Placement(base, rot)
+            return True
+
+        except Exception:
+            return False

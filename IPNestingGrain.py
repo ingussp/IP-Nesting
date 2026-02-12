@@ -947,3 +947,5 @@ class GrainPreparer:
         except Exception:
             App.Console.PrintError("update_grain_arrow failed:\n" + traceback.format_exc())
             return False
+            
+    

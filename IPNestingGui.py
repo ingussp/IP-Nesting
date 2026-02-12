@@ -1493,24 +1493,6 @@ class NestingTaskPanel:
                 return
                 
             initial_angle = 0
-            try:
-                angles = []
-                for nm in arrow_names:
-                    o = p_doc.getObject(nm)
-                    if o and hasattr(o, "GrainAngleDeg"):
-                        try:
-                            angles.append(int(o.GrainAngleDeg) % 360)
-                        except Exception:
-                            pass
-
-                if angles:
-                    # ja visas vienādas -> rādi to; ja atšķiras -> rādi pirmo
-                    if all(a == angles[0] for a in angles):
-                        initial_angle = angles[0]
-                    else:
-                        initial_angle = angles[0]
-            except Exception:
-                initial_angle = 0
                 
             initial_placements = {}
             for nm in arrow_names:
@@ -1639,31 +1621,6 @@ class NestingTaskPanel:
                     final_angle = 0
 
                 for nm in arrow_names:
-                    try:
-                        o = p_doc.getObject(nm)
-                        if not o:
-                            continue
-
-                        # izveido īpašību, ja tās vēl nav
-                        if not hasattr(o, "GrainAngleDeg"):
-                            try:
-                                o.addProperty(
-                                    "App::PropertyInteger",
-                                    "GrainAngleDeg",
-                                    "IPNesting",
-                                    "Saved grain arrow angle in degrees"
-                                )
-                            except Exception:
-                                pass
-
-                        try:
-                            o.GrainAngleDeg = int(final_angle) % 360
-                        except Exception:
-                            pass
-
-                    except Exception:
-                        pass
-                        
                     # NEW: also save angle on the PART object referenced by this GrainArrow_<partName>
                     try:
                         if isinstance(nm, str) and nm.startswith("GrainArrow_"):
@@ -1686,6 +1643,12 @@ class NestingTaskPanel:
                                     pass
                     except Exception:
                         pass
+                        
+                # Run the same pipeline as "Apply Grain"
+                try:
+                    self.update_grain_layout_and_perimeters()
+                except Exception:
+                    pass
             
             try:
                 if res != QtGui.QDialog.Accepted:
