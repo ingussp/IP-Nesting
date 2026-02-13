@@ -57,7 +57,7 @@ def execute_nesting(panel):
                         payload["offcuts"].append({
                             "label": off.get("label") or os.path.basename(str(off.get("path") or "")),
                             "path": off.get("path") or "",
-                            "grain": (off.get("grain") or "X"),
+                            "grain": (off.get("grain") or "None"),   # NEW default
                             "polygons": polys,
                             "bbox": bbox,
                         })

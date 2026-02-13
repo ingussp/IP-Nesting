@@ -417,7 +417,7 @@ class NestingTaskPanel:
                 "id": offcut_id,
                 "path": abs_path,
                 "label": label,
-                "grain": "X",
+                "grain": "None",
                 "polygons": [poly],
                 "bbox": bbox,
                 "duplicate": bool(is_dup),
