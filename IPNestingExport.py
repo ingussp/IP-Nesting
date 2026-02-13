@@ -13,7 +13,7 @@ import traceback
 def execute_nesting(panel):
     """
     Execute nesting operation by exporting configuration to JSON.
-    
+
     Args:
         panel: NestingTaskPanel instance with UI widgets and state
     """
@@ -30,10 +30,41 @@ def execute_nesting(panel):
 
             sheet_margin = float(panel.sheet_margin.text()) if panel.sheet_margin.text() else 5.0
 
-        payload = {"sheet": {"width": sheet_w, "height": sheet_h, "margin": sheet_margin,
-                             "grain": panel.sheet_grain_combo.currentText()},
-                   "algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "None",
-                   "parts": []}
+        payload = {
+            "sheet": {
+                "width": sheet_w,
+                "height": sheet_h,
+                "margin": sheet_margin,
+                "grain": panel.sheet_grain_combo.currentText(),
+            },
+            "algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "None",
+            "parts": [],
+            # NEW: offcuts (DXF) additional sheets. EXE should try these before full sheets.
+            "offcuts": [],
+        }
+
+        # NEW: export offcuts if present on panel (duplicates allowed)
+        try:
+            offcuts = getattr(panel, "offcuts", None)
+            if offcuts:
+                for off in offcuts:
+                    try:
+                        polys = off.get("polygons") or []
+                        bbox = off.get("bbox") or {}
+                        if not polys or not isinstance(polys, list):
+                            App.Console.PrintMessage("Warning: offcut missing polygons; skipping: %s\n" % str(off.get("path")))
+                            continue
+                        payload["offcuts"].append({
+                            "label": off.get("label") or os.path.basename(str(off.get("path") or "")),
+                            "path": off.get("path") or "",
+                            "grain": (off.get("grain") or "X"),
+                            "polygons": polys,
+                            "bbox": bbox,
+                        })
+                    except Exception:
+                        App.Console.PrintError("Failed exporting an offcut:\n" + traceback.format_exc())
+        except Exception:
+            App.Console.PrintError("Offcut export failed:\n" + traceback.format_exc())
 
         p_doc = App.getDocument(panel.preview_doc_name) if panel.preview_doc_name in App.listDocuments() else None
         if not p_doc:
@@ -162,13 +193,17 @@ def execute_nesting(panel):
                     App.Console.PrintError("Failed to extract polygon for %s:\n%s\n" % (obj_name, traceback.format_exc()))
                     polygons = []
 
-                part_entry = {"label": obj.Label, "name": obj_name, "qty": qty,
-                              "allowed_rotations": allowed_rots,
-                              "placement": {"x": base.x, "y": base.y, "z": base.z},
-                              "rotation": rotation_info,
-                              "bbox": {"width": bbox_w, "height": bbox_h},
-                              "polygons": polygons,
-                              "grain": grain_value}
+                part_entry = {
+                    "label": obj.Label,
+                    "name": obj_name,
+                    "qty": qty,
+                    "allowed_rotations": allowed_rots,
+                    "placement": {"x": base.x, "y": base.y, "z": base.z},
+                    "rotation": rotation_info,
+                    "bbox": {"width": bbox_w, "height": bbox_h},
+                    "polygons": polygons,
+                    "grain": grain_value,
+                }
                 payload["parts"].append(part_entry)
             except Exception:
                 App.Console.PrintError("Error preparing row %d for export:\n%s\n" % (row, traceback.format_exc()))

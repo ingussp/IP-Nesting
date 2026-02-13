@@ -19,6 +19,9 @@ from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
+from IPNestingOffcuts import extract_offcut_from_dxf
+from IPNestingOffcutShowDialog import OffcutShowDialog
+
 
 try:
     from IPNestingRotate import NestingRotator
@@ -142,9 +145,13 @@ class NestingTaskPanel:
         self._suppress_selection_update = False
         self._suppress_qty_update = False
 
+        # NEW: offcuts model
+        self.offcuts = []
+        self._offcut_next_id = 1
+
         self.form = QtGui.QWidget()
         self.layout = QtGui.QVBoxLayout(self.form)
-        
+
         # NEW: two-column configuration area
         cfg = QtGui.QWidget()
         cfg_grid = QtGui.QGridLayout(cfg)
@@ -175,7 +182,51 @@ class NestingTaskPanel:
         row.addWidget(self.sheet_grain_combo)
         sheet_lay.addLayout(row)
 
-        # General Parameters (LEFT, row 1)
+        # NEW: Offcuts (DXF) (LEFT, row 1)
+        offcut_box = QtGui.QGroupBox("Offcuts (DXF)")
+        offcut_lay = QtGui.QVBoxLayout(offcut_box)
+
+        self.offcuts_table = QtGui.QTableWidget(0, 2)
+        self.offcuts_table.setHorizontalHeaderLabels(["Offcut", ""])
+        self.offcuts_table.setToolTip("DXF offcuts: one DXF = one offcut sheet (largest closed contour).")
+        self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.offcuts_table.setMinimumHeight(120)
+
+        # Column sizing
+        try:
+            header = self.offcuts_table.horizontalHeader()
+            if hasattr(header, "setSectionResizeMode"):
+                header.setSectionResizeMode(0, QtGui.QHeaderView.Stretch)
+                header.setSectionResizeMode(1, QtGui.QHeaderView.Fixed)
+            else:
+                header.setResizeMode(0, QtGui.QHeaderView.Stretch)
+                header.setResizeMode(1, QtGui.QHeaderView.Fixed)
+        except Exception:
+            pass
+        try:
+            self.offcuts_table.setColumnWidth(1, 60)
+        except Exception:
+            pass
+
+        offcut_lay.addWidget(self.offcuts_table)
+
+        off_btns = QtGui.QHBoxLayout()
+        self.offcut_add_btn = QtGui.QPushButton("Add")
+        self.offcut_show_btn = QtGui.QPushButton("Show")
+        self.offcut_remove_btn = QtGui.QPushButton("Remove")
+        self.offcut_add_btn.setToolTip("Add a DXF offcut (largest closed contour will be used).")
+        self.offcut_show_btn.setToolTip("Show all added offcuts and adjust grain X/Y per offcut.")
+        self.offcut_remove_btn.setToolTip("Remove checked offcuts from the list.")
+        self.offcut_add_btn.clicked.connect(self.add_offcut_dxf)
+        self.offcut_show_btn.clicked.connect(self.show_offcuts_popup)
+        self.offcut_remove_btn.clicked.connect(self.remove_offcuts)
+        off_btns.addWidget(self.offcut_add_btn)
+        off_btns.addWidget(self.offcut_show_btn)
+        off_btns.addWidget(self.offcut_remove_btn)
+        off_btns.addStretch()
+        offcut_lay.addLayout(off_btns)
+
+        # General Parameters (LEFT, row 2)  (shifted down by 1)
         general_box = QtGui.QGroupBox("General Parameters")
         general_lay = QtGui.QVBoxLayout(general_box)
         self.spacing = self.create_input_in_layout(general_lay, "Part Spacing (mm):", "2.00", "Part gap.")
@@ -211,7 +262,8 @@ class NestingTaskPanel:
 
         # Place boxes in 2-column grid
         cfg_grid.addWidget(sheet_box,   0, 0)
-        cfg_grid.addWidget(general_box, 1, 0)
+        cfg_grid.addWidget(offcut_box,  1, 0)     # NEW
+        cfg_grid.addWidget(general_box, 2, 0)     # shifted
 
         cfg_grid.addWidget(strategy_box, 0, 1)
         cfg_grid.addWidget(algo_box,     1, 1)
@@ -263,7 +315,7 @@ class NestingTaskPanel:
 
         # Initialize grain UI controller (handles blinking and grain operations)
         self._grain = GrainUIController(self)
-        
+
         # Initialize preview document manager (handles preview operations)
         self._preview = PreviewDocManager(self)
 
@@ -279,7 +331,8 @@ class NestingTaskPanel:
         self.add_btn.clicked.connect(self.add_selected_objects)
         # Remove Selected behaves like Qty -> 0 for selected rows
         self.rem_btn.clicked.connect(self.remove_selected_rows)
-        # --- NEW: Import 2D buttons (DXF/SVG) ---
+
+        # Import 2D buttons (DXF/SVG)
         self.import_dxf_btn = QtGui.QPushButton("Import DXF…")
         self.import_svg_btn = QtGui.QPushButton("Import SVG…")
         self.import_dxf_btn.setFixedHeight(32)
@@ -308,10 +361,153 @@ class NestingTaskPanel:
             Gui.Selection.addObserver(self._selection_observer)
         except Exception:
             App.Console.PrintError("Failed to add selection observer:\n" + traceback.format_exc())
-            
+
         self._load_settings_from_prefs()
         self._connect_settings_persistence()
 
+    def _is_offcut_duplicate_path(self, path):
+        try:
+            ap = os.path.abspath(str(path))
+            for off in self.offcuts:
+                try:
+                    if os.path.abspath(str(off.get("path", ""))) == ap:
+                        return True
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return False
+
+    def _add_offcut_row(self, offcut):
+        """Add one offcut entry to offcuts_table."""
+        try:
+            r = self.offcuts_table.rowCount()
+            self.offcuts_table.insertRow(r)
+
+            label = offcut.get("label") or os.path.basename(str(offcut.get("path", "")))
+            is_dup = self._is_offcut_duplicate_path(offcut.get("path"))
+
+            # Note: _is_offcut_duplicate_path will see itself if called after append.
+            # So we compute duplicate status before append in add_offcut_dxf and pass in flag instead.
+        except Exception:
+            pass
+
+    def add_offcut_dxf(self):
+        """Add an offcut DXF. One DXF = one offcut sheet (largest closed contour)."""
+        try:
+            path, _ = QtGui.QFileDialog.getOpenFileName(
+                None, "Add offcut (DXF)", "", "DXF files (*.dxf *.DXF);;All files (*.*)"
+            )
+            if not path:
+                return
+
+            abs_path = os.path.abspath(path)
+            is_dup = self._is_offcut_duplicate_path(abs_path)
+
+            poly, bbox = extract_offcut_from_dxf(abs_path, debug=False)
+            if not poly:
+                QtGui.QMessageBox.warning(None, "Offcuts", "No closed contour found in DXF.\nCannot use as offcut.")
+                return
+
+            offcut_id = int(self._offcut_next_id)
+            self._offcut_next_id += 1
+
+            label = os.path.basename(abs_path)
+            off = {
+                "id": offcut_id,
+                "path": abs_path,
+                "label": label,
+                "grain": "X",
+                "polygons": [poly],
+                "bbox": bbox,
+                "duplicate": bool(is_dup),
+            }
+            # store (duplicates allowed)
+            self.offcuts.append(off)
+
+            # UI row
+            r = self.offcuts_table.rowCount()
+            self.offcuts_table.insertRow(r)
+
+            txt = label + (" (duplicate)" if is_dup else "")
+            name_item = QtGui.QTableWidgetItem(txt)
+            name_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+            name_item.setData(QtCore.Qt.UserRole, offcut_id)
+            if is_dup:
+                try:
+                    name_item.setForeground(QtGui.QBrush(QtGui.QColor("red")))
+                except Exception:
+                    pass
+            self.offcuts_table.setItem(r, 0, name_item)
+
+            # Checkbox widget for Remove selection
+            cb = QtGui.QCheckBox()
+            cb.setToolTip("Select for removal")
+            w = QtGui.QWidget()
+            lay = QtGui.QHBoxLayout(w)
+            lay.setContentsMargins(0, 0, 0, 0)
+            lay.addStretch()
+            lay.addWidget(cb)
+            lay.addStretch()
+            self.offcuts_table.setCellWidget(r, 1, w)
+
+        except Exception:
+            App.Console.PrintError("add_offcut_dxf failed:\n" + traceback.format_exc())
+
+    def remove_offcuts(self):
+        """Remove offcuts that are checked in the offcuts_table (checkbox only used for Remove)."""
+        try:
+            rows_to_remove = []
+            ids_to_remove = []
+
+            for r in range(self.offcuts_table.rowCount()):
+                try:
+                    w = self.offcuts_table.cellWidget(r, 1)
+                    cb = w.findChild(QtGui.QCheckBox) if w else None
+                    if cb and cb.isChecked():
+                        item = self.offcuts_table.item(r, 0)
+                        off_id = item.data(QtCore.Qt.UserRole) if item else None
+                        if off_id is not None:
+                            ids_to_remove.append(int(off_id))
+                        rows_to_remove.append(r)
+                except Exception:
+                    continue
+
+            if not rows_to_remove:
+                return
+
+            # remove from model
+            ids_set = set(ids_to_remove)
+            self.offcuts = [o for o in self.offcuts if int(o.get("id", -1)) not in ids_set]
+
+            # remove rows from UI bottom-up
+            for r in sorted(rows_to_remove, reverse=True):
+                try:
+                    w = self.offcuts_table.cellWidget(r, 1)
+                    if w is not None:
+                        w.setParent(None)
+                except Exception:
+                    pass
+                try:
+                    self.offcuts_table.removeRow(r)
+                except Exception:
+                    pass
+
+        except Exception:
+            App.Console.PrintError("remove_offcuts failed:\n" + traceback.format_exc())
+
+    def show_offcuts_popup(self):
+        """Show popup with ALL offcuts and allow changing grain X/Y per offcut."""
+        try:
+            if not self.offcuts:
+                QtGui.QMessageBox.information(None, "Offcuts", "No offcuts added.")
+                return
+            parent = QtGui.QApplication.activeWindow()
+            dlg = OffcutShowDialog(self.offcuts, parent=parent)
+            dlg.exec_()
+        except Exception:
+            App.Console.PrintError("show_offcuts_popup failed:\n" + traceback.format_exc())
+    
     def create_input_in_layout(self, parent_layout, label, default, tooltip):
         row = QtGui.QHBoxLayout()
         edit = QtGui.QLineEdit(default)
