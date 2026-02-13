@@ -18,6 +18,7 @@ from IPNestingExport import execute_nesting as execute_nesting_impl
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
+from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 
 try:
     from IPNestingRotate import NestingRotator
@@ -278,6 +279,19 @@ class NestingTaskPanel:
         self.add_btn.clicked.connect(self.add_selected_objects)
         # Remove Selected behaves like Qty -> 0 for selected rows
         self.rem_btn.clicked.connect(self.remove_selected_rows)
+        # --- NEW: Import 2D buttons (DXF/SVG) ---
+        self.import_dxf_btn = QtGui.QPushButton("Import DXF…")
+        self.import_svg_btn = QtGui.QPushButton("Import SVG…")
+        self.import_dxf_btn.setFixedHeight(32)
+        self.import_svg_btn.setFixedHeight(32)
+        self.import_dxf_btn.setFixedWidth(140)
+        self.import_svg_btn.setFixedWidth(140)
+
+        self.import_dxf_btn.clicked.connect(self.import_dxf_2d)
+        self.import_svg_btn.clicked.connect(self.import_svg_2d)
+
+        self.btn_layout.addWidget(self.import_dxf_btn)
+        self.btn_layout.addWidget(self.import_svg_btn)
         self.btn_layout.addWidget(self.add_btn)
         self.btn_layout.addWidget(self.rem_btn)
         self.layout.addLayout(self.btn_layout)
@@ -1886,3 +1900,176 @@ class NestingTaskPanel:
                 pass
         except Exception:
             pass
+            
+    def _add_preview_object_to_table(self, p_doc, obj_name):
+        """
+        Add an existing preview object (by Name) into the table as a new data row.
+        Mirrors the row structure used by add_selected_objects().
+        """
+        try:
+            if not p_doc or not obj_name:
+                return False
+            obj = p_doc.getObject(obj_name)
+            if not obj:
+                return False
+
+            insert_pos = max(0, self.table.rowCount() - self.control_rows)
+            self.table.insertRow(insert_pos)
+
+            name_item = QtGui.QTableWidgetItem(obj.Label)
+            name_item.setData(QtCore.Qt.UserRole, obj.Name)
+            try:
+                name_item.setData(QtCore.Qt.UserRole + 1, json.dumps([obj.Name]))
+            except Exception:
+                name_item.setData(QtCore.Qt.UserRole + 1, [obj.Name])
+            self.table.setItem(insert_pos, 0, name_item)
+
+            qty_item = QtGui.QTableWidgetItem("1")
+            qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.table.setItem(insert_pos, 1, qty_item)
+
+            rot_item = QtGui.QTableWidgetItem("0,90,180,270")
+            rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.table.setItem(insert_pos, 2, rot_item)
+
+            # Column 3: Select for rotation checkbox (centered)
+            container_sel = QtGui.QWidget()
+            cell_layout_sel = QtGui.QHBoxLayout(container_sel)
+            cell_layout_sel.setContentsMargins(3, 0, 3, 0)
+            cell_layout_sel.setSpacing(0)
+            cell_layout_sel.addStretch()
+            checkbox = QtGui.QCheckBox()
+            checkbox.setToolTip("Select this part for bulk Rotate")
+            cell_layout_sel.addWidget(checkbox)
+            cell_layout_sel.addStretch()
+            self.table.setCellWidget(insert_pos, 3, container_sel)
+
+            # Column 4: Grain Direction checkbox + combobox
+            container_grain = QtGui.QWidget()
+            grain_layout = QtGui.QHBoxLayout(container_grain)
+            grain_layout.setContentsMargins(0, 0, 0, 0)
+            grain_layout.setSpacing(4)
+            grain_layout.addStretch()
+            grain_cb = QtGui.QCheckBox()
+            grain_cb.setToolTip("Enable custom grain direction for this part")
+            grain_layout.addWidget(grain_cb)
+            grain_combo = QtGui.QComboBox()
+            grain_combo.addItems(["X", "Y"])
+            grain_combo.setCurrentIndex(0)
+            grain_combo.setFixedWidth(50)
+            grain_layout.addWidget(grain_combo)
+            grain_layout.addStretch()
+            self.table.setCellWidget(insert_pos, 4, container_grain)
+
+            try:
+                self._connect_grain_widgets(grain_cb, grain_combo, obj.Name)
+            except Exception:
+                pass
+
+            # keep UI widths stable
+            try:
+                self.table.setColumnWidth(0, 250)
+                self.table.setColumnWidth(1, 40)
+            except Exception:
+                pass
+
+            self.added_count += 1
+            return True
+
+        except Exception:
+            App.Console.PrintError("_add_preview_object_to_table failed:\n" + traceback.format_exc())
+            return False
+
+    def import_dxf_2d(self):
+        try:
+            if import_dxf_to_preview is None:
+                QtGui.QMessageBox.warning(None, "Import DXF", "DXF import module not available.")
+                return
+
+            path, _ = QtGui.QFileDialog.getOpenFileName(
+                None, "Import DXF", "", "DXF files (*.dxf *.DXF);;All files (*.*)"
+            )
+            if not path:
+                return
+
+            p_doc = self.ensure_preview_doc()
+            created = import_dxf_to_preview(
+                self,
+                path,
+                make_faces_if_possible=False,
+                group_into_single_object=True  # set False if you want each entity as separate part
+            )
+
+            if not created:
+                QtGui.QMessageBox.warning(None, "Import DXF", "No usable geometry imported.")
+                return
+
+            # Add created objects to the table (so they can be rotated like others)
+            for nm in created:
+                self._add_preview_object_to_table(p_doc, nm)
+
+            try:
+                p_doc.recompute()
+                Gui.setActiveDocument(p_doc)
+                Gui.SendMsgToActiveView("ViewFit")
+            except Exception:
+                pass
+
+            # update perimeters/layout
+            try:
+                self.update_grain_layout_and_perimeters()
+            except Exception:
+                pass
+            try:
+                self._update_apply_blink_state()
+            except Exception:
+                pass
+
+        except Exception:
+            App.Console.PrintError("import_dxf_2d failed:\n" + traceback.format_exc())
+
+    def import_svg_2d(self):
+        try:
+            if import_svg_to_preview is None:
+                QtGui.QMessageBox.warning(None, "Import SVG", "SVG import module not available.")
+                return
+
+            path, _ = QtGui.QFileDialog.getOpenFileName(
+                None, "Import SVG", "", "SVG files (*.svg *.SVG);;All files (*.*)"
+            )
+            if not path:
+                return
+
+            p_doc = self.ensure_preview_doc()
+            created = import_svg_to_preview(
+                self,
+                path,
+                make_faces_if_possible=False,
+                group_into_single_object=True
+            )
+
+            if not created:
+                QtGui.QMessageBox.warning(None, "Import SVG", "No usable geometry imported.")
+                return
+
+            for nm in created:
+                self._add_preview_object_to_table(p_doc, nm)
+
+            try:
+                p_doc.recompute()
+                Gui.setActiveDocument(p_doc)
+                Gui.SendMsgToActiveView("ViewFit")
+            except Exception:
+                pass
+
+            try:
+                self.update_grain_layout_and_perimeters()
+            except Exception:
+                pass
+            try:
+                self._update_apply_blink_state()
+            except Exception:
+                pass
+
+        except Exception:
+            App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
