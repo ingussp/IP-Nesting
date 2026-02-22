@@ -1007,7 +1007,7 @@ class NestingTaskPanel:
                     qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 1, qty_item)
                     # Column 2: Rotation degree defaults (centered)
-                    rot_item = QtGui.QTableWidgetItem("0,90,180,270")
+                    rot_item = QtGui.QTableWidgetItem("90")
                     rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 2, rot_item)
                     # Column 3: Select for rotation (checkbox) -- center the checkbox
@@ -1108,6 +1108,10 @@ class NestingTaskPanel:
             row = item.row()
             # ignore changes in control rows
             if row >= self.table.rowCount() - self.control_rows:
+                return
+            # NEW: Rotation degree clamp (col 2)
+            if col == 2:
+                self._clamp_rotation_cell(row)
                 return
             if col != 1:
                 return
@@ -2124,7 +2128,7 @@ class NestingTaskPanel:
             qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 1, qty_item)
 
-            rot_item = QtGui.QTableWidgetItem("0,90,180,270")
+            rot_item = QtGui.QTableWidgetItem("90")
             rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 2, rot_item)
 
@@ -2269,3 +2273,79 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
+            
+    def _clamp_rotation_degrees_text(self, txt):
+        """
+        Clamp each comma-separated rotation token to [0.1 .. 359].
+        Keeps formatting as comma-separated numbers.
+        Invalid tokens are ignored.
+        If nothing valid remains -> returns default '90,180,270'
+        """
+        try:
+            if txt is None:
+                return "90"
+            s = str(txt).strip()
+            if not s:
+                return "90"
+
+            out = []
+            for token in s.replace("°", "").split(","):
+                token = token.strip()
+                if not token:
+                    continue
+                try:
+                    v = float(token)
+                except Exception:
+                    continue
+
+                if v < 0.1:
+                    v = 0.1
+                if v > 359.0:
+                    v = 359.0
+
+                # avoid ugly trailing .0 for integers
+                if abs(v - round(v)) < 1e-9:
+                    out.append(str(int(round(v))))
+                else:
+                    # keep one decimal (matches 0.1 requirement)
+                    out.append(("{:.3f}".format(v)).rstrip("0").rstrip("."))
+            if not out:
+                return "90,180,270"
+
+            # remove duplicates while preserving order
+            seen = set()
+            out2 = []
+            for t in out:
+                if t in seen:
+                    continue
+                seen.add(t)
+                out2.append(t)
+
+            return ",".join(out2)
+        except Exception:
+            return "90,180,270"
+
+
+    def _clamp_rotation_cell(self, row):
+        """Clamp Rotation degree cell (column 2) for a given data row."""
+        try:
+            if row is None:
+                return
+            # ignore control rows
+            if row >= self.table.rowCount() - self.control_rows:
+                return
+            item = self.table.item(row, 2)
+            if not item:
+                return
+
+            old = item.text()
+            new = self._clamp_rotation_degrees_text(old)
+            if new != old:
+                # prevent recursive triggers via itemChanged
+                try:
+                    self._suppress_qty_update = True  # reuse existing suppression flag
+                    item.setText(new)
+                finally:
+                    self._suppress_qty_update = False
+        except Exception:
+            pass

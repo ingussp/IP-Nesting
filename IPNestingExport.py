@@ -10,6 +10,47 @@ import os
 import traceback
 
 
+def _parse_allowed_rotations_float(allowed_str, default=None):
+    """
+    Parse comma-separated rotations into floats, clamp to [0.1 .. 359],
+    ensure 0.1 is present (acts like '0' but respects the min constraint).
+    """
+    if default is None:
+        default = [90.0]
+
+    try:
+        s = (allowed_str or "").replace("°", "")
+        parts = [p.strip() for p in s.split(",") if p.strip()]
+        out = []
+        for p in parts:
+            try:
+                v = float(p)
+            except Exception:
+                continue
+            if v < 0.1:
+                v = 0.1
+            if v > 359.0:
+                v = 359.0
+            out.append(float(v))
+
+        if not out:
+            out = list(default)
+
+        # Ensure 0.1 exists (instead of 0)
+        # if not any(abs(x - 0.1) < 1e-9 for x in out):
+            # out.insert(0, 0.1)
+
+        # De-duplicate with tolerance, preserve order
+        uniq = []
+        for v in out:
+            if any(abs(v - u) < 1e-9 for u in uniq):
+                continue
+            uniq.append(float(v))
+        return uniq
+    except Exception:
+        return list(default)
+
+
 def execute_nesting(panel):
     """
     Execute nesting operation by exporting configuration to JSON.
@@ -27,7 +68,6 @@ def execute_nesting(panel):
             App.Console.PrintMessage("Invalid sheet inputs, using defaults.\n")
             sheet_w = float(panel.sheet_w.text()) if panel.sheet_w.text() else 2500.0
             sheet_h = float(panel.sheet_h.text()) if panel.sheet_h.text() else 1250.0
-
             sheet_margin = float(panel.sheet_margin.text()) if panel.sheet_margin.text() else 5.0
 
         payload = {
@@ -39,11 +79,10 @@ def execute_nesting(panel):
             },
             "algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "None",
             "parts": [],
-            # NEW: offcuts (DXF) additional sheets. EXE should try these before full sheets.
             "offcuts": [],
         }
 
-        # NEW: export offcuts if present on panel (duplicates allowed)
+        # Export offcuts (duplicates allowed)
         try:
             offcuts = getattr(panel, "offcuts", None)
             if offcuts:
@@ -57,7 +96,7 @@ def execute_nesting(panel):
                         payload["offcuts"].append({
                             "label": off.get("label") or os.path.basename(str(off.get("path") or "")),
                             "path": off.get("path") or "",
-                            "grain": (off.get("grain") or "None"),   # NEW default
+                            "grain": (off.get("grain") or "None"),
                             "polygons": polys,
                             "bbox": bbox,
                         })
@@ -83,17 +122,9 @@ def execute_nesting(panel):
                 # Qty from table cell (already validated)
                 qty = int(qty_item.text()) if qty_item and qty_item.text().isdigit() else 1
 
-                allowed_str = allowed_item.text() if allowed_item else "0,90,180,270"
-                allowed_rots = []
-                for token in allowed_str.replace("°", "").split(","):
-                    token = token.strip()
-                    if token:
-                        try:
-                            allowed_rots.append(int(token))
-                        except Exception:
-                            pass
-                if 0 not in allowed_rots:
-                    allowed_rots.insert(0, 0)
+                # NEW: allowed rotations as floats (supports 0.1)
+                allowed_str = allowed_item.text() if allowed_item else ""
+                allowed_rots = _parse_allowed_rotations_float(allowed_str)
 
                 # Grain direction from per-row widget (column 4): if checkbox enabled, read combobox, else None
                 grain_value = None
@@ -197,7 +228,7 @@ def execute_nesting(panel):
                     "label": obj.Label,
                     "name": obj_name,
                     "qty": qty,
-                    "allowed_rotations": allowed_rots,
+                    "allowed_rotations": allowed_rots,  # floats now
                     "placement": {"x": base.x, "y": base.y, "z": base.z},
                     "rotation": rotation_info,
                     "bbox": {"width": bbox_w, "height": bbox_h},
