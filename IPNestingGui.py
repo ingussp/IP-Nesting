@@ -11,6 +11,8 @@ import traceback
 import time
 import re
 import tempfile
+import subprocess
+import sys
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
@@ -172,6 +174,7 @@ class NestingTaskPanel:
         self.sheet_w = self.create_input_in_layout(sheet_lay, "Sheet Width (mm):", "2500.00", "Total width.")
         self.sheet_h = self.create_input_in_layout(sheet_lay, "Sheet Height (mm):", "1250.00", "Total height.")
         self.sheet_margin = self.create_input_in_layout(sheet_lay, "Sheet Margin (mm):", "5.00", "Edge margin.")
+        self.spacing = self.create_input_in_layout(sheet_lay, "Part Spacing (mm):", "6.00", "Part gap.")
 
         row = QtGui.QHBoxLayout()
         row.addWidget(QtGui.QLabel("Sheet grain direction:"))
@@ -229,45 +232,77 @@ class NestingTaskPanel:
         # General Parameters (LEFT, row 2)  (shifted down by 1)
         general_box = QtGui.QGroupBox("General Parameters")
         general_lay = QtGui.QVBoxLayout(general_box)
-        self.spacing = self.create_input_in_layout(general_lay, "Part Spacing (mm):", "2.00", "Part gap.")
         self.res = self.create_input_in_layout(general_lay, "Boundary Resolution:", "0.1", "Curve resolution.")
 
-        # Nesting Strategy (RIGHT, row 0)
-        strategy_box = QtGui.QGroupBox("Nesting Strategy")
+        # Placement Strategy (RIGHT, row 0)
+        strategy_box = QtGui.QGroupBox("Placement Strategy")
         strategy_lay = QtGui.QVBoxLayout(strategy_box)
         self.select_strategy = QtGui.QComboBox()
-        self.select_strategy.addItems(["Largest Area First", "Smallest Area First", "None"])
+        self.select_strategy.addItems([
+            "Largest Area First",
+            "Smallest Area First",
+            "Longest Edge First"
+        ])
+        self.select_strategy.setCurrentIndex(0)
         strategy_lay.addWidget(self.select_strategy)
 
-        # Nesting Algorithm (RIGHT, row 1)
-        algo_box = QtGui.QGroupBox("Nesting Algorithm")
+        # Placement Algorithm (RIGHT, row 1)
+        algo_box = QtGui.QGroupBox("Placement Algorithm")
         algo_lay = QtGui.QVBoxLayout(algo_box)
         self.nesting_algorithm = QtGui.QComboBox()
         self.nesting_algorithm.addItems([
-            "Bottom-Left",
-            "Guillotine",
-            "Extreme Points",
-            "Genetic",
-            "No-Fit-Polygon",
-            "None"
+            "Bottom Left",
+            "Extreme Points"
         ])
         self.nesting_algorithm.setCurrentIndex(0)
         algo_lay.addWidget(self.nesting_algorithm)
 
-        # Optimization (RIGHT, row 2)
+        # Geometry Engine (RIGHT, row 2)
+        geom_box = QtGui.QGroupBox("Geometry Engine")
+        geom_lay = QtGui.QVBoxLayout(geom_box)
+        self.geometry_engine = QtGui.QComboBox()
+        self.geometry_engine.addItems([
+            "NFP",
+            "NFP + Bitmask",
+            "Bounding Box"
+        ])
+        self.geometry_engine.setCurrentIndex(0)
+        geom_lay.addWidget(self.geometry_engine)
+
+        # Optimization (RIGHT, row 3)
         opt_box = QtGui.QGroupBox("Optimization")
         opt_lay = QtGui.QVBoxLayout(opt_box)
-        self.gen = self.create_input_in_layout(opt_lay, "Generations:", "5", "Iterations.")
-        self.pop = self.create_input_in_layout(opt_lay, "Population Size:", "20", "Solutions.")
+        self.optimization_combo = QtGui.QComboBox()
+        self.optimization_combo.addItems([
+            "None",
+            "Genetic"
+        ])
+        self.optimization_combo.setCurrentIndex(0)
+        opt_lay.addWidget(self.optimization_combo)
+
+        # Use GPU (LEFT, row 3)
+        gpu_box = QtGui.QGroupBox("Use GPU")
+        gpu_lay = QtGui.QVBoxLayout(gpu_box)
+
+        self.gpu_combo = QtGui.QComboBox()
+        self.gpu_combo.addItem("None")
+        gpu_lay.addWidget(self.gpu_combo)
+
+        self.show_gpu_btn = QtGui.QPushButton("Show GPU")
+        self.show_gpu_btn.setToolTip("Detect and show available GPUs")
+        self.show_gpu_btn.clicked.connect(self._on_show_gpu_clicked)
+        gpu_lay.addWidget(self.show_gpu_btn)
 
         # Place boxes in 2-column grid
         cfg_grid.addWidget(sheet_box,   0, 0)
-        cfg_grid.addWidget(offcut_box,  1, 0)     # NEW
-        cfg_grid.addWidget(general_box, 2, 0)     # shifted
+        cfg_grid.addWidget(offcut_box,  1, 0)
+        cfg_grid.addWidget(general_box, 2, 0)
+        cfg_grid.addWidget(gpu_box,     3, 0)
 
         cfg_grid.addWidget(strategy_box, 0, 1)
         cfg_grid.addWidget(algo_box,     1, 1)
-        cfg_grid.addWidget(opt_box,      2, 1)
+        cfg_grid.addWidget(geom_box,     2, 1)
+        cfg_grid.addWidget(opt_box,      3, 1)
 
         # Make columns expand nicely
         try:
@@ -525,6 +560,225 @@ class NestingTaskPanel:
         row.addWidget(edit)
         self.layout.addLayout(row)
         return edit
+        
+    def _on_show_gpu_clicked(self):
+        """Populate GPU combo only when the button is pressed, with loading indicator."""
+        progress = None
+        try:
+            current = self.gpu_combo.currentText() if hasattr(self, "gpu_combo") else "None"
+        except Exception:
+            current = "None"
+
+        try:
+            progress = QtGui.QProgressDialog("Loading GPUs...", None, 0, 0, self.form)
+            progress.setWindowTitle("Please wait")
+            progress.setWindowModality(QtCore.Qt.ApplicationModal)
+            progress.setCancelButton(None)
+            progress.setMinimumDuration(0)
+            progress.setAutoClose(False)
+            progress.setAutoReset(False)
+            progress.show()
+
+            try:
+                QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            except Exception:
+                pass
+
+            try:
+                self.show_gpu_btn.setEnabled(False)
+                self.show_gpu_btn.setText("Loading...")
+            except Exception:
+                pass
+
+            # Force UI repaint before blocking detection starts
+            try:
+                QtGui.QApplication.processEvents()
+            except Exception:
+                pass
+
+            self._populate_gpu_combo()
+
+            # try to preserve previous selection if still available
+            try:
+                idx = self.gpu_combo.findText(current)
+                if idx >= 0:
+                    self.gpu_combo.setCurrentIndex(idx)
+            except Exception:
+                pass
+
+            try:
+                self._save_settings_to_prefs()
+            except Exception:
+                pass
+
+        except Exception:
+            App.Console.PrintError("Show GPU failed:\n" + traceback.format_exc())
+        finally:
+            try:
+                if progress is not None:
+                    progress.close()
+            except Exception:
+                pass
+            try:
+                QtGui.QApplication.restoreOverrideCursor()
+            except Exception:
+                pass
+            try:
+                self.show_gpu_btn.setEnabled(True)
+                self.show_gpu_btn.setText("Show GPU")
+            except Exception:
+                pass
+            try:
+                QtGui.QApplication.processEvents()
+            except Exception:
+                pass
+    
+    def _detect_available_gpus(self):
+        """
+        Best-effort GPU detection by OS command.
+        Returns list of GPU names. If detection fails, returns [].
+        """
+        gpus = []
+
+        def _clean_lines(lines):
+            out = []
+            seen = set()
+            for line in lines:
+                try:
+                    s = str(line).strip()
+                except Exception:
+                    continue
+                if not s:
+                    continue
+                low = s.lower()
+                if low in ("name", "caption", "device", "gpu", "controller"):
+                    continue
+                if s not in seen:
+                    seen.add(s)
+                    out.append(s)
+            return out
+
+        try:
+            if sys.platform.startswith("win"):
+                # Windows 11: prefer PowerShell/CIM, fallback to WMIC
+                commands = [
+                    [
+                        "powershell",
+                        "-NoProfile",
+                        "-Command",
+                        "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"
+                    ],
+                    [
+                        "powershell",
+                        "-NoProfile",
+                        "-Command",
+                        "Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Name"
+                    ],
+                    [
+                        "wmic",
+                        "path",
+                        "win32_VideoController",
+                        "get",
+                        "name"
+                    ],
+                ]
+
+                for cmd in commands:
+                    try:
+                        p = subprocess.Popen(
+                            cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            universal_newlines=True
+                        )
+                        stdout, stderr = p.communicate(timeout=8)
+                        if p.returncode == 0 and stdout:
+                            found = _clean_lines(stdout.splitlines())
+                            if found:
+                                gpus = found
+                                break
+                    except Exception:
+                        continue
+
+            elif sys.platform.startswith("linux"):
+                # Linux
+                cmd = ["lspci"]
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                stdout, stderr = p.communicate(timeout=5)
+                if p.returncode == 0 and stdout:
+                    gpu_lines = []
+                    for line in stdout.splitlines():
+                        low = line.lower()
+                        if ("vga compatible controller" in low or
+                            "3d controller" in low or
+                            "display controller" in low):
+                            # keep human-readable part if possible
+                            parts = line.split(":", 2)
+                            if len(parts) >= 3:
+                                gpu_lines.append(parts[2].strip())
+                            else:
+                                gpu_lines.append(line.strip())
+                    gpus = _clean_lines(gpu_lines)
+
+            elif sys.platform == "darwin":
+                # macOS
+                cmd = ["system_profiler", "SPDisplaysDataType"]
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                stdout, stderr = p.communicate(timeout=8)
+                if p.returncode == 0 and stdout:
+                    gpu_lines = []
+                    for line in stdout.splitlines():
+                        s = line.strip()
+                        if s.startswith("Chipset Model:"):
+                            gpu_lines.append(s.split(":", 1)[1].strip())
+                    gpus = _clean_lines(gpu_lines)
+
+        except Exception:
+            pass
+
+        return gpus
+
+    def _populate_gpu_combo(self):
+        """
+        Fill GPU combo with:
+        - None
+        - auto-detected GPU names
+        """
+        try:
+            if not hasattr(self, "gpu_combo") or self.gpu_combo is None:
+                return
+
+            try:
+                prev = self.gpu_combo.currentText().strip()
+            except Exception:
+                prev = "None"
+
+            self.gpu_combo.blockSignals(True)
+            self.gpu_combo.clear()
+            self.gpu_combo.addItem("None")
+
+            gpus = self._detect_available_gpus()
+            for gpu in gpus:
+                try:
+                    s = str(gpu).strip()
+                    if s and self.gpu_combo.findText(s) < 0:
+                        self.gpu_combo.addItem(s)
+                except Exception:
+                    pass
+
+            idx = self.gpu_combo.findText(prev)
+            if idx >= 0:
+                self.gpu_combo.setCurrentIndex(idx)
+            else:
+                self.gpu_combo.setCurrentIndex(0)
+
+        except Exception:
+            App.Console.PrintError("Failed to populate GPU combo:\n" + traceback.format_exc())
+        finally:
+            try:
+                self.gpu_combo.blockSignals(False)
+            except Exception:
+                pass
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
     def _on_apply_blink_tick(self):
@@ -2016,7 +2270,9 @@ class NestingTaskPanel:
                 self.spacing, self.res,
                 self.select_strategy,
                 self.nesting_algorithm,
-                self.gen, self.pop,
+                self.geometry_engine,
+                self.optimization_combo,
+                self.gpu_combo,
             ]
             for w in widgets:
                 try:
@@ -2030,10 +2286,7 @@ class NestingTaskPanel:
             self.sheet_margin.setText(str(p.GetString("SheetMargin", self.sheet_margin.text())))
             self.spacing.setText(str(p.GetString("PartSpacing", self.spacing.text())))
             self.res.setText(str(p.GetString("BoundaryResolution", self.res.text())))
-            self.gen.setText(str(p.GetString("Generations", self.gen.text())))
-            self.pop.setText(str(p.GetString("PopulationSize", self.pop.text())))
 
-            # Combos: store by index (robust) or by text (more readable)
             try:
                 self.sheet_grain_combo.setCurrentIndex(int(p.GetInt("SheetGrainIndex", self.sheet_grain_combo.currentIndex())))
             except Exception:
@@ -2044,6 +2297,25 @@ class NestingTaskPanel:
                 pass
             try:
                 self.nesting_algorithm.setCurrentIndex(int(p.GetInt("AlgorithmIndex", self.nesting_algorithm.currentIndex())))
+            except Exception:
+                pass
+            try:
+                self.geometry_engine.setCurrentIndex(int(p.GetInt("GeometryEngineIndex", self.geometry_engine.currentIndex())))
+            except Exception:
+                pass
+            try:
+                self.optimization_combo.setCurrentIndex(int(p.GetInt("OptimizationIndex", self.optimization_combo.currentIndex())))
+            except Exception:
+                pass
+            try:
+                saved_gpu = str(p.GetString("GpuName", "None")).strip()
+                if saved_gpu and saved_gpu != "None" and self.gpu_combo.findText(saved_gpu) < 0:
+                    self.gpu_combo.addItem(saved_gpu)
+                idx = self.gpu_combo.findText(saved_gpu if saved_gpu else "None")
+                if idx >= 0:
+                    self.gpu_combo.setCurrentIndex(idx)
+                else:
+                    self.gpu_combo.setCurrentIndex(0)
             except Exception:
                 pass
 
@@ -2069,9 +2341,13 @@ class NestingTaskPanel:
 
             p.SetInt("StrategyIndex", int(self.select_strategy.currentIndex()))
             p.SetInt("AlgorithmIndex", int(self.nesting_algorithm.currentIndex()))
+            p.SetInt("GeometryEngineIndex", int(self.geometry_engine.currentIndex()))
+            p.SetInt("OptimizationIndex", int(self.optimization_combo.currentIndex()))
 
-            p.SetString("Generations", self.gen.text().strip())
-            p.SetString("PopulationSize", self.pop.text().strip())
+            try:
+                p.SetString("GpuName", self.gpu_combo.currentText().strip())
+            except Exception:
+                p.SetString("GpuName", "None")
         except Exception:
             pass
 
@@ -2079,7 +2355,7 @@ class NestingTaskPanel:
         # Save on change
         try:
             # line edits
-            for le in [self.sheet_w, self.sheet_h, self.sheet_margin, self.spacing, self.res, self.gen, self.pop]:
+            for le in [self.sheet_w, self.sheet_h, self.sheet_margin, self.spacing, self.res]:
                 try:
                     le.editingFinished.connect(self._save_settings_to_prefs)
                 except Exception:
@@ -2096,6 +2372,18 @@ class NestingTaskPanel:
                 pass
             try:
                 self.nesting_algorithm.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+            try:
+                self.geometry_engine.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+            try:
+                self.optimization_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
+            except Exception:
+                pass
+            try:
+                self.gpu_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:
                 pass
         except Exception:
