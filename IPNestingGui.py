@@ -23,6 +23,22 @@ from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 from IPNestingOffcuts import extract_offcut_from_dxf
 from IPNestingOffcutShowDialog import OffcutShowDialog
+try:
+    from IPNestingImport import apply_nesting_result
+except Exception:
+    try:
+        from .IPNestingImport import apply_nesting_result
+    except Exception:
+        App.Console.PrintError("Failed to import IPNestingImport:\n" + traceback.format_exc())
+        apply_nesting_result = None
+try:
+    from IPNestingImportSheets import import_nesting_sheets
+except Exception:
+    try:
+        from .IPNestingImportSheets import import_nesting_sheets
+    except Exception:
+        App.Console.PrintError("Failed to import IPNestingImportSheets:\n" + traceback.format_exc())
+        import_nesting_sheets = None
 
 
 try:
@@ -1969,8 +1985,137 @@ class NestingTaskPanel:
             pass
 
     def execute_nesting(self):
-        """Execute nesting - delegates to IPNestingExport module."""
-        execute_nesting_impl(self)
+        """Export nesting JSON, run external nesting exe, then import result into preview."""
+        try:
+            App.Console.PrintMessage("Starting nesting pipeline...\n")
+
+            # 1) Export input JSON
+            execute_nesting_impl(self)
+
+            script_dir = os.path.abspath(os.path.dirname(__file__))
+            input_path = os.path.join(script_dir, "libnest2d_export.json")
+            output_path = os.path.join(script_dir, "libnest2d_import.json")
+
+            exe_path = r"C:\dev\test_nest\build\Release\TestApp.exe"
+
+            if not os.path.exists(input_path):
+                App.Console.PrintError("Export JSON not found: %s\n" % input_path)
+                QtGui.QMessageBox.critical(None, "Nesting", "Export JSON file was not created.")
+                return
+
+            if not os.path.exists(exe_path):
+                App.Console.PrintError("Nesting exe not found: %s\n" % exe_path)
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting",
+                    "Nesting executable not found:\n%s" % exe_path
+                )
+                return
+
+            # 2) Run external nesting exe
+            cmd = [exe_path, input_path, output_path]
+            App.Console.PrintMessage("Running nesting exe:\n%s\n" % " ".join(cmd))
+
+            progress = None
+            try:
+                progress = QtGui.QProgressDialog("Running nesting...", None, 0, 0, self.form)
+                progress.setWindowTitle("Please wait")
+                progress.setWindowModality(QtCore.Qt.ApplicationModal)
+                progress.setCancelButton(None)
+                progress.setMinimumDuration(0)
+                progress.setAutoClose(False)
+                progress.setAutoReset(False)
+                progress.show()
+                QtGui.QApplication.processEvents()
+            except Exception:
+                progress = None
+
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True
+            )
+            stdout, stderr = proc.communicate()
+
+            try:
+                if progress is not None:
+                    progress.close()
+            except Exception:
+                pass
+
+            if stdout:
+                App.Console.PrintMessage(stdout + ("" if stdout.endswith("\n") else "\n"))
+            if stderr:
+                App.Console.PrintError(stderr + ("" if stderr.endswith("\n") else "\n"))
+
+            if proc.returncode != 0:
+                App.Console.PrintError("Nesting exe failed with exit code %d\n" % proc.returncode)
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting failed",
+                    "Nesting executable failed with exit code %d." % proc.returncode
+                )
+                return
+
+            if not os.path.exists(output_path):
+                App.Console.PrintError("Import JSON not found after exe run: %s\n" % output_path)
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting failed",
+                    "Result JSON file was not created."
+                )
+                return
+
+            # 3) Import result back into preview document
+            if apply_nesting_result is None:
+                App.Console.PrintError("apply_nesting_result is not available.\n")
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting failed",
+                    "Import module is not available."
+                )
+                return
+
+            if import_nesting_sheets is None:
+                App.Console.PrintError("import_nesting_sheets is not available.\n")
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting failed",
+                    "Sheet import module is not available."
+                )
+                return
+
+            ok = import_nesting_sheets(input_path, output_path)
+            if not ok:
+                App.Console.PrintError("Failed to create nesting sheet documents.\n")
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting failed",
+                    "Result JSON could not be imported into sheet documents."
+                )
+                return
+
+            # 4) Refresh grain/perimeter overlays if available
+            try:
+                self.update_grain_layout_and_perimeters()
+            except Exception:
+                App.Console.PrintError(
+                    "Failed to update grain layout after nesting:\n" + traceback.format_exc()
+                )
+
+            App.Console.PrintMessage("Nesting pipeline completed successfully.\n")
+
+        except Exception:
+            App.Console.PrintError("execute_nesting failed:\n" + traceback.format_exc())
+            try:
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Nesting error",
+                    "execute_nesting failed:\n%s" % traceback.format_exc()
+                )
+            except Exception:
+                pass
 
     def getStandardButtons(self):
         return int(QtGui.QDialogButtonBox.Cancel)

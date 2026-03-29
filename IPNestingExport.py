@@ -8,6 +8,7 @@ from PySide import QtGui, QtCore
 import json
 import os
 import traceback
+import math
 
 
 def _parse_allowed_rotations_float(allowed_str, default=None):
@@ -77,7 +78,11 @@ def execute_nesting(panel):
                 "margin": sheet_margin,
                 "grain": panel.sheet_grain_combo.currentText(),
             },
-            "algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "None",
+            "placement_strategy": panel.select_strategy.currentText() if hasattr(panel, "select_strategy") else "Largest Area First",
+            "placement_algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "Bottom Left",
+            "geometry_engine": panel.geometry_engine.currentText() if hasattr(panel, "geometry_engine") else "NFP",
+            "optimization": panel.optimization_combo.currentText() if hasattr(panel, "optimization_combo") else "None",
+            "gpu": panel.gpu_combo.currentText() if hasattr(panel, "gpu_combo") else "None",
             "parts": [],
             "offcuts": [],
         }
@@ -164,7 +169,10 @@ def execute_nesting(panel):
                 try:
                     axis = rot.Axis
                     angle = rot.Angle
-                    rotation_info = {"axis": [axis.x, axis.y, axis.z], "angle_degrees": angle}
+                    rotation_info = {
+                        "axis": [axis.x, axis.y, axis.z],
+                        "angle_degrees": math.degrees(angle)
+                    }
                 except Exception:
                     rotation_info = {"axis": [0, 0, 1], "angle_degrees": 0}
 
