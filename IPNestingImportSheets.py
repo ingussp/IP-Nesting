@@ -85,10 +85,10 @@ def import_nesting_sheets(export_path, import_path):
             App.Console.PrintError("Import JSON not found: %s\n" % import_path)
             return False
 
-        with open(export_path, "r") as f:
+        with open(export_path, "r", encoding="utf-8") as f:
             export_data = json.load(f)
 
-        with open(import_path, "r") as f:
+        with open(import_path, "r", encoding="utf-8") as f:
             import_data = json.load(f)
 
         export_parts = export_data.get("parts", [])

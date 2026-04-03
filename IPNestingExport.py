@@ -376,8 +376,8 @@ def execute_nesting(panel):
         try:
             script_dir = os.path.abspath(os.path.dirname(__file__))
             out_path = os.path.join(script_dir, "libnest2d_export.json")
-            with open(out_path, "w") as f:
-                json.dump(payload, f, indent=2)
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, ensure_ascii=False)
             App.Console.PrintMessage("Nesting JSON written to: %s\n" % out_path)
         except Exception:
             App.Console.PrintError("Failed to write JSON file:\n" + traceback.format_exc())
