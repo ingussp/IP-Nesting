@@ -11,6 +11,112 @@ import traceback
 import math
 
 
+def _points_equal_2d(a, b, tol=1e-6):
+    try:
+        return abs(float(a[0]) - float(b[0])) <= tol and abs(float(a[1]) - float(b[1])) <= tol
+    except Exception:
+        return False
+
+
+def _discretize_edge_2d(edge, deflection=0.01):
+    pts2d = []
+    try:
+        try:
+            pts = edge.discretize(Deflection=deflection)
+        except Exception:
+            pts = edge.discretize(20)
+
+        for pt in pts:
+            try:
+                pts2d.append([round(float(pt.x), 6), round(float(pt.y), 6)])
+            except Exception:
+                try:
+                    pts2d.append([round(float(pt.X), 6), round(float(pt.Y), 6)])
+                except Exception:
+                    pass
+
+        # remove consecutive duplicates
+        cleaned = []
+        for p in pts2d:
+            if not cleaned or not _points_equal_2d(cleaned[-1], p):
+                cleaned.append(p)
+        return cleaned
+    except Exception:
+        App.Console.PrintError("_discretize_edge_2d failed:\n" + traceback.format_exc())
+        return []
+
+
+def _extract_wire_points_ordered(wire, deflection=0.01):
+    """
+    Build a properly ordered 2D contour from wire edges.
+    Edges are stitched by matching endpoints; reversed when needed.
+    """
+    try:
+        edges = list(getattr(wire, "Edges", []) or [])
+        if not edges:
+            return []
+
+        # discretize all edges first
+        chunks = []
+        for e in edges:
+            pts = _discretize_edge_2d(e, deflection=deflection)
+            if len(pts) >= 2:
+                chunks.append(pts)
+
+        if not chunks:
+            return []
+
+        ordered = list(chunks.pop(0))
+
+        while chunks:
+            last_pt = ordered[-1]
+            found_idx = None
+            found_pts = None
+
+            for i, pts in enumerate(chunks):
+                start_pt = pts[0]
+                end_pt = pts[-1]
+
+                if _points_equal_2d(last_pt, start_pt):
+                    found_idx = i
+                    found_pts = pts
+                    break
+
+                if _points_equal_2d(last_pt, end_pt):
+                    found_idx = i
+                    found_pts = list(reversed(pts))
+                    break
+
+            if found_pts is None:
+                # fallback: append nearest chunk as-is to avoid total failure
+                # but log it because topology is suspicious
+                App.Console.PrintWarning("Wire stitching fallback used: edge chain was not continuous.\n")
+                found_idx = 0
+                found_pts = chunks[0]
+
+            chunks.pop(found_idx)
+
+            if ordered and found_pts and _points_equal_2d(ordered[-1], found_pts[0]):
+                ordered.extend(found_pts[1:])
+            else:
+                ordered.extend(found_pts)
+
+        # remove duplicate closing point if present
+        if len(ordered) > 1 and _points_equal_2d(ordered[0], ordered[-1]):
+            ordered = ordered[:-1]
+
+        # remove consecutive duplicates again
+        cleaned = []
+        for p in ordered:
+            if not cleaned or not _points_equal_2d(cleaned[-1], p):
+                cleaned.append(p)
+
+        return cleaned
+
+    except Exception:
+        App.Console.PrintError("_extract_wire_points_ordered failed:\n" + traceback.format_exc())
+        return []
+
 def _parse_allowed_rotations_float(allowed_str, default=None):
     """
     Parse comma-separated rotations into floats, clamp to [0.1 .. 359],
@@ -50,6 +156,25 @@ def _parse_allowed_rotations_float(allowed_str, default=None):
         return uniq
     except Exception:
         return list(default)
+        
+def _read_boundary_deflection(panel, default=0.01):
+    """
+    Read boundary resolution/deflection from the UI.
+    Returns a positive float, falling back to default if invalid.
+    """
+    try:
+        if panel is None or not hasattr(panel, "res"):
+            return float(default)
+
+        txt = panel.res.text().strip()
+        val = float(txt)
+
+        if val <= 0.0:
+            return float(default)
+
+        return float(val)
+    except Exception:
+        return float(default)
 
 
 def execute_nesting(panel):
@@ -70,6 +195,8 @@ def execute_nesting(panel):
             sheet_w = float(panel.sheet_w.text()) if panel.sheet_w.text() else 2500.0
             sheet_h = float(panel.sheet_h.text()) if panel.sheet_h.text() else 1250.0
             sheet_margin = float(panel.sheet_margin.text()) if panel.sheet_margin.text() else 5.0
+            
+        boundary_deflection = _read_boundary_deflection(panel, default=0.01)
 
         payload = {
             "sheet": {
@@ -203,10 +330,8 @@ def execute_nesting(panel):
                         if abs(normal.dot(App.Vector(0, 0, 1))) > 0.9:
                             try:
                                 wire = face.OuterWire
-                                verts = []
-                                for v in wire.Vertexes:
-                                    verts.append([round(v.X, 6), round(v.Y, 6)])
-                                if verts:
+                                verts = _extract_wire_points_ordered(wire, deflection=boundary_deflection)
+                                if verts and len(verts) >= 2:
                                     polygons.append(verts)
                             except Exception:
                                 try:

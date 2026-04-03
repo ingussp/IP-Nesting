@@ -3,10 +3,10 @@
   "input_file": "C:\\Users\\Inguss\\AppData\\Roaming\\FreeCAD\\Mod\\IP-Nesting\\libnest2d_export.json",
   "placements": [
     {
-      "bbox_height": 351.66666666666674,
-      "bbox_width": 331.9999999999998,
+      "bbox_height": 2234.000000000001,
+      "bbox_width": 350.00000000000006,
       "bin_id": 0,
-      "id": "atd-Liel atv starpsiena[1]",
+      "id": "atd-Aiznugurejais sans",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
@@ -15,88 +15,100 @@
       "y": 7.0
     },
     {
-      "bbox_height": 286.0,
-      "bbox_width": 380.0000000000002,
+      "bbox_height": 350.00000000000006,
+      "bbox_width": 1800.0000000000005,
       "bin_id": 0,
-      "id": "atd-Liel atv grida[3]",
+      "id": "atd-Grida",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 1,
-      "x": 340.0,
-      "y": 7.0
+      "x": 7.0,
+      "y": 2242.0
     },
     {
-      "bbox_height": 291.66666666666674,
-      "bbox_width": 303.9999999999998,
-      "bin_id": 0,
-      "id": "atd-Liel atv kr sans[1]",
+      "bbox_height": 350.00000000000006,
+      "bbox_width": 1800.0000000000005,
+      "bin_id": 1,
+      "id": "atd-Jumts",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 2,
-      "x": 721.0,
+      "x": 7.0,
       "y": 7.0
     },
     {
-      "bbox_height": 291.66666666666686,
-      "bbox_width": 303.99999999999983,
-      "bin_id": 0,
-      "id": "atd-Liel atv kr sans[2]",
+      "bbox_height": 291.66666666666674,
+      "bbox_width": 380.0,
+      "bin_id": 1,
+      "id": "atd-Liel atv aizmugure[1]",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 3,
-      "x": 1026.0,
-      "y": 7.0
+      "x": 7.0,
+      "y": 711.0
     },
     {
-      "bbox_height": 291.66666666666686,
-      "bbox_width": 303.9999999999999,
-      "bin_id": 0,
-      "id": "atd-Liel atv kr sans[3]",
+      "bbox_height": 291.66666666666674,
+      "bbox_width": 380.0,
+      "bin_id": 1,
+      "id": "atd-Liel atv aizmugure[2]",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 4,
-      "x": 1331.0,
-      "y": 7.0
+      "x": 7.0,
+      "y": 1004.0
     },
     {
-      "bbox_height": 291.6666666666668,
-      "bbox_width": 303.9999999999999,
-      "bin_id": 0,
-      "id": "atd-Liel atv l sans[1]",
+      "bbox_height": 291.66666666666674,
+      "bbox_width": 380.0,
+      "bin_id": 1,
+      "id": "atd-Liel atv aizmugure[3]",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 5,
-      "x": 1636.0,
-      "y": 7.0
+      "x": 388.0,
+      "y": 711.0
     },
     {
-      "bbox_height": 291.6666666666668,
-      "bbox_width": 303.9999999999999,
-      "bin_id": 0,
-      "id": "atd-Liel atv l sans[2]",
+      "bbox_height": 351.66666666666697,
+      "bbox_width": 1450.0,
+      "bin_id": 1,
+      "id": "atd-Liel atv aizmugureja siena",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 6,
-      "x": 340.0,
-      "y": 294.0
+      "x": 7.0,
+      "y": 358.0
     },
     {
-      "bbox_height": 291.6666666666668,
-      "bbox_width": 303.99999999999983,
-      "bin_id": 0,
-      "id": "atd-Liel atv l sans[3]",
+      "bbox_height": 343.6666666666668,
+      "bbox_width": 434.0,
+      "bin_id": 1,
+      "id": "atd-Liel atv fasade[1]",
       "instance_index": 0,
       "placed": true,
       "rotation_deg": 0.0,
       "source_part_index": 7,
-      "x": 645.0,
-      "y": 300.0
+      "x": 1458.0,
+      "y": 358.0
+    },
+    {
+      "bbox_height": 343.6666666666668,
+      "bbox_width": 434.0000000000001,
+      "bin_id": 1,
+      "id": "atd-Liel atv fasade[2]",
+      "instance_index": 0,
+      "placed": true,
+      "rotation_deg": 0.0,
+      "source_part_index": 8,
+      "x": 1458.0,
+      "y": 703.0
     }
   ],
   "sheet": {
@@ -105,8 +117,8 @@
     "width": 2000.0
   },
   "stats": {
-    "part_instances": 8,
-    "placed": 8,
+    "part_instances": 9,
+    "placed": 9,
     "unplaced": 0
   },
   "status": "ok"

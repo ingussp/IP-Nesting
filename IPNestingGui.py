@@ -39,6 +39,14 @@ except Exception:
     except Exception:
         App.Console.PrintError("Failed to import IPNestingImportSheets:\n" + traceback.format_exc())
         import_nesting_sheets = None
+try:
+    from IPNestingDebugExport import debug_draw_export_polygons
+except Exception:
+    try:
+        from .IPNestingDebugExport import debug_draw_export_polygons
+    except Exception:
+        App.Console.PrintError("Failed to import IPNestingDebugExport:\n" + traceback.format_exc())
+        debug_draw_export_polygons = None
 
 
 try:
@@ -405,6 +413,12 @@ class NestingTaskPanel:
         self.run_btn.setStyleSheet("background-color: #CF3519; color: white; font-weight: bold; height: 35px;")
         self.run_btn.clicked.connect(self.execute_nesting)
         self.layout.addWidget(self.run_btn)
+        
+        self.debug_export_btn = QtGui.QPushButton("Debug Export Polygons")
+        self.debug_export_btn.setToolTip("Draw exported polygons in a separate document to inspect what is sent to the exe")
+        self.debug_export_btn.clicked.connect(self.debug_export_polygons)
+        self.layout.addWidget(self.debug_export_btn)
+        
         self._grain_angle_dialog_open = False
 
         try:
@@ -416,6 +430,44 @@ class NestingTaskPanel:
         self._load_settings_from_prefs()
         self._connect_settings_persistence()
 
+    def debug_export_polygons(self):
+        """Draw exported polygons in a separate debug document."""
+        try:
+            # First export current JSON using existing export pipeline
+            execute_nesting_impl(self)
+
+            script_dir = os.path.abspath(os.path.dirname(__file__))
+            export_path = os.path.join(script_dir, "libnest2d_export.json")
+
+            if debug_draw_export_polygons is None:
+                App.Console.PrintError("debug_draw_export_polygons is not available.\n")
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Debug Export",
+                    "Debug export module is not available."
+                )
+                return
+
+            ok = debug_draw_export_polygons(export_path)
+            if not ok:
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Debug Export",
+                    "Failed to draw export polygons."
+                )
+                return
+
+        except Exception:
+            App.Console.PrintError("debug_export_polygons failed:\n" + traceback.format_exc())
+            try:
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Debug Export",
+                    "debug_export_polygons failed:\n%s" % traceback.format_exc()
+                )
+            except Exception:
+                pass
+    
     def _is_offcut_duplicate_path(self, path):
         try:
             ap = os.path.abspath(str(path))
