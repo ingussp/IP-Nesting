@@ -342,7 +342,7 @@ class NestingTaskPanel:
             "Body", "Qty", "Rotation degree", "Select for rotation", "Grain Direction"
         ])
         self.table.setMinimumHeight(400)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.table.cellClicked.connect(self.on_cell_clicked)
         # Listen for item changes (Qty edits)
@@ -361,6 +361,20 @@ class NestingTaskPanel:
             self.table.setColumnWidth(0, 250)
             # Set Qty column width to 40px as requested
             self.table.setColumnWidth(1, 40)
+            
+            # Preserve the existing Rotation degree width and reuse it for Grain Direction.
+            rotation_width = self.table.columnWidth(2)
+
+            # Keep Body, Qty and Rotation degree widths unchanged.
+            self.table.setColumnWidth(0, 250)
+            self.table.setColumnWidth(1, 40)
+            self.table.setColumnWidth(2, rotation_width)
+
+            # Select for rotation: slightly wider, without unnecessary margins.
+            self.table.setColumnWidth(3, rotation_width + 20)
+
+            # Grain Direction: same width as Rotation degree.
+            self.table.setColumnWidth(4, rotation_width + 40)
         except Exception:
             pass
 
@@ -956,7 +970,7 @@ class NestingTaskPanel:
             self.bulk_grain_combo = QtGui.QComboBox()
             self.bulk_grain_combo.addItems(["X", "Y"])
             self.bulk_grain_combo.setCurrentIndex(0)
-            self.bulk_grain_combo.setFixedWidth(55)
+            self.bulk_grain_combo.setFixedWidth(70)
             hbot.addWidget(self.bulk_grain_combo)
 
             # Connect bulk combobox changes to apply immediately (but only for checked rows)
@@ -1335,7 +1349,7 @@ class NestingTaskPanel:
                     # Column 3: Select for rotation (checkbox) -- center the checkbox
                     container_sel = QtGui.QWidget()
                     cell_layout_sel = QtGui.QHBoxLayout(container_sel)
-                    cell_layout_sel.setContentsMargins(3, 0, 3, 0)  # small left/right margins
+                    cell_layout_sel.setContentsMargins(0, 0, 0, 0)  # small left/right margins
                     cell_layout_sel.setSpacing(0)
                     # center: add stretch both sides
                     cell_layout_sel.addStretch()
@@ -1356,7 +1370,7 @@ class NestingTaskPanel:
                     grain_combo = QtGui.QComboBox()
                     grain_combo.addItems(["X", "Y"])
                     grain_combo.setCurrentIndex(0)
-                    grain_combo.setFixedWidth(50)
+                    grain_combo.setFixedWidth(70)
                     grain_layout.addWidget(grain_combo)
                     grain_layout.addStretch()
                     self.table.setCellWidget(insert_pos, 4, container_grain)
@@ -2170,7 +2184,13 @@ class NestingTaskPanel:
                 pass
 
     def getStandardButtons(self):
-        return int(QtGui.QDialogButtonBox.Cancel)
+        buttons = QtGui.QDialogButtonBox.Cancel
+        try:
+            # PySide6 enum values require explicit access through .value
+            return int(buttons.value)
+        except AttributeError:
+            # Compatibility with older PySide/FreeCAD versions
+            return int(buttons)
         
     def _open_grain_angle_dialog_for_arrows(self, arrow_names):
         try:
@@ -2620,7 +2640,7 @@ class NestingTaskPanel:
             # Column 3: Select for rotation checkbox (centered)
             container_sel = QtGui.QWidget()
             cell_layout_sel = QtGui.QHBoxLayout(container_sel)
-            cell_layout_sel.setContentsMargins(3, 0, 3, 0)
+            cell_layout_sel.setContentsMargins(0, 0, 0, 0)
             cell_layout_sel.setSpacing(0)
             cell_layout_sel.addStretch()
             checkbox = QtGui.QCheckBox()
@@ -2641,7 +2661,7 @@ class NestingTaskPanel:
             grain_combo = QtGui.QComboBox()
             grain_combo.addItems(["X", "Y"])
             grain_combo.setCurrentIndex(0)
-            grain_combo.setFixedWidth(50)
+            grain_combo.setFixedWidth(70)
             grain_layout.addWidget(grain_combo)
             grain_layout.addStretch()
             self.table.setCellWidget(insert_pos, 4, container_grain)

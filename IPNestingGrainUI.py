@@ -382,16 +382,6 @@ class GrainUIController:
     def _connect_grain_widgets(self, grain_cb, grain_combo, preview_obj_name):
         """Wire per-row grain checkbox and combobox to callbacks (safe using partial)."""
         try:
-            # Avoid duplicate connections: attempt disconnects (may fail harmlessly)
-            try:
-                grain_cb.stateChanged.disconnect()
-            except Exception:
-                pass
-            try:
-                grain_combo.currentIndexChanged.disconnect()
-            except Exception:
-                pass
-
             grain_cb.stateChanged.connect(partial(self._on_grain_checkbox_state_changed,
                                                  preview_obj_name, grain_cb, grain_combo))
             grain_combo.currentIndexChanged.connect(partial(self._on_grain_axis_changed,
