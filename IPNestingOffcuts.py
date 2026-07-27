@@ -27,7 +27,7 @@ except Exception:
     Part = None
 
 
-def _import_dxf(path, doc_name):
+def _import_dxf2(path, doc_name):
     """Import DXF into a FreeCAD document."""
     try:
         import importDXF
@@ -42,6 +42,76 @@ def _import_dxf(path, doc_name):
         return True
     except Exception:
         pass
+
+    return False
+
+def _import_dxf(path, doc_name):
+    """
+    Import DXF into an existing FreeCAD document.
+
+    FreeCAD 1.1.x:
+        Uses freecad.module_io.OpenInsertObject(...)
+
+    Older FreeCAD versions:
+        Falls back to importDXF.insert(...)
+    """
+    if not path or not os.path.exists(path):
+        App.Console.PrintError(
+            "[Offcuts] DXF file does not exist: %s\n" % str(path)
+        )
+        return False
+
+    # Preferred importer for FreeCAD 1.1.x.
+    try:
+        from freecad import module_io
+
+        App.Console.PrintMessage(
+            "[Offcuts] Importing DXF using "
+            "module_io.OpenInsertObject(): %s\n" % str(path)
+        )
+
+        module_io.OpenInsertObject(
+            "importDXF",
+            str(path),
+            "insert",
+            str(doc_name)
+        )
+
+        App.Console.PrintMessage(
+            "[Offcuts] DXF import completed using module_io.\n"
+        )
+        return True
+
+    except Exception:
+        App.Console.PrintWarning(
+            "[Offcuts] module_io.OpenInsertObject() failed:\n"
+            + traceback.format_exc()
+        )
+
+    # Compatibility fallback for older FreeCAD versions.
+    try:
+        import importDXF
+
+        App.Console.PrintMessage(
+            "[Offcuts] Falling back to importDXF.insert(): %s\n"
+            % str(path)
+        )
+
+        importDXF.insert(
+            str(path),
+            str(doc_name)
+        )
+
+        App.Console.PrintMessage(
+            "[Offcuts] DXF import completed using importDXF.insert().\n"
+        )
+        return True
+
+    except Exception:
+        App.Console.PrintError(
+            "[Offcuts] DXF import failed with both importers:\n"
+            + traceback.format_exc()
+        )
 
     return False
 
@@ -183,7 +253,7 @@ def _collect_edges_from_shape(shp):
     return edges
 
 
-def _closed_wires_from_edges(edges, debug=False):
+def _closed_wires_from_edges(edges, debug=True):
     """
     Try to assemble closed wires from a flat list of edges.
     Returns list of Part.Wire objects that are closed.
@@ -197,7 +267,20 @@ def _closed_wires_from_edges(edges, debug=False):
 
         groups = []
         try:
+            App.Console.PrintMessage(
+                "[Offcuts][DEBUG] Part.sortEdges START. "
+                "Edges=%d\n"
+                % len(edges)
+            )
+
             groups = Part.sortEdges(edges)
+
+            App.Console.PrintMessage(
+                "[Offcuts][DEBUG] Part.sortEdges END. "
+                "Groups=%d\n"
+                % len(groups or [])
+            )
+
         except Exception as e:
             if debug:
                 App.Console.PrintError("[Offcuts][DEBUG] Part.sortEdges failed: %s\n" % str(e))
@@ -275,8 +358,29 @@ def extract_offcut_from_dxf(path, temp_doc_name="IPNesting_OffcutTmp", debug=Fal
         except Exception:
             pass
 
+        App.Console.PrintMessage(
+            "[Offcuts] Temporary document '%s' objects after import: %d\n"
+            % (doc.Name, len(doc.Objects))
+        )
+
+        if not doc.Objects:
+            App.Console.PrintError(
+                "[Offcuts] DXF importer returned successfully, "
+                "but temporary document contains no objects.\n"
+            )
+            return None, None
+
         # NEW: scan all objects recursively; don't rely on "new objects" detection
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Starting recursive document scan...\n"
+        )
+
         all_objs = list(_iter_doc_objects_recursive(doc))
+
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Recursive document scan finished. Objects=%d\n"
+            % len(all_objs)
+        )
         if debug:
             App.Console.PrintMessage("[Offcuts][DEBUG] Imported DXF: %s\n" % os.path.basename(path))
             App.Console.PrintMessage("[Offcuts][DEBUG] Doc objects total (recursive): %d\n" % len(all_objs))
@@ -293,6 +397,9 @@ def extract_offcut_from_dxf(path, temp_doc_name="IPNesting_OffcutTmp", debug=Fal
                 pass
 
         candidate_polys = []
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Starting direct wire scan...\n"
+        )
 
         # ---- 1) Try direct closed wires
         total_wires = 0
@@ -335,6 +442,12 @@ def extract_offcut_from_dxf(path, temp_doc_name="IPNesting_OffcutTmp", debug=Fal
             except Exception:
                 continue
 
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Direct wire scan finished. "
+            "Wires=%d candidates=%d\n"
+            % (total_wires, len(candidate_polys))
+        )
+        
         if debug:
             App.Console.PrintMessage("[Offcuts][DEBUG] Total wires seen in doc: %d; candidate polys from wires: %d\n" %
                                      (total_wires, len(candidate_polys)))
@@ -362,29 +475,80 @@ def extract_offcut_from_dxf(path, temp_doc_name="IPNesting_OffcutTmp", debug=Fal
                 except Exception:
                     pass
 
-            closed_wires = _closed_wires_from_edges(all_edges, debug=debug)
+            App.Console.PrintMessage(
+                "[Offcuts][DEBUG] Before _closed_wires_from_edges(). "
+                "Edges=%d\n"
+                % len(all_edges)
+            )
+
+            closed_wires = _closed_wires_from_edges(
+                all_edges,
+                debug=True
+            )
+
+            App.Console.PrintMessage(
+                "[Offcuts][DEBUG] After _closed_wires_from_edges(). "
+                "Closed wires=%d\n"
+                % len(closed_wires)
+            )
             if debug:
                 App.Console.PrintMessage("[Offcuts][DEBUG] Closed wires from edges: %d\n" % len(closed_wires))
 
-            for w in closed_wires:
+            for wire_index, w in enumerate(closed_wires):
                 try:
+                    App.Console.PrintMessage(
+                        "[Offcuts][DEBUG] Converting closed wire #%d to polyline...\n"
+                        % wire_index
+                    )
+
                     poly = _wire_to_polyline_2d(w)
+
+                    App.Console.PrintMessage(
+                        "[Offcuts][DEBUG] Wire #%d converted. Points=%d\n"
+                        % (wire_index, len(poly or []))
+                    )
+
                     if poly and len(poly) >= 3:
-                        candidate_polys.append((abs(polygon_area(poly)), poly))
+                        area = abs(polygon_area(poly))
+
+                        App.Console.PrintMessage(
+                            "[Offcuts][DEBUG] Wire #%d area=%f\n"
+                            % (wire_index, area)
+                        )
+
+                        candidate_polys.append((area, poly))
+
                 except Exception:
-                    continue
+                    App.Console.PrintError(
+                        "[Offcuts][DEBUG] Failed to convert wire #%d:\n"
+                        % wire_index
+                        + traceback.format_exc()
+                    )
 
         if not candidate_polys:
             App.Console.PrintError("IPNestingOffcuts: no closed contours found in %s\n" % os.path.basename(path))
             return None, None
 
         candidate_polys.sort(key=lambda t: t[0], reverse=True)
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Candidate polygons=%d\n"
+            % len(candidate_polys)
+        )
+
         poly = candidate_polys[0][1]
         bbox = poly_bbox(poly)
+
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] Selected polygon. Points=%d bbox=%s\n"
+            % (len(poly), str(bbox))
+        )
 
         if debug:
             App.Console.PrintMessage("[Offcuts][DEBUG] Selected polygon points=%d bbox=%s\n" % (len(poly), str(bbox)))
 
+        App.Console.PrintMessage(
+            "[Offcuts][DEBUG] extract_offcut_from_dxf RETURN\n"
+        )
         return poly, bbox
 
     except Exception:

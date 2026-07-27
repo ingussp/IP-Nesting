@@ -11,6 +11,8 @@ and adjust their grain direction (X/Y/None) per offcut.
 """
 
 import traceback
+import math
+import time
 
 import FreeCAD as App
 from PySide import QtGui, QtCore
@@ -86,67 +88,213 @@ class _OffcutPreview(QtGui.QLabel):
             return
 
     def _render(self):
+        render_started = time.time()
+
         try:
-            w = self._size_px
-            h = self._size_px
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] render start\n"
+            )
+
+            w = int(self._size_px)
+            h = int(self._size_px)
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] canvas=%dx%d\n" % (w, h)
+            )
+
+            poly = self._poly or []
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] polygon points=%d\n"
+                % len(poly)
+            )
+
+            if len(poly) > 10000:
+                App.Console.PrintWarning(
+                    "[OffcutPreview][DEBUG] polygon has %d points; "
+                    "rendering may be slow\n" % len(poly)
+                )
+
+            # Validate polygon point data before giving it to Qt.
+            valid_points = []
+
+            for index, point in enumerate(poly):
+                try:
+                    if point is None or len(point) < 2:
+                        App.Console.PrintWarning(
+                            "[OffcutPreview][DEBUG] invalid point #%d: %s\n"
+                            % (index, str(point))
+                        )
+                        continue
+
+                    x = float(point[0])
+                    y = float(point[1])
+
+                    if not (math.isfinite(x) and math.isfinite(y)):
+                        App.Console.PrintWarning(
+                            "[OffcutPreview][DEBUG] non-finite point #%d: %s\n"
+                            % (index, str(point))
+                        )
+                        continue
+
+                    valid_points.append([x, y])
+
+                except Exception:
+                    App.Console.PrintWarning(
+                        "[OffcutPreview][DEBUG] failed to read point #%d: %s\n"
+                        % (index, traceback.format_exc())
+                    )
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] valid polygon points=%d\n"
+                % len(valid_points)
+            )
+
             pm = QtGui.QPixmap(w, h)
             pm.fill(QtGui.QColor("white"))
 
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] pixmap created\n"
+            )
+
             painter = QtGui.QPainter(pm)
-            painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+            painter.setRenderHint(
+                QtGui.QPainter.Antialiasing,
+                True
+            )
 
-            # draw axes (light)
-            painter.setPen(QtGui.QPen(QtGui.QColor(235, 235, 235), 1))
-            painter.drawLine(0, h / 2, w, h / 2)
-            painter.drawLine(w / 2, 0, w / 2, h)
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] painter started\n"
+            )
 
-            # draw polygon (if any)
-            if self._poly and len(self._poly) >= 2:
-                xs = [float(p[0]) for p in self._poly]
-                ys = [float(p[1]) for p in self._poly]
-                min_x, max_x = min(xs), max(xs)
-                min_y, max_y = min(ys), max(ys)
+            # Draw light axes using integer coordinates.
+            painter.setPen(
+                QtGui.QPen(
+                    QtGui.QColor(235, 235, 235),
+                    1
+                )
+            )
+            painter.drawLine(0, int(h / 2), w, int(h / 2))
+            painter.drawLine(int(w / 2), 0, int(w / 2), h)
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] axes drawn\n"
+            )
+
+            if len(valid_points) >= 2:
+                xs = [p[0] for p in valid_points]
+                ys = [p[1] for p in valid_points]
+
+                min_x = min(xs)
+                max_x = max(xs)
+                min_y = min(ys)
+                max_y = max(ys)
 
                 dx = max(1e-9, max_x - min_x)
                 dy = max(1e-9, max_y - min_y)
 
+                App.Console.PrintMessage(
+                    "[OffcutPreview][DEBUG] bbox "
+                    "min=(%.6f, %.6f) max=(%.6f, %.6f)\n"
+                    % (min_x, min_y, max_x, max_y)
+                )
+
                 pad = 10.0
                 avail_w = float(w) - 2.0 * pad
                 avail_h = float(h) - 2.0 * pad
-                s = min(avail_w / dx, avail_h / dy)
+                scale = min(avail_w / dx, avail_h / dy)
 
-                # Centering offset
-                scaled_w = dx * s
-                scaled_h = dy * s
+                scaled_w = dx * scale
+                scaled_h = dy * scale
                 ox = pad + 0.5 * (avail_w - scaled_w)
                 oy = pad + 0.5 * (avail_h - scaled_h)
 
                 def map_pt(x, y):
-                    # Qt Y increases downward; invert Y for CAD-like preview
-                    px = ox + (x - min_x) * s
-                    py = oy + (max_y - y) * s
+                    px = ox + (x - min_x) * scale
+                    py = oy + (max_y - y) * scale
                     return QtCore.QPointF(px, py)
 
-                painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
-                pts = [map_pt(float(p[0]), float(p[1])) for p in self._poly]
-                if pts:
-                    pts2 = pts + [pts[0]]
-                    painter.drawPolyline(QtGui.QPolygonF(pts2))
+                qt_points = [
+                    map_pt(point[0], point[1])
+                    for point in valid_points
+                ]
 
-            # draw grain arrow on top of everything
+                App.Console.PrintMessage(
+                    "[OffcutPreview][DEBUG] Qt points created=%d\n"
+                    % len(qt_points)
+                )
+
+                painter.setPen(
+                    QtGui.QPen(
+                        QtGui.QColor(0, 0, 0),
+                        2
+                    )
+                )
+
+                if qt_points:
+                    qt_points_closed = qt_points + [qt_points[0]]
+
+                    App.Console.PrintMessage(
+                        "[OffcutPreview][DEBUG] starting drawPolyline\n"
+                    )
+
+                    painter.drawPolyline(
+                        QtGui.QPolygonF(qt_points_closed)
+                    )
+
+                    App.Console.PrintMessage(
+                        "[OffcutPreview][DEBUG] drawPolyline finished\n"
+                    )
+            else:
+                App.Console.PrintWarning(
+                    "[OffcutPreview][DEBUG] not enough valid points to draw\n"
+                )
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] starting grain arrow\n"
+            )
+
             self._draw_grain_arrow(painter, w, h)
 
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] grain arrow finished\n"
+            )
+
             painter.end()
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] painter ended\n"
+            )
+
             self.setPixmap(pm)
 
+            elapsed = time.time() - render_started
+
+            App.Console.PrintMessage(
+                "[OffcutPreview][DEBUG] render finished in %.3f s\n"
+                % elapsed
+            )
+
         except Exception:
-            # If render fails, show blank
+            elapsed = time.time() - render_started
+
+            App.Console.PrintError(
+                "[OffcutPreview][DEBUG] render failed after %.3f s:\n%s"
+                % (elapsed, traceback.format_exc())
+            )
+
             try:
-                pm = QtGui.QPixmap(self._size_px, self._size_px)
+                pm = QtGui.QPixmap(
+                    int(self._size_px),
+                    int(self._size_px)
+                )
                 pm.fill(QtGui.QColor("white"))
                 self.setPixmap(pm)
             except Exception:
-                pass
+                App.Console.PrintError(
+                    "[OffcutPreview][DEBUG] fallback pixmap failed:\n"
+                    + traceback.format_exc()
+                )
 
 
 class OffcutShowDialog(QtGui.QDialog):
@@ -184,6 +332,53 @@ class OffcutShowDialog(QtGui.QDialog):
             left = QtGui.QVBoxLayout()
             title = QtGui.QLabel("<b>%s</b>" % (off.get("label", "Offcut"),))
             left.addWidget(title)
+            
+            try:
+                App.Console.PrintMessage(
+                    "[OffcutDialog][DEBUG] building card #%d\n"
+                    % idx
+                )
+
+                App.Console.PrintMessage(
+                    "[OffcutDialog][DEBUG] label=%s\n"
+                    % str(off.get("label", "Offcut"))
+                )
+
+                polygons = off.get("polygons") or []
+
+                App.Console.PrintMessage(
+                    "[OffcutDialog][DEBUG] polygons=%d\n"
+                    % len(polygons)
+                )
+
+                poly = polygons[0] if polygons else []
+                grain = off.get("grain") or "None"
+
+                App.Console.PrintMessage(
+                    "[OffcutDialog][DEBUG] preview points=%d grain=%s\n"
+                    % (len(poly), str(grain))
+                )
+
+                prev = _OffcutPreview(
+                    poly=poly,
+                    grain=grain,
+                    size_px=200
+                )
+
+                App.Console.PrintMessage(
+                    "[OffcutDialog][DEBUG] preview created for card #%d\n"
+                    % idx
+                )
+
+                left.addWidget(prev)
+
+            except Exception:
+                App.Console.PrintError(
+                    "[OffcutDialog][DEBUG] failed to build card #%d:\n"
+                    % idx
+                    + traceback.format_exc()
+                )
+                continue
 
             poly = (off.get("polygons") or [[]])[0] if off.get("polygons") else []
             grain = off.get("grain") or "None"
