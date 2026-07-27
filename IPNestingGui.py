@@ -195,27 +195,34 @@ class NestingTaskPanel:
         sheet_box = QtGui.QGroupBox("Sheet Settings")
         sheet_lay = QtGui.QVBoxLayout(sheet_box)
 
-        self.sheet_w = self.create_input_in_layout(sheet_lay, "Sheet Width (mm):", "2500.00", "Total width.")
-        self.sheet_h = self.create_input_in_layout(sheet_lay, "Sheet Height (mm):", "1250.00", "Total height.")
-        self.sheet_margin = self.create_input_in_layout(sheet_lay, "Sheet Margin (mm):", "5.00", "Edge margin.")
-        self.spacing = self.create_input_in_layout(sheet_lay, "Part Spacing (mm):", "6.00", "Part gap.")
+        self.sheet_margin = self.create_input_in_layout(
+            sheet_lay,
+            "Sheet Margin (mm):",
+            "5.00",
+            "Distance from the sheet edge."
+        )
 
-        row = QtGui.QHBoxLayout()
-        row.addWidget(QtGui.QLabel("Sheet grain direction:"))
-        self.sheet_grain_combo = QtGui.QComboBox()
-        self.sheet_grain_combo.addItems(["Width", "Height", "None"])
-        self.sheet_grain_combo.setCurrentIndex(2)
-        self.sheet_grain_combo.setToolTip("Sheet grain direction: Width/Height/None")
-        row.addWidget(self.sheet_grain_combo)
-        sheet_lay.addLayout(row)
+        self.spacing = self.create_input_in_layout(
+            sheet_lay,
+            "Part Spacing (mm):",
+            "6.00",
+            "Minimum distance between parts."
+        )
+
+        self.hole_to_part_clearance = self.create_input_in_layout(
+            sheet_lay,
+            "Hole-to-part clearance (mm):",
+            "6.00",
+            "Minimum distance from a hole edge to a part edge."
+        )
 
         # NEW: Offcuts (DXF) (LEFT, row 1)
-        offcut_box = QtGui.QGroupBox("Offcuts (DXF)")
+        offcut_box = QtGui.QGroupBox("Sheet && Offcut Materials")
         offcut_lay = QtGui.QVBoxLayout(offcut_box)
 
         self.offcuts_table = QtGui.QTableWidget(0, 2)
         self.offcuts_table.setHorizontalHeaderLabels(["Offcut", ""])
-        self.offcuts_table.setToolTip("DXF offcuts: one DXF = one offcut sheet (largest closed contour).")
+        self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.setMinimumHeight(120)
 
@@ -521,7 +528,7 @@ class NestingTaskPanel:
             abs_path = os.path.abspath(path)
             is_dup = self._is_offcut_duplicate_path(abs_path)
 
-            poly, bbox = extract_offcut_from_dxf(abs_path, debug=False)
+            poly, bbox = extract_offcut_from_dxf(abs_path, debug=True)
             if not poly:
                 QtGui.QMessageBox.warning(None, "Offcuts", "No closed contour found in DXF.\nCannot use as offcut.")
                 return
@@ -2482,9 +2489,10 @@ class NestingTaskPanel:
         try:
             # block signals while setting values
             widgets = [
-                self.sheet_w, self.sheet_h, self.sheet_margin,
-                self.sheet_grain_combo,
-                self.spacing, self.res,
+                self.sheet_margin,
+                self.spacing,
+                self.hole_to_part_clearance,
+                self.res,
                 self.select_strategy,
                 self.nesting_algorithm,
                 self.geometry_engine,
@@ -2498,16 +2506,27 @@ class NestingTaskPanel:
                     pass
 
             # QLineEdits
-            self.sheet_w.setText(str(p.GetString("SheetWidth", self.sheet_w.text())))
-            self.sheet_h.setText(str(p.GetString("SheetHeight", self.sheet_h.text())))
-            self.sheet_margin.setText(str(p.GetString("SheetMargin", self.sheet_margin.text())))
-            self.spacing.setText(str(p.GetString("PartSpacing", self.spacing.text())))
-            self.res.setText(str(p.GetString("BoundaryResolution", self.res.text())))
+            self.sheet_margin.setText(
+                str(p.GetString("SheetMargin", self.sheet_margin.text()))
+            )
 
-            try:
-                self.sheet_grain_combo.setCurrentIndex(int(p.GetInt("SheetGrainIndex", self.sheet_grain_combo.currentIndex())))
-            except Exception:
-                pass
+            self.spacing.setText(
+                str(p.GetString("PartSpacing", self.spacing.text()))
+            )
+
+            self.hole_to_part_clearance.setText(
+                str(
+                    p.GetString(
+                        "HoleToPartClearance",
+                        self.hole_to_part_clearance.text()
+                    )
+                )
+            )
+
+            self.res.setText(
+                str(p.GetString("BoundaryResolution", self.res.text()))
+            )
+
             try:
                 self.select_strategy.setCurrentIndex(int(p.GetInt("StrategyIndex", self.select_strategy.currentIndex())))
             except Exception:
@@ -2548,12 +2567,12 @@ class NestingTaskPanel:
         if not p:
             return
         try:
-            p.SetString("SheetWidth", self.sheet_w.text().strip())
-            p.SetString("SheetHeight", self.sheet_h.text().strip())
             p.SetString("SheetMargin", self.sheet_margin.text().strip())
-            p.SetInt("SheetGrainIndex", int(self.sheet_grain_combo.currentIndex()))
-
             p.SetString("PartSpacing", self.spacing.text().strip())
+            p.SetString(
+                "HoleToPartClearance",
+                self.hole_to_part_clearance.text().strip()
+            )
             p.SetString("BoundaryResolution", self.res.text().strip())
 
             p.SetInt("StrategyIndex", int(self.select_strategy.currentIndex()))
@@ -2572,17 +2591,18 @@ class NestingTaskPanel:
         # Save on change
         try:
             # line edits
-            for le in [self.sheet_w, self.sheet_h, self.sheet_margin, self.spacing, self.res]:
+            for le in [
+                self.sheet_margin,
+                self.spacing,
+                self.hole_to_part_clearance,
+                self.res,
+            ]:
                 try:
                     le.editingFinished.connect(self._save_settings_to_prefs)
                 except Exception:
                     pass
 
             # combos
-            try:
-                self.sheet_grain_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
-            except Exception:
-                pass
             try:
                 self.select_strategy.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:

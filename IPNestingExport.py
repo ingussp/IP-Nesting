@@ -186,15 +186,24 @@ def execute_nesting(panel):
     """
     try:
         App.Console.PrintMessage("Starting Nesting Export...\n")
+        # Temporary fallback until sheet selection is implemented.
+        # Later these values will come from the selected sheet or offcut.
+        sheet_w = 2500.0
+        sheet_h = 1250.0
+
         try:
-            sheet_w = float(panel.sheet_w.text())
-            sheet_h = float(panel.sheet_h.text())
             sheet_margin = float(panel.sheet_margin.text())
         except Exception:
-            App.Console.PrintMessage("Invalid sheet inputs, using defaults.\n")
-            sheet_w = float(panel.sheet_w.text()) if panel.sheet_w.text() else 2500.0
-            sheet_h = float(panel.sheet_h.text()) if panel.sheet_h.text() else 1250.0
-            sheet_margin = float(panel.sheet_margin.text()) if panel.sheet_margin.text() else 5.0
+            sheet_margin = 5.0
+
+        try:
+            hole_to_part_clearance = float(
+                panel.hole_to_part_clearance.text()
+            )
+            if hole_to_part_clearance < 0.0:
+                hole_to_part_clearance = 0.0
+        except Exception:
+            hole_to_part_clearance = 6.0
             
         boundary_deflection = _read_boundary_deflection(panel, default=0.01)
 
@@ -203,6 +212,7 @@ def execute_nesting(panel):
                 "width": sheet_w,
                 "height": sheet_h,
                 "margin": sheet_margin,
+                "hole_to_part_clearance": hole_to_part_clearance,
                 "grain": panel.sheet_grain_combo.currentText(),
             },
             "placement_strategy": panel.select_strategy.currentText() if hasattr(panel, "select_strategy") else "Largest Area First",
