@@ -602,21 +602,9 @@ class NestingTaskPanel:
         Debug version for locating FreeCAD 1.1.1 GUI freeze.
         """
         try:
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] start _append_offcut_table_row\n"
-            )
-
             row = self.offcuts_table.rowCount()
 
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] rowCount=%d\n" % row
-            )
-
             self.offcuts_table.insertRow(row)
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] insertRow finished\n"
-            )
 
             label = str(
                 material.get(
@@ -626,11 +614,6 @@ class NestingTaskPanel:
             )
 
             item = QtGui.QTableWidgetItem(label)
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] material item created: %s\n"
-                % label
-            )
 
             item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
@@ -642,10 +625,6 @@ class NestingTaskPanel:
                 int(material.get("id", -1))
             )
 
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] material item configured\n"
-            )
-
             if bool(material.get("duplicate", False)):
                 try:
                     item.setForeground(
@@ -655,10 +634,6 @@ class NestingTaskPanel:
                     pass
 
             self.offcuts_table.setItem(row, 0, item)
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] material item inserted into column 0\n"
-            )
 
             grain_value = str(
                 material.get("grain", "N/A") or "N/A"
@@ -674,23 +649,10 @@ class NestingTaskPanel:
             )
             grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] grain item created: %s\n"
-                % grain_value
-            )
-
             self.offcuts_table.setItem(row, 1, grain_item)
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] grain item inserted into column 1\n"
-            )
 
             checkbox = QtGui.QCheckBox()
             checkbox.setToolTip("Select for removal")
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] checkbox created\n"
-            )
 
             container = QtGui.QWidget()
 
@@ -701,27 +663,10 @@ class NestingTaskPanel:
             row_layout.addWidget(checkbox)
             row_layout.addStretch()
 
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] checkbox container layout created\n"
-            )
-
             self.offcuts_table.setCellWidget(
                 row,
                 2,
                 container
-            )
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] checkbox inserted into column 2\n"
-            )
-
-            # try:
-                # QtGui.QApplication.processEvents()
-            # except Exception:
-                # pass
-
-            App.Console.PrintMessage(
-                "[Offcuts][TABLE] finished _append_offcut_table_row\n"
             )
 
         except Exception:
@@ -755,13 +700,7 @@ class NestingTaskPanel:
 
             poly, bbox = extract_offcut_from_dxf(
                 path,
-                debug=True
-            )
-            
-            App.Console.PrintMessage(
-                "[Offcuts][DEBUG] extract_offcut_from_dxf returned. "
-                "Points=%d bbox=%s\n"
-                % (len(poly or []), str(bbox))
+                debug=False
             )
 
             if not poly:
@@ -797,35 +736,10 @@ class NestingTaskPanel:
                     "quantity": 1,
                     "duplicate": bool(is_duplicate),
                 }
-                
-                App.Console.PrintMessage(
-                    "[Offcuts][DEBUG] Appending offcut model: %s\n"
-                    % str(offcut.get("label"))
-                )
-
-                App.Console.PrintMessage(
-                    "[Offcuts][MODEL] before self.offcuts.append()\n"
-                )
 
                 self.offcuts.append(offcut)
 
-                App.Console.PrintMessage(
-                    "[Offcuts][MODEL] after self.offcuts.append()\n"
-                )
-
-                App.Console.PrintMessage(
-                    "[Offcuts][MODEL] before _append_offcut_table_row()\n"
-                )
-
                 self._append_offcut_table_row(offcut)
-
-                App.Console.PrintMessage(
-                    "[Offcuts][MODEL] after _append_offcut_table_row()\n"
-                )
-            
-            App.Console.PrintMessage(
-                "[Offcuts][PROCESS] _process_dxf_offcut_result finished\n"
-            )
 
         except Exception:
             App.Console.PrintError(

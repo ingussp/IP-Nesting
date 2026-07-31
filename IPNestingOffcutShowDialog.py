@@ -91,23 +91,10 @@ class _OffcutPreview(QtGui.QLabel):
         render_started = time.time()
 
         try:
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] render start\n"
-            )
-
             w = int(self._size_px)
             h = int(self._size_px)
 
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] canvas=%dx%d\n" % (w, h)
-            )
-
             poly = self._poly or []
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] polygon points=%d\n"
-                % len(poly)
-            )
 
             if len(poly) > 10000:
                 App.Console.PrintWarning(
@@ -144,27 +131,13 @@ class _OffcutPreview(QtGui.QLabel):
                         "[OffcutPreview][DEBUG] failed to read point #%d: %s\n"
                         % (index, traceback.format_exc())
                     )
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] valid polygon points=%d\n"
-                % len(valid_points)
-            )
-
             pm = QtGui.QPixmap(w, h)
             pm.fill(QtGui.QColor("white"))
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] pixmap created\n"
-            )
 
             painter = QtGui.QPainter(pm)
             painter.setRenderHint(
                 QtGui.QPainter.Antialiasing,
                 True
-            )
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] painter started\n"
             )
 
             # Draw light axes using integer coordinates.
@@ -177,10 +150,6 @@ class _OffcutPreview(QtGui.QLabel):
             painter.drawLine(0, int(h / 2), w, int(h / 2))
             painter.drawLine(int(w / 2), 0, int(w / 2), h)
 
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] axes drawn\n"
-            )
-
             if len(valid_points) >= 2:
                 xs = [p[0] for p in valid_points]
                 ys = [p[1] for p in valid_points]
@@ -192,12 +161,6 @@ class _OffcutPreview(QtGui.QLabel):
 
                 dx = max(1e-9, max_x - min_x)
                 dy = max(1e-9, max_y - min_y)
-
-                App.Console.PrintMessage(
-                    "[OffcutPreview][DEBUG] bbox "
-                    "min=(%.6f, %.6f) max=(%.6f, %.6f)\n"
-                    % (min_x, min_y, max_x, max_y)
-                )
 
                 pad = 10.0
                 avail_w = float(w) - 2.0 * pad
@@ -219,11 +182,6 @@ class _OffcutPreview(QtGui.QLabel):
                     for point in valid_points
                 ]
 
-                App.Console.PrintMessage(
-                    "[OffcutPreview][DEBUG] Qt points created=%d\n"
-                    % len(qt_points)
-                )
-
                 painter.setPen(
                     QtGui.QPen(
                         QtGui.QColor(0, 0, 0),
@@ -234,54 +192,23 @@ class _OffcutPreview(QtGui.QLabel):
                 if qt_points:
                     qt_points_closed = qt_points + [qt_points[0]]
 
-                    App.Console.PrintMessage(
-                        "[OffcutPreview][DEBUG] starting drawPolyline\n"
-                    )
+                    
 
                     painter.drawPolyline(
                         QtGui.QPolygonF(qt_points_closed)
                     )
 
-                    App.Console.PrintMessage(
-                        "[OffcutPreview][DEBUG] drawPolyline finished\n"
-                    )
-            else:
-                App.Console.PrintWarning(
-                    "[OffcutPreview][DEBUG] not enough valid points to draw\n"
-                )
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] starting grain arrow\n"
-            )
-
             self._draw_grain_arrow(painter, w, h)
 
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] grain arrow finished\n"
-            )
-
             painter.end()
-
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] painter ended\n"
-            )
 
             self.setPixmap(pm)
 
             elapsed = time.time() - render_started
 
-            App.Console.PrintMessage(
-                "[OffcutPreview][DEBUG] render finished in %.3f s\n"
-                % elapsed
-            )
+            
 
         except Exception:
-            elapsed = time.time() - render_started
-
-            App.Console.PrintError(
-                "[OffcutPreview][DEBUG] render failed after %.3f s:\n%s"
-                % (elapsed, traceback.format_exc())
-            )
 
             try:
                 pm = QtGui.QPixmap(
@@ -291,10 +218,7 @@ class _OffcutPreview(QtGui.QLabel):
                 pm.fill(QtGui.QColor("white"))
                 self.setPixmap(pm)
             except Exception:
-                App.Console.PrintError(
-                    "[OffcutPreview][DEBUG] fallback pixmap failed:\n"
-                    + traceback.format_exc()
-                )
+                pass
 
 
 class OffcutShowDialog(QtGui.QDialog):
@@ -310,7 +234,10 @@ class OffcutShowDialog(QtGui.QDialog):
 
         root = QtGui.QVBoxLayout(self)
 
-        info = QtGui.QLabel("Added offcuts (DXF). Grain direction is relative to DXF local axes.")
+        info = QtGui.QLabel(
+            "Added sheets and offcuts. "
+            "Grain direction is relative to the material local axes."
+        )
         root.addWidget(info)
 
         scroll = QtGui.QScrollArea()
@@ -334,30 +261,18 @@ class OffcutShowDialog(QtGui.QDialog):
             left.addWidget(title)
             
             try:
-                App.Console.PrintMessage(
-                    "[OffcutDialog][DEBUG] building card #%d\n"
-                    % idx
-                )
+                
 
-                App.Console.PrintMessage(
-                    "[OffcutDialog][DEBUG] label=%s\n"
-                    % str(off.get("label", "Offcut"))
-                )
+                
 
                 polygons = off.get("polygons") or []
 
-                App.Console.PrintMessage(
-                    "[OffcutDialog][DEBUG] polygons=%d\n"
-                    % len(polygons)
-                )
+                
 
                 poly = polygons[0] if polygons else []
                 grain = off.get("grain") or "None"
 
-                App.Console.PrintMessage(
-                    "[OffcutDialog][DEBUG] preview points=%d grain=%s\n"
-                    % (len(poly), str(grain))
-                )
+                
 
                 prev = _OffcutPreview(
                     poly=poly,
@@ -365,10 +280,7 @@ class OffcutShowDialog(QtGui.QDialog):
                     size_px=200
                 )
 
-                App.Console.PrintMessage(
-                    "[OffcutDialog][DEBUG] preview created for card #%d\n"
-                    % idx
-                )
+                
 
                 left.addWidget(prev)
 
@@ -379,11 +291,6 @@ class OffcutShowDialog(QtGui.QDialog):
                     + traceback.format_exc()
                 )
                 continue
-
-            poly = (off.get("polygons") or [[]])[0] if off.get("polygons") else []
-            grain = off.get("grain") or "None"
-            prev = _OffcutPreview(poly=poly, grain=grain, size_px=200)
-            left.addWidget(prev)
             card_lay.addLayout(left)
 
             right = QtGui.QVBoxLayout()
