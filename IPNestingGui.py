@@ -227,7 +227,7 @@ class NestingTaskPanel:
         self.offcuts_table.setHorizontalHeaderLabels([
             "Material",
             "Grain",
-            "",
+            "Move",
         ])
         self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -555,123 +555,194 @@ class NestingTaskPanel:
             )
 
     def remove_offcuts(self):
-        """Remove offcuts that are checked in the offcuts_table (checkbox only used for Remove)."""
+        """
+        Remove the currently selected material row.
+        """
         try:
-            rows_to_remove = []
-            ids_to_remove = []
+            selection = self.offcuts_table.selectionModel().selectedRows()
 
-            for r in range(self.offcuts_table.rowCount()):
-                try:
-                    w = self.offcuts_table.cellWidget(r, 2)
-                    cb = w.findChild(QtGui.QCheckBox) if w else None
-                    if cb and cb.isChecked():
-                        item = self.offcuts_table.item(r, 0)
-                        off_id = item.data(QtCore.Qt.UserRole) if item else None
-                        if off_id is not None:
-                            ids_to_remove.append(int(off_id))
-                        rows_to_remove.append(r)
-                except Exception:
-                    continue
-
-            if not rows_to_remove:
+            if not selection:
                 return
 
-            # remove from model
-            ids_set = set(ids_to_remove)
-            self.offcuts = [o for o in self.offcuts if int(o.get("id", -1)) not in ids_set]
+            rows = sorted(
+                [index.row() for index in selection],
+                reverse=True
+            )
 
-            # remove rows from UI bottom-up
-            for r in sorted(rows_to_remove, reverse=True):
-                try:
-                    w = self.offcuts_table.cellWidget(r, 2)
-                    if w is not None:
-                        w.setParent(None)
-                except Exception:
-                    pass
-                try:
-                    self.offcuts_table.removeRow(r)
-                except Exception:
-                    pass
+            for row in rows:
+                if 0 <= row < len(self.offcuts):
+                    del self.offcuts[row]
+
+            self._rebuild_offcuts_table()
 
         except Exception:
-            App.Console.PrintError("remove_offcuts failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "remove_offcuts failed:\n"
+                + traceback.format_exc()
+            )
 
-    def _append_offcut_table_row(self, material):
+    def _move_offcut_row(self, row, direction):
         """
-        Add one sheet/offcut record to the materials table.
-        Debug version for locating FreeCAD 1.1.1 GUI freeze.
+        Move one material in self.offcuts and rebuild the table.
+
+        direction:
+            -1 = up
+            +1 = down
         """
         try:
-            row = self.offcuts_table.rowCount()
+            if row < 0 or row >= len(self.offcuts):
+                return
+
+            target_row = row + int(direction)
+
+            if target_row < 0:
+                return
+
+            if target_row >= len(self.offcuts):
+                return
+
+            # Preserve the material order in the model.
+            self.offcuts[row], self.offcuts[target_row] = (
+                self.offcuts[target_row],
+                self.offcuts[row],
+            )
+
+            self._rebuild_offcuts_table(selected_row=target_row)
+
+        except Exception:
+            App.Console.PrintError(
+                "_move_offcut_row failed:\n"
+                + traceback.format_exc()
+            )
+    
+    def _rebuild_offcuts_table(self, selected_row=None):
+        """
+        Rebuild the table from self.offcuts.
+
+        This guarantees that the visual order and model order
+        remain identical.
+        """
+        try:
+            self.offcuts_table.setUpdatesEnabled(False)
+
+            self.offcuts_table.clearContents()
+            self.offcuts_table.setRowCount(0)
+
+            for row, material in enumerate(self.offcuts):
+                self._append_offcut_table_row(
+                    material,
+                    row=row
+                )
+
+            if selected_row is not None:
+                if 0 <= selected_row < self.offcuts_table.rowCount():
+                    self.offcuts_table.selectRow(selected_row)
+                    self.offcuts_table.setCurrentCell(
+                        selected_row,
+                        0
+                    )
+
+        except Exception:
+            App.Console.PrintError(
+                "_rebuild_offcuts_table failed:\n"
+                + traceback.format_exc()
+            )
+
+        finally:
+            self.offcuts_table.setUpdatesEnabled(True)
+            self.offcuts_table.viewport().update()
+    
+    def _append_offcut_table_row(self, material, row=None):
+        """
+        Add one material row to the table.
+
+        The table order follows self.offcuts order.
+        The third column contains move-up and move-down buttons.
+        """
+        try:
+            if row is None:
+                row = self.offcuts_table.rowCount()
 
             self.offcuts_table.insertRow(row)
 
             label = str(
-                material.get(
-                    "label",
-                    "Sheet or Offcut"
-                )
+                material.get("label", "Sheet or Offcut")
             )
 
             item = QtGui.QTableWidgetItem(label)
-
             item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
             )
 
-            item.setData(
-                QtCore.Qt.UserRole,
-                int(material.get("id", -1))
-            )
-
-            if bool(material.get("duplicate", False)):
+            if "id" in material:
                 try:
-                    item.setForeground(
-                        QtGui.QBrush(QtGui.QColor("red"))
+                    item.setData(
+                        QtCore.Qt.UserRole,
+                        int(material.get("id"))
                     )
                 except Exception:
                     pass
 
+            if bool(material.get("duplicate", False)):
+                item.setForeground(
+                    QtGui.QBrush(QtGui.QColor("red"))
+                )
+
             self.offcuts_table.setItem(row, 0, item)
 
-            grain_value = str(
+            # Grain column
+            grain = str(
                 material.get("grain", "N/A") or "N/A"
             ).strip().upper()
 
-            if grain_value not in ("X", "Y"):
-                grain_value = "N/A"
+            if grain not in ("X", "Y"):
+                grain = "N/A"
 
-            grain_item = QtGui.QTableWidgetItem(grain_value)
+            grain_item = QtGui.QTableWidgetItem(grain)
             grain_item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
             )
             grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
-
             self.offcuts_table.setItem(row, 1, grain_item)
 
-            checkbox = QtGui.QCheckBox()
-            checkbox.setToolTip("Select for removal")
+            # Move buttons
+            move_widget = QtGui.QWidget()
+            move_layout = QtGui.QHBoxLayout(move_widget)
+            move_layout.setContentsMargins(2, 0, 2, 0)
+            move_layout.setSpacing(2)
 
-            container = QtGui.QWidget()
+            up_button = QtGui.QToolButton()
+            up_button.setText("↑")
+            up_button.setToolTip("Move material up")
+            up_button.setAutoRaise(True)
+            up_button.setFixedWidth(28)
 
-            row_layout = QtGui.QHBoxLayout(container)
-            row_layout.setContentsMargins(0, 0, 0, 0)
-            row_layout.setSpacing(0)
-            row_layout.addStretch()
-            row_layout.addWidget(checkbox)
-            row_layout.addStretch()
+            down_button = QtGui.QToolButton()
+            down_button.setText("↓")
+            down_button.setToolTip("Move material down")
+            down_button.setAutoRaise(True)
+            down_button.setFixedWidth(28)
 
-            self.offcuts_table.setCellWidget(
-                row,
-                2,
-                container
+            up_button.clicked.connect(
+                lambda checked=False, r=row:
+                    self._move_offcut_row(r, -1)
             )
+
+            down_button.clicked.connect(
+                lambda checked=False, r=row:
+                    self._move_offcut_row(r, 1)
+            )
+
+            move_layout.addWidget(up_button)
+            move_layout.addWidget(down_button)
+
+            self.offcuts_table.setCellWidget(row, 2, move_widget)
 
         except Exception:
             App.Console.PrintError(
-                "[Offcuts][TABLE] _append_offcut_table_row failed:\n"
+                "_append_offcut_table_row failed:\n"
                 + traceback.format_exc()
             )
     
@@ -738,8 +809,9 @@ class NestingTaskPanel:
                 }
 
                 self.offcuts.append(offcut)
-
-                self._append_offcut_table_row(offcut)
+                self._rebuild_offcuts_table(
+                    selected_row=len(self.offcuts) - 1
+                )
 
         except Exception:
             App.Console.PrintError(
