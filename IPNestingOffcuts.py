@@ -428,3 +428,110 @@ def _closed_wires_from_edges(edges, debug=False):
                 )
 
     return wires
+    
+def material_identity_key(material):
+    """
+    Return a stable identity key for a sheet or DXF offcut.
+
+    Grain is deliberately excluded because it is a mutable
+    property of the material row.
+    """
+    material = material or {}
+
+    material_type = str(
+        material.get("type", "")
+    ).strip().lower()
+
+    def number(value, default=0.0):
+        try:
+            return round(float(value), 6)
+        except Exception:
+            return default
+
+    if material_type == "dxf":
+        path = os.path.abspath(
+            str(material.get("path", "") or "")
+        )
+
+        return (
+            "dxf",
+            os.path.normcase(path),
+        )
+
+    if material_type in (
+        "rectangular",
+        "sheet",
+        "rectangle",
+    ):
+        material_name = str(
+            material.get("material", "")
+            or material.get("material_name", "")
+            or ""
+        ).strip().lower()
+
+        return (
+            "rectangular",
+            number(material.get("width", 0.0)),
+            number(material.get("height", 0.0)),
+            number(material.get("thickness", 0.0)),
+            material_name,
+        )
+
+    return (
+        material_type,
+        str(
+            material.get("label", "")
+        ).strip().lower(),
+    )
+
+
+def find_existing_material(materials, material):
+    """
+    Find an existing material with the same identity.
+    """
+    key = material_identity_key(material)
+
+    for existing in materials or []:
+        if material_identity_key(existing) == key:
+            return existing
+
+    return None
+
+
+def add_or_increment_material(materials, material, count=1):
+    """
+    Add a new material or increase the count of an existing one.
+
+    Returns:
+        tuple(existing_or_new_material, row_index, was_existing)
+    """
+    try:
+        increment = max(1, int(count))
+    except Exception:
+        increment = 1
+
+    existing = find_existing_material(materials, material)
+
+    if existing is not None:
+        try:
+            old_count = int(
+                existing.get(
+                    "count",
+                    existing.get("quantity", 1)
+                )
+            )
+        except Exception:
+            old_count = 1
+
+        new_count = max(1, old_count) + increment
+
+        existing["count"] = new_count
+        existing["quantity"] = new_count
+
+        return existing, materials.index(existing), True
+
+    material["count"] = increment
+    material["quantity"] = increment
+    materials.append(material)
+
+    return material, len(materials) - 1, False

@@ -13,6 +13,10 @@ and adjust their grain direction (X/Y/None) per offcut.
 import traceback
 import math
 import time
+import os
+
+from IPNestingAddSheet import AddSheetOrOffcutDialog
+from IPNestingOffcuts import (extract_offcut_from_dxf,add_or_increment_material,)
 
 import FreeCAD as App
 from PySide import QtGui, QtCore
@@ -349,3 +353,472 @@ class OffcutShowDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         buttons.accepted.connect(self.accept)
         root.addWidget(buttons)
+        
+class OffcutMaterialsController(object):
+    """
+    Controls the Sheet & Offcut Materials table and related dialogs.
+    """
+    
+    def __init__(self, panel):
+        self.panel = panel
+
+    @property
+    def offcuts(self):
+        return self.panel.offcuts
+
+    @property
+    def offcuts_table(self):
+        return self.panel.offcuts_table
+
+    def add_offcut_dxf(self):
+        """
+        Open the add sheet/offcut dialog and process its result.
+        """
+        try:
+            dialog = AddSheetOrOffcutDialog(
+                parent=QtGui.QApplication.activeWindow()
+            )
+
+            result = dialog.exec_()
+
+            if result != QtGui.QDialog.Accepted:
+                return
+
+            if dialog.result_type == "rectangular":
+                App.Console.PrintMessage(
+                    "[Offcuts][DIALOG] processing rectangular sheet\n"
+                )
+
+                self._process_rectangular_sheet_result(
+                    dialog.result_data
+                )
+
+            elif dialog.result_type == "dxf":
+                App.Console.PrintMessage(
+                    "[Offcuts][DIALOG] processing DXF offcut\n"
+                )
+
+                self._process_dxf_offcut_result(
+                    dialog.result_data
+                )
+
+            App.Console.PrintMessage(
+                "[Offcuts][DIALOG] result processing finished\n"
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "add_offcut_dxf failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def _process_dxf_offcut_result(self, data):
+        """
+        Import the selected DXF and add it as one grouped material row.
+        Repeated imports of the same DXF increase Count.
+        """
+        try:
+            data = data or {}
+
+            path = os.path.abspath(
+                str(data.get("path", "") or "")
+            )
+
+            try:
+                quantity = int(data.get("quantity", 1))
+            except Exception:
+                quantity = 1
+
+            quantity = max(1, quantity)
+
+            if not path or not os.path.exists(path):
+                QtGui.QMessageBox.warning(
+                    self.panel.form,
+                    "DXF offcut",
+                    "The selected DXF file does not exist."
+                )
+                return
+
+            poly, bbox = extract_offcut_from_dxf(
+                path,
+                debug=False
+            )
+
+            if not poly:
+                QtGui.QMessageBox.warning(
+                    self.panel.form,
+                    "DXF offcut",
+                    "No closed contour was found in the DXF file."
+                )
+                return
+
+            offcut = {
+                "id": int(self.panel._offcut_next_id),
+                "type": "dxf",
+                "path": path,
+                "label": os.path.basename(path),
+                "grain": "None",
+                "polygons": [poly],
+                "bbox": bbox,
+                "count": quantity,
+                "quantity": quantity,
+                "duplicate": False,
+            }
+
+            self.panel._offcut_next_id += 1
+
+            material, row, was_existing = add_or_increment_material(
+                self.offcuts,
+                offcut,
+                count=quantity
+            )
+
+            self._rebuild_offcuts_table(
+                selected_row=row
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "_process_dxf_offcut_result failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def _process_rectangular_sheet_result(self, data):
+        """
+        Add a rectangular sheet as one grouped material row.
+        Repeated sheets with the same dimensions increase Count.
+        """
+        try:
+            data = data or {}
+
+            try:
+                width = float(data.get("width", 0.0))
+                height = float(data.get("height", 0.0))
+            except Exception:
+                width = 0.0
+                height = 0.0
+
+            try:
+                quantity = int(data.get("quantity", 1))
+            except Exception:
+                quantity = 1
+
+            quantity = max(1, quantity)
+
+            if width <= 0.0 or height <= 0.0:
+                QtGui.QMessageBox.warning(
+                    self.panel.form,
+                    "Sheet",
+                    "Sheet width and height must be greater than zero."
+                )
+                return
+
+            sheet = {
+                "id": int(self.panel._offcut_next_id),
+                "type": "rectangular",
+                "path": "",
+                "label": "Sheet %.0f x %.0f mm" % (
+                    width,
+                    height
+                ),
+                "grain": "None",
+                "polygons": [[
+                    [0.0, 0.0],
+                    [width, 0.0],
+                    [width, height],
+                    [0.0, height],
+                ]],
+                "bbox": {
+                    "min_x": 0.0,
+                    "min_y": 0.0,
+                    "max_x": width,
+                    "max_y": height,
+                },
+                "width": width,
+                "height": height,
+                "quantity": quantity,
+                "count": quantity,
+                "duplicate": False,
+            }
+
+            self.panel._offcut_next_id += 1
+
+            material, row, was_existing = add_or_increment_material(
+                self.offcuts,
+                sheet,
+                count=quantity
+            )
+
+            self._rebuild_offcuts_table(
+                selected_row=row
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "_process_rectangular_sheet_result failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def remove_offcuts(self):
+        """
+        Remove the currently selected material row.
+        """
+        try:
+            selection = self.offcuts_table.selectionModel().selectedRows()
+
+            if not selection:
+                return
+
+            rows = sorted(
+                [index.row() for index in selection],
+                reverse=True
+            )
+
+            for row in rows:
+                if 0 <= row < len(self.offcuts):
+                    del self.offcuts[row]
+
+            self._rebuild_offcuts_table()
+
+        except Exception:
+            App.Console.PrintError(
+                "remove_offcuts failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def _move_offcut_row(self, row, direction):
+        """
+        Move one material in self.offcuts and rebuild the table.
+
+        direction:
+            -1 = up
+            +1 = down
+        """
+        try:
+            if row < 0 or row >= len(self.offcuts):
+                return
+
+            target_row = row + int(direction)
+
+            if target_row < 0:
+                return
+
+            if target_row >= len(self.offcuts):
+                return
+
+            # Preserve the material order in the model.
+            self.offcuts[row], self.offcuts[target_row] = (
+                self.offcuts[target_row],
+                self.offcuts[row],
+            )
+
+            self._rebuild_offcuts_table(selected_row=target_row)
+
+        except Exception:
+            App.Console.PrintError(
+                "_move_offcut_row failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def _rebuild_offcuts_table(self, selected_row=None):
+        """
+        Rebuild the table from self.offcuts.
+
+        This guarantees that the visual order and model order
+        remain identical.
+        """
+        try:
+            self.offcuts_table.setUpdatesEnabled(False)
+
+            self.offcuts_table.clearContents()
+            self.offcuts_table.setRowCount(0)
+
+            for row, material in enumerate(self.offcuts):
+                self._append_offcut_table_row(
+                    material,
+                    row=row
+                )
+
+            if selected_row is not None:
+                if 0 <= selected_row < self.offcuts_table.rowCount():
+                    self.offcuts_table.selectRow(selected_row)
+                    self.offcuts_table.setCurrentCell(
+                        selected_row,
+                        0
+                    )
+
+        except Exception:
+            App.Console.PrintError(
+                "_rebuild_offcuts_table failed:\n"
+                + traceback.format_exc()
+            )
+
+        finally:
+            self.offcuts_table.setUpdatesEnabled(True)
+            self.offcuts_table.viewport().update()
+            
+    def _append_offcut_table_row(self, material, row=None):
+        """
+        Add one material row to the table.
+
+        Table order follows self.offcuts order.
+        Repeated identical materials are represented by Count.
+        """
+        try:
+            if row is None:
+                row = self.offcuts_table.rowCount()
+
+            self.offcuts_table.insertRow(row)
+
+            # Column 0: Material
+            label = str(
+                material.get("label", "Sheet or Offcut")
+            )
+
+            material_item = QtGui.QTableWidgetItem(label)
+            material_item.setFlags(
+                QtCore.Qt.ItemIsEnabled |
+                QtCore.Qt.ItemIsSelectable
+            )
+
+            if "id" in material:
+                try:
+                    material_item.setData(
+                        QtCore.Qt.UserRole,
+                        int(material.get("id"))
+                    )
+                except Exception:
+                    pass
+
+            if bool(material.get("duplicate", False)):
+                material_item.setForeground(
+                    QtGui.QBrush(QtGui.QColor("red"))
+                )
+
+            self.offcuts_table.setItem(row, 0, material_item)
+
+            # Column 1: Count
+            try:
+                count = max(1, int(material.get("count", 1)))
+            except Exception:
+                count = 1
+
+            count_item = QtGui.QTableWidgetItem(str(count))
+            count_item.setFlags(
+                QtCore.Qt.ItemIsEnabled |
+                QtCore.Qt.ItemIsSelectable
+            )
+            count_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.offcuts_table.setItem(row, 1, count_item)
+
+            # Column 2: Grain
+            grain = str(
+                material.get("grain", "None") or "None"
+            ).strip().upper()
+
+            if grain not in ("X", "Y"):
+                grain = "None"
+
+            grain_item = QtGui.QTableWidgetItem(grain)
+            grain_item.setFlags(
+                QtCore.Qt.ItemIsEnabled |
+                QtCore.Qt.ItemIsSelectable
+            )
+            grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.offcuts_table.setItem(row, 2, grain_item)
+
+            # Column 3: Move buttons
+            move_widget = QtGui.QWidget()
+            move_layout = QtGui.QHBoxLayout(move_widget)
+            move_layout.setContentsMargins(2, 0, 2, 0)
+            move_layout.setSpacing(2)
+
+            up_button = QtGui.QToolButton()
+            up_button.setText("↑")
+            up_button.setToolTip("Move material up")
+            up_button.setAutoRaise(True)
+            up_button.setFixedWidth(28)
+
+            down_button = QtGui.QToolButton()
+            down_button.setText("↓")
+            down_button.setToolTip("Move material down")
+            down_button.setAutoRaise(True)
+            down_button.setFixedWidth(28)
+
+            up_button.clicked.connect(
+                lambda checked=False, r=row:
+                    self._move_offcut_row(r, -1)
+            )
+
+            down_button.clicked.connect(
+                lambda checked=False, r=row:
+                    self._move_offcut_row(r, 1)
+            )
+
+            move_layout.addWidget(up_button)
+            move_layout.addWidget(down_button)
+
+            self.offcuts_table.setCellWidget(row, 3, move_widget)
+
+        except Exception:
+            App.Console.PrintError(
+                "_append_offcut_table_row failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def _refresh_offcut_grain_column(self):
+        try:
+            for row in range(self.offcuts_table.rowCount()):
+                item = self.offcuts_table.item(row, 0)
+                if not item:
+                    continue
+
+                material_id = item.data(QtCore.Qt.UserRole)
+
+                material = None
+                for entry in self.offcuts:
+                    if int(entry.get("id", -1)) == int(material_id):
+                        material = entry
+                        break
+
+                if material is None:
+                    continue
+
+                grain_value = str(
+                    material.get("grain", "None") or "None"
+                ).strip().upper()
+
+                if grain_value not in ("X", "Y"):
+                    grain_value = "None"
+                    
+                grain_item = self.offcuts_table.item(row, 2)
+
+                if grain_item is None:
+                    grain_item = QtGui.QTableWidgetItem()
+                    grain_item.setFlags(
+                        QtCore.Qt.ItemIsEnabled
+                        | QtCore.Qt.ItemIsSelectable
+                    )
+                    grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
+                    self.offcuts_table.setItem(row, 2, grain_item)
+
+                grain_item.setText(grain_value)
+
+        except Exception:
+            App.Console.PrintError(
+                "_refresh_offcut_grain_column failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def show_offcuts_popup(self):
+        """Show popup with ALL offcuts and allow changing grain X/Y per offcut."""
+        try:
+            if not self.offcuts:
+                QtGui.QMessageBox.information(None, "Offcuts", "No offcuts added.")
+                return
+            parent = QtGui.QApplication.activeWindow()
+            dlg = OffcutShowDialog(self.offcuts, parent=parent)
+            dlg.exec_()
+            self._refresh_offcut_grain_column()
+        except Exception:
+            App.Console.PrintError("show_offcuts_popup failed:\n" + traceback.format_exc())
