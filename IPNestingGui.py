@@ -223,12 +223,16 @@ class NestingTaskPanel:
         offcut_box = QtGui.QGroupBox("Sheet && Offcut Materials")
         offcut_lay = QtGui.QVBoxLayout(offcut_box)
 
-        self.offcuts_table = QtGui.QTableWidget(0, 3)
+        self.offcuts_table = QtGui.QTableWidget(0, 4)
         self.offcuts_table.setHorizontalHeaderLabels([
             "Material",
+            "Count",
             "Grain",
             "Move",
         ])
+        
+        self.offcuts_table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.offcuts_table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.setMinimumHeight(120)
@@ -247,8 +251,10 @@ class NestingTaskPanel:
         except Exception:
             pass
         try:
-            self.offcuts_table.setColumnWidth(1, 80)  # Grain
-            self.offcuts_table.setColumnWidth(2, 60)  # Remove checkbox
+            self.offcuts_table.setColumnWidth(0, 220)  # Material
+            self.offcuts_table.setColumnWidth(1, 65)   # Count
+            self.offcuts_table.setColumnWidth(2, 70)   # Grain
+            self.offcuts_table.setColumnWidth(3, 70)   # Move
         except Exception:
             pass
 
@@ -260,7 +266,7 @@ class NestingTaskPanel:
         self.offcut_remove_btn = QtGui.QPushButton("Remove")
         self.offcut_add_btn.setToolTip("Add a rectangular sheet or a DXF offcut.")
         self.offcut_show_btn.setToolTip("Show all added offcuts and adjust grain X/Y per offcut.")
-        self.offcut_remove_btn.setToolTip("Remove checked offcuts from the list.")
+        self.offcut_remove_btn.setToolTip("Remove the selected material from the list.")
         self.offcut_add_btn.clicked.connect(self.add_offcut_dxf)
         self.offcut_show_btn.clicked.connect(self.show_offcuts_popup)
         self.offcut_remove_btn.clicked.connect(self.remove_offcuts)
@@ -656,8 +662,8 @@ class NestingTaskPanel:
         """
         Add one material row to the table.
 
-        The table order follows self.offcuts order.
-        The third column contains move-up and move-down buttons.
+        Table order follows self.offcuts order.
+        Repeated identical materials are represented by Count.
         """
         try:
             if row is None:
@@ -665,19 +671,20 @@ class NestingTaskPanel:
 
             self.offcuts_table.insertRow(row)
 
+            # Column 0: Material
             label = str(
                 material.get("label", "Sheet or Offcut")
             )
 
-            item = QtGui.QTableWidgetItem(label)
-            item.setFlags(
+            material_item = QtGui.QTableWidgetItem(label)
+            material_item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
             )
 
             if "id" in material:
                 try:
-                    item.setData(
+                    material_item.setData(
                         QtCore.Qt.UserRole,
                         int(material.get("id"))
                     )
@@ -685,19 +692,33 @@ class NestingTaskPanel:
                     pass
 
             if bool(material.get("duplicate", False)):
-                item.setForeground(
+                material_item.setForeground(
                     QtGui.QBrush(QtGui.QColor("red"))
                 )
 
-            self.offcuts_table.setItem(row, 0, item)
+            self.offcuts_table.setItem(row, 0, material_item)
 
-            # Grain column
+            # Column 1: Count
+            try:
+                count = max(1, int(material.get("count", 1)))
+            except Exception:
+                count = 1
+
+            count_item = QtGui.QTableWidgetItem(str(count))
+            count_item.setFlags(
+                QtCore.Qt.ItemIsEnabled |
+                QtCore.Qt.ItemIsSelectable
+            )
+            count_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.offcuts_table.setItem(row, 1, count_item)
+
+            # Column 2: Grain
             grain = str(
-                material.get("grain", "N/A") or "N/A"
+                material.get("grain", "None") or "None"
             ).strip().upper()
 
             if grain not in ("X", "Y"):
-                grain = "N/A"
+                grain = "None"
 
             grain_item = QtGui.QTableWidgetItem(grain)
             grain_item.setFlags(
@@ -705,9 +726,9 @@ class NestingTaskPanel:
                 QtCore.Qt.ItemIsSelectable
             )
             grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
-            self.offcuts_table.setItem(row, 1, grain_item)
+            self.offcuts_table.setItem(row, 2, grain_item)
 
-            # Move buttons
+            # Column 3: Move buttons
             move_widget = QtGui.QWidget()
             move_layout = QtGui.QHBoxLayout(move_widget)
             move_layout.setContentsMargins(2, 0, 2, 0)
@@ -738,7 +759,7 @@ class NestingTaskPanel:
             move_layout.addWidget(up_button)
             move_layout.addWidget(down_button)
 
-            self.offcuts_table.setCellWidget(row, 2, move_widget)
+            self.offcuts_table.setCellWidget(row, 3, move_widget)
 
         except Exception:
             App.Console.PrintError(
@@ -746,15 +767,142 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
     
-    def _process_dxf_offcut_result(self, data):
+    def _add_or_increment_offcut(self, material, count=1):
         """
-        Import and convert the selected DXF into offcut records.
+        Add a new material row or increase Count of an existing row.
         """
         try:
-            path = os.path.abspath(
-                str(data.get("path", ""))
+            increment = max(1, int(count))
+        except Exception:
+            increment = 1
+
+        existing = self._find_existing_offcut(material)
+
+        if existing is not None:
+            try:
+                old_count = max(
+                    1,
+                    int(
+                        existing.get(
+                            "count",
+                            existing.get("quantity", 1)
+                        )
+                    )
+                )
+            except Exception:
+                old_count = 1
+
+            new_count = old_count + increment
+
+            existing["count"] = new_count
+            existing["quantity"] = new_count
+
+            row = self.offcuts.index(existing)
+
+            self._rebuild_offcuts_table(
+                selected_row=row
             )
-            quantity = int(data.get("quantity", 1))
+
+            return row
+
+        material["count"] = increment
+        material["quantity"] = increment
+
+        self.offcuts.append(material)
+
+        row = len(self.offcuts) - 1
+
+        self._rebuild_offcuts_table(
+            selected_row=row
+        )
+
+        return row
+    
+    def _find_existing_offcut(self, material):
+        """
+        Find an already-added material with the same identity.
+        """
+        new_key = self._material_identity_key(material)
+
+        for existing in self.offcuts:
+            if self._material_identity_key(existing) == new_key:
+                return existing
+
+        return None
+    
+    def _material_identity_key(self, material):
+        """
+        Return a stable identity key used to merge repeated materials.
+
+        Grain is not part of the key because grain is a property
+        of the material row and may be changed later.
+        """
+        material = material or {}
+
+        material_type = str(
+            material.get("type", "")
+        ).strip().lower()
+
+        def number(value, default=0.0):
+            try:
+                return round(float(value), 6)
+            except Exception:
+                return default
+
+        if material_type == "dxf":
+            path = os.path.abspath(
+                str(material.get("path", "") or "")
+            )
+
+            return (
+                "dxf",
+                os.path.normcase(path),
+            )
+
+        if material_type in (
+            "rectangular",
+            "sheet",
+            "rectangle",
+        ):
+            return (
+                "rectangular",
+                number(material.get("width", 0.0)),
+                number(material.get("height", 0.0)),
+                number(material.get("thickness", 0.0)),
+                str(
+                    material.get("material", "")
+                    or material.get("material_name", "")
+                    or ""
+                ).strip().lower(),
+            )
+
+        return (
+            material_type,
+            str(
+                material.get("label", "")
+            ).strip().lower(),
+        )
+    
+    def _process_dxf_offcut_result(self, data):
+        """
+        Import the selected DXF and add it as one grouped material row.
+
+        Repeated imports of the same DXF increase Count instead of
+        creating additional rows.
+        """
+        try:
+            data = data or {}
+
+            path = os.path.abspath(
+                str(data.get("path", "") or "")
+            )
+
+            try:
+                quantity = int(data.get("quantity", 1))
+            except Exception:
+                quantity = 1
+
+            quantity = max(1, quantity)
 
             if not path or not os.path.exists(path):
                 QtGui.QMessageBox.warning(
@@ -763,11 +911,6 @@ class NestingTaskPanel:
                     "The selected DXF file does not exist."
                 )
                 return
-
-            if quantity < 1:
-                quantity = 1
-
-            is_duplicate = self._is_offcut_duplicate_path(path)
 
             poly, bbox = extract_offcut_from_dxf(
                 path,
@@ -784,34 +927,28 @@ class NestingTaskPanel:
 
             base_label = os.path.basename(path)
 
-            for index in range(quantity):
-                offcut_id = int(self._offcut_next_id)
-                self._offcut_next_id += 1
+            # Create exactly ONE material record.
+            offcut = {
+                "id": int(self._offcut_next_id),
+                "type": "dxf",
+                "path": path,
+                "label": base_label,
+                "grain": "None",
+                "polygons": [poly],
+                "bbox": bbox,
+                "count": quantity,
+                "quantity": quantity,
+                "duplicate": False,
+            }
 
-                label = base_label
+            self._offcut_next_id += 1
 
-                if quantity > 1:
-                    label += " (%d/%d)" % (
-                        index + 1,
-                        quantity
-                    )
-
-                offcut = {
-                    "id": offcut_id,
-                    "type": "dxf",
-                    "path": path,
-                    "label": label,
-                    "grain": "None",
-                    "polygons": [poly],
-                    "bbox": bbox,
-                    "quantity": 1,
-                    "duplicate": bool(is_duplicate),
-                }
-
-                self.offcuts.append(offcut)
-                self._rebuild_offcuts_table(
-                    selected_row=len(self.offcuts) - 1
-                )
+            # This either creates a new row or increases Count
+            # of the existing row with the same DXF path.
+            self._add_or_increment_offcut(
+                offcut,
+                count=quantity
+            )
 
         except Exception:
             App.Console.PrintError(
@@ -838,13 +975,13 @@ class NestingTaskPanel:
                     continue
 
                 grain_value = str(
-                    material.get("grain", "N/A") or "N/A"
+                    material.get("grain", "None") or "None"
                 ).strip().upper()
 
                 if grain_value not in ("X", "Y"):
-                    grain_value = "N/A"
+                    grain_value = "None"
                     
-                grain_item = self.offcuts_table.item(row, 1)
+                grain_item = self.offcuts_table.item(row, 2)
 
                 if grain_item is None:
                     grain_item = QtGui.QTableWidgetItem()
@@ -865,60 +1002,73 @@ class NestingTaskPanel:
     
     def _process_rectangular_sheet_result(self, data):
         """
-        Convert dialog result into rectangular sheet records.
+        Add a rectangular sheet as one grouped material row.
+
+        Repeated sheets with the same dimensions increase Count.
         """
         try:
-            width = float(data.get("width", 0.0))
-            height = float(data.get("height", 0.0))
-            quantity = int(data.get("quantity", 1))
+            data = data or {}
 
-            if width <= 0.0 or height <= 0.0:
-                return
+            try:
+                width = float(data.get("width", 0.0))
+                height = float(data.get("height", 0.0))
+            except Exception:
+                width = 0.0
+                height = 0.0
 
-            if quantity < 1:
+            try:
+                quantity = int(data.get("quantity", 1))
+            except Exception:
                 quantity = 1
 
-            for index in range(quantity):
-                sheet_id = int(self._offcut_next_id)
-                self._offcut_next_id += 1
+            quantity = max(1, quantity)
 
-                label = "Sheet %.0f x %.0f mm" % (
-                    width,
-                    height
+            if width <= 0.0 or height <= 0.0:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    "Sheet",
+                    "Sheet width and height must be greater than zero."
                 )
+                return
 
-                if quantity > 1:
-                    label += " (%d/%d)" % (
-                        index + 1,
-                        quantity
-                    )
+            label = "Sheet %.0f x %.0f mm" % (
+                width,
+                height
+            )
 
-                sheet = {
-                    "id": sheet_id,
-                    "type": "rectangular",
-                    "path": "",
-                    "label": label,
-                    "grain": "None",
-                    "polygons": [[
-                        [0.0, 0.0],
-                        [width, 0.0],
-                        [width, height],
-                        [0.0, height],
-                    ]],
-                    "bbox": {
-                        "min_x": 0.0,
-                        "min_y": 0.0,
-                        "max_x": width,
-                        "max_y": height,
-                    },
-                    "width": width,
-                    "height": height,
-                    "quantity": 1,
-                    "duplicate": False,
-                }
+            sheet = {
+                "id": int(self._offcut_next_id),
+                "type": "rectangular",
+                "path": "",
+                "label": label,
+                "grain": "None",
+                "polygons": [[
+                    [0.0, 0.0],
+                    [width, 0.0],
+                    [width, height],
+                    [0.0, height],
+                ]],
+                "bbox": {
+                    "min_x": 0.0,
+                    "min_y": 0.0,
+                    "max_x": width,
+                    "max_y": height,
+                },
+                "width": width,
+                "height": height,
+                "quantity": quantity,
+                "count": quantity,
+                "duplicate": False,
+            }
 
-                self.offcuts.append(sheet)
-                self._append_offcut_table_row(sheet)
+            self._offcut_next_id += 1
+
+            # This either creates a new row or increases Count
+            # of an existing rectangular sheet with the same dimensions.
+            self._add_or_increment_offcut(
+                sheet,
+                count=quantity
+            )
 
         except Exception:
             App.Console.PrintError(
