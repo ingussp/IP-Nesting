@@ -106,46 +106,100 @@ def poly_bbox(poly):
 
 def _wire_to_polyline_2d(wire, deflection=0.5):
     """
-    Convert a FreeCAD wire (or edge) to a 2D polyline.
-    Prefer vertex list; fallback to discretize for curved entities.
+    Convert a FreeCAD wire or closed edge to a 2D polyline.
+
+    Straight contours use their vertices.
+    Curves and circles are discretized.
     """
     pts = []
+
     try:
-        # Prefer explicit vertices if present and sufficient
-        try:
-            vs = getattr(wire, "Vertexes", None)
-            if vs and len(vs) >= 3:
-                for v in vs:
-                    try:
-                        pts.append([float(v.X), float(v.Y)])
-                    except Exception:
-                        pass
-        except Exception:
-            pts = []
+        # First try explicit ordered vertices.
+        vertices = list(getattr(wire, "OrderedVertexes", []) or [])
 
-        if len(pts) >= 3:
-            return pts
+        if not vertices:
+            vertices = list(getattr(wire, "Vertexes", []) or [])
 
-        # Fallback: discretize (works for curves)
-        try:
-            dpts = wire.discretize(Deflection=float(deflection))
-            for p in dpts:
+        if len(vertices) >= 3:
+            for vertex in vertices:
                 try:
-                    pts.append([float(p.x), float(p.y)])
+                    point = vertex.Point
+                    pts.append([
+                        float(point.x),
+                        float(point.y),
+                    ])
                 except Exception:
                     pass
-        except Exception:
+
+        # For circles and other curved edges, discretize each edge.
+        if len(pts) < 3:
             pts = []
+
+            edges = list(
+                getattr(wire, "Edges", []) or []
+            )
+
+            if not edges:
+                edges = [wire]
+
+            for edge in edges:
+                discretized = None
+
+                try:
+                    discretized = edge.discretize(
+                        Deflection=float(deflection)
+                    )
+                except Exception:
+                    try:
+                        discretized = edge.discretize(
+                            deflection=float(deflection)
+                        )
+                    except Exception:
+                        pass
+
+                if not discretized:
+                    continue
+
+                for point in discretized:
+                    try:
+                        pts.append([
+                            float(point.x),
+                            float(point.y),
+                        ])
+                    except Exception:
+                        pass
+
     except Exception:
         pts = []
 
-    # Remove duplicated last point if equal to first (keep as non-closed list)
-    try:
-        if len(pts) >= 2 and pts[0][0] == pts[-1][0] and pts[0][1] == pts[-1][1]:
-            pts = pts[:-1]
-    except Exception:
-        pass
-    return pts
+    # Remove consecutive duplicate points.
+    cleaned = []
+
+    for point in pts:
+        if not cleaned:
+            cleaned.append(point)
+            continue
+
+        previous = cleaned[-1]
+
+        if (
+            abs(previous[0] - point[0]) > 1e-9
+            or abs(previous[1] - point[1]) > 1e-9
+        ):
+            cleaned.append(point)
+
+    # Remove repeated closing point.
+    if len(cleaned) >= 2:
+        first = cleaned[0]
+        last = cleaned[-1]
+
+        if (
+            abs(first[0] - last[0]) <= 1e-9
+            and abs(first[1] - last[1]) <= 1e-9
+        ):
+            cleaned.pop()
+
+    return cleaned
 
 
 # -------------------------
@@ -228,7 +282,7 @@ def extract_offcut_from_dxf(path, debug=False):
                 "[Offcuts] DXF file does not exist: %s\n"
                 % str(path)
             )
-            return None, None
+            return None, None, None
 
         doc_name = "IPNesting_OffcutTmp"
 
@@ -238,7 +292,7 @@ def extract_offcut_from_dxf(path, debug=False):
         doc = App.newDocument(doc_name)
 
         if not _import_dxf(path, doc.Name):
-            return None, None
+            return None, None, None
 
         try:
             doc.recompute()
@@ -255,7 +309,7 @@ def extract_offcut_from_dxf(path, debug=False):
             App.Console.PrintError(
                 "[Offcuts] Temporary DXF document contains no objects.\n"
             )
-            return None, None
+            return None, None, None
 
         all_edges = []
 
@@ -289,19 +343,74 @@ def extract_offcut_from_dxf(path, debug=False):
                 if shape is None:
                     continue
 
-                for wire in list(getattr(shape, "Wires", []) or []):
-                    if not wire.isClosed():
+                processed_edges = set()
+
+                # Normal multi-edge wires.
+                for wire in list(
+                    getattr(shape, "Wires", []) or []
+                ):
+                    try:
+                        if not wire.isClosed():
+                            continue
+                    except Exception:
                         continue
 
                     poly = _wire_to_polyline_2d(wire)
+
                     if len(poly) >= 3:
                         area = abs(polygon_area(poly))
-                        candidate_polygons.append((area, poly))
+                        candidate_polygons.append(
+                            (area, poly)
+                        )
+
+                    try:
+                        for edge in wire.Edges:
+                            processed_edges.add(
+                                edge.hashCode()
+                            )
+                    except Exception:
+                        pass
+
+                # Single closed edges, especially circles.
+                for edge in list(
+                    getattr(shape, "Edges", []) or []
+                ):
+                    try:
+                        edge_key = edge.hashCode()
+
+                        if edge_key in processed_edges:
+                            continue
+                    except Exception:
+                        edge_key = None
+
+                    is_closed = False
+
+                    try:
+                        is_closed = bool(edge.isClosed())
+                    except Exception:
+                        pass
+
+                    if not is_closed:
+                        try:
+                            is_closed = len(edge.Vertexes) == 1
+                        except Exception:
+                            is_closed = False
+
+                    if not is_closed:
+                        continue
+
+                    poly = _wire_to_polyline_2d(edge)
+
+                    if len(poly) >= 3:
+                        area = abs(polygon_area(poly))
+                        candidate_polygons.append(
+                            (area, poly)
+                        )
 
             except Exception:
                 if debug:
                     App.Console.PrintWarning(
-                        "[Offcuts][DEBUG] Direct wire scan failed:\n"
+                        "[Offcuts][DEBUG] Direct contour scan failed:\n"
                         + traceback.format_exc()
                     )
 
@@ -330,24 +439,32 @@ def extract_offcut_from_dxf(path, debug=False):
                 "[Offcuts] No closed contours found in %s\n"
                 % os.path.basename(path)
             )
-            return None, None
+            return None, None, None
 
         candidate_polygons.sort(
             key=lambda item: item[0],
             reverse=True
         )
 
-        polygon = candidate_polygons[0][1]
-        bbox = poly_bbox(polygon)
+        outer, holes, bbox = _classify_contours(
+            candidate_polygons
+        )
 
-        return polygon, bbox
+        if not outer:
+            App.Console.PrintError(
+                "[Offcuts] No valid outer contour found in %s\n"
+                % os.path.basename(path)
+            )
+            return None, None, None
+
+        return outer, holes, bbox
 
     except Exception:
         App.Console.PrintError(
             "[Offcuts] extract_offcut_from_dxf failed:\n"
             + traceback.format_exc()
         )
-        return None, None
+        return None, None, None
 
     finally:
         if doc is not None:
@@ -363,31 +480,18 @@ def extract_offcut_from_dxf(path, debug=False):
 def _closed_wires_from_edges(edges, debug=False):
     """
     Assemble closed wires from a flat list of edges.
-    Returns a list of closed Part.Wire objects.
+
+    Supports:
+    - multi-edge closed contours;
+    - single closed edges, such as circles.
     """
     wires = []
 
-    if Part is None:
-        return wires
-
-    if not edges:
+    if Part is None or not edges:
         return wires
 
     try:
-        if debug:
-            App.Console.PrintMessage(
-                "[Offcuts][DEBUG] Part.sortEdges START. Edges=%d\n"
-                % len(edges)
-            )
-
         groups = Part.sortEdges(edges)
-
-        if debug:
-            App.Console.PrintMessage(
-                "[Offcuts][DEBUG] Part.sortEdges END. Groups=%d\n"
-                % len(groups or [])
-            )
-
     except Exception:
         if debug:
             App.Console.PrintError(
@@ -398,25 +502,38 @@ def _closed_wires_from_edges(edges, debug=False):
 
     for group_index, group in enumerate(groups or []):
         try:
-            if not group or len(group) < 2:
+            if not group:
+                continue
+
+            # A circle is often returned as one closed edge.
+            if len(group) == 1:
+                edge = group[0]
+
+                try:
+                    if bool(edge.isClosed()):
+                        wires.append(Part.Wire([edge]))
+                        continue
+                except Exception:
+                    pass
+
+                # Some FreeCAD versions expose the closed state
+                # through the number of vertices.
+                try:
+                    if len(edge.Vertexes) == 1:
+                        wires.append(Part.Wire([edge]))
+                        continue
+                except Exception:
+                    pass
+
                 continue
 
             wire = Part.Wire(group)
-            closed = bool(wire.isClosed())
 
-            if debug:
-                App.Console.PrintMessage(
-                    "[Offcuts][DEBUG] Wire from group#%d "
-                    "closed=%s edges=%d\n"
-                    % (
-                        group_index,
-                        str(closed),
-                        len(group),
-                    )
-                )
-
-            if closed:
-                wires.append(wire)
+            try:
+                if wire.isClosed():
+                    wires.append(wire)
+            except Exception:
+                pass
 
         except Exception:
             if debug:
@@ -535,3 +652,99 @@ def add_or_increment_material(materials, material, count=1):
     materials.append(material)
 
     return material, len(materials) - 1, False
+    
+def _point_inside_polygon(point, polygon):
+    """
+    Return True if point lies inside polygon.
+    Uses the ray-casting algorithm.
+    """
+    try:
+        x = float(point[0])
+        y = float(point[1])
+    except Exception:
+        return False
+
+    inside = False
+    n = len(polygon or [])
+
+    if n < 3:
+        return False
+
+    j = n - 1
+
+    for i in range(n):
+        try:
+            xi = float(polygon[i][0])
+            yi = float(polygon[i][1])
+            xj = float(polygon[j][0])
+            yj = float(polygon[j][1])
+
+            intersects = (
+                ((yi > y) != (yj > y))
+                and (
+                    x
+                    < (xj - xi) * (y - yi) / ((yj - yi) or 1e-30)
+                    + xi
+                )
+            )
+
+            if intersects:
+                inside = not inside
+
+        except Exception:
+            pass
+
+        j = i
+
+    return inside
+    
+def _classify_contours(contours):
+    """
+    Classify closed contours into:
+        outer: the largest contour
+        holes: contours located inside outer
+
+    contours is a list of:
+        (absolute_area, polygon)
+    """
+    valid = []
+
+    for area, polygon in contours or []:
+        if not polygon or len(polygon) < 3:
+            continue
+
+        if area <= 1e-9:
+            continue
+
+        valid.append(
+            (
+                float(area),
+                polygon
+            )
+        )
+
+    if not valid:
+        return None, [], None
+
+    valid.sort(
+        key=lambda item: item[0],
+        reverse=True
+    )
+
+    outer_area, outer = valid[0]
+    holes = []
+
+    for area, polygon in valid[1:]:
+        try:
+            test_point = polygon[0]
+
+            if _point_inside_polygon(
+                test_point,
+                outer
+            ):
+                holes.append(polygon)
+
+        except Exception:
+            continue
+
+    return outer, holes, poly_bbox(outer)

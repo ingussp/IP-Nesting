@@ -22,205 +22,376 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 
 
-class _OffcutPreview(QtGui.QLabel):
-    """A fixed-size preview image of a polygon + grain direction arrow."""
-    def __init__(self, poly=None, grain="None", parent=None, size_px=200):
-        super(_OffcutPreview, self).__init__(parent)
-        self._size_px = int(size_px)
-        self.setFixedSize(self._size_px, self._size_px)
-        self.setMinimumSize(self._size_px, self._size_px)
-        self.setMaximumSize(self._size_px, self._size_px)
-        self.setFrameShape(QtGui.QFrame.Box)
-        self.setLineWidth(1)
-        self.setAlignment(QtCore.Qt.AlignCenter)
+class _HoleGraphicsItem(QtGui.QGraphicsPolygonItem):
+    """
+    Clickable hole polygon.
+    Active hole = forbidden area for nesting.
+    """
 
-        self._poly = []
-        self._grain = "None"
-        self.set_poly(poly)
-        self.set_grain(grain)
+    def __init__(
+        self,
+        hole_index,
+        polygon,
+        selected,
+        callback,
+        parent=None
+    ):
+        super(_HoleGraphicsItem, self).__init__(
+            QtGui.QPolygonF(polygon),
+            parent
+        )
 
-    def set_poly(self, poly):
-        self._poly = poly or []
-        self._render()
+        self.hole_index = int(hole_index)
+        self.selected = bool(selected)
+        self.callback = callback
 
-    def set_grain(self, grain):
-        g = (grain or "None").strip().upper()
-        if g in ("X", "Y"):
-            self._grain = g
+        self.setAcceptedMouseButtons(
+            QtCore.Qt.LeftButton
+        )
+
+        self.update_style()
+
+    def update_style(self):
+        if self.selected:
+            self.setBrush(
+                QtGui.QBrush(
+                    QtGui.QColor(255, 120, 120)
+                )
+            )
+            self.setPen(
+                QtGui.QPen(
+                    QtGui.QColor(180, 0, 0),
+                    2
+                )
+            )
         else:
-            self._grain = "None"
-        self._render()
+            self.setBrush(
+                QtGui.QBrush(
+                    QtGui.QColor(220, 220, 220)
+                )
+            )
+            self.setPen(
+                QtGui.QPen(
+                    QtGui.QColor(100, 100, 100),
+                    2
+                )
+            )
 
-    def _draw_grain_arrow(self, painter, w, h):
-        """Draw small red arrow indicating grain direction."""
-        try:
-            if self._grain == "None":
-                return
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.selected = not self.selected
+            self.update_style()
 
-            pen = QtGui.QPen(QtGui.QColor(200, 0, 0), 2)
-            painter.setPen(pen)
-            painter.setBrush(QtGui.QBrush(QtGui.QColor(200, 0, 0)))
+            if self.callback:
+                self.callback(
+                    self.hole_index,
+                    self.selected
+                )
 
-            if self._grain == "X":
-                # Horizontal arrow near top: left->right
-                x1, y = 20, 18
-                x2 = w - 20
-                painter.drawLine(x1, y, x2, y)
-                # Arrow head at x2
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(x2, y),
-                    QtCore.QPointF(x2 - 8, y - 5),
-                    QtCore.QPointF(x2 - 8, y + 5),
-                ])
-                painter.drawPolygon(head)
-
-            elif self._grain == "Y":
-                # Vertical arrow near left: top->bottom
-                x, y1 = 18, 20
-                y2 = h - 20
-                painter.drawLine(x, y1, x, y2)
-                # Arrow head at y2
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(x, y2),
-                    QtCore.QPointF(x - 5, y2 - 8),
-                    QtCore.QPointF(x + 5, y2 - 8),
-                ])
-                painter.drawPolygon(head)
-
-        except Exception:
-            # never fail render because of arrow
+            event.accept()
             return
 
-    def _render(self):
-        render_started = time.time()
+        super(_HoleGraphicsItem, self).mousePressEvent(event)
+
+
+class _OffcutPreview(QtGui.QGraphicsView):
+    """
+    Proportional sheet/offcut preview with:
+
+    - full outer contour;
+    - all holes;
+    - mouse-wheel zoom;
+    - horizontal and vertical scrolling;
+    - clickable holes.
+    """
+
+    def __init__(
+        self,
+        outer=None,
+        holes=None,
+        selected_holes=None,
+        on_hole_clicked=None,
+        grain="None",
+        parent=None,
+        size_px=700
+    ):
+        super(_OffcutPreview, self).__init__(parent)
+
+        self._outer = list(outer or [])
+        self._holes = [
+            list(hole or [])
+            for hole in (holes or [])
+        ]
+
+        self._selected_holes = list(
+            selected_holes or []
+        )
+
+        while len(self._selected_holes) < len(
+            self._holes
+        ):
+            self._selected_holes.append(True)
+
+        self._on_hole_clicked = on_hole_clicked
+        self._grain = "None"
+        self._zoom = 1.0
+        self._has_user_zoom = False
+
+        self._scene = QtGui.QGraphicsScene(self)
+        self.setScene(self._scene)
+
+        self.setMinimumSize(500, 400)
+        self.setSizePolicy(
+            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Expanding
+        )
+
+        self.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAsNeeded
+        )
+        self.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAsNeeded
+        )
+
+        self.setTransformationAnchor(
+            QtGui.QGraphicsView.AnchorUnderMouse
+        )
+        self.setResizeAnchor(
+            QtGui.QGraphicsView.AnchorViewCenter
+        )
+
+        self.setRenderHint(
+            QtGui.QPainter.Antialiasing,
+            True
+        )
+
+        self.setBackgroundBrush(
+            QtGui.QBrush(QtGui.QColor("white"))
+        )
+
+        self.set_grain(grain)
+        self._rebuild_scene()
+
+    def set_grain(self, grain):
+        value = str(
+            grain or "None"
+        ).strip().upper()
+
+        if value not in ("X", "Y"):
+            value = "None"
+
+        self._grain = value
+        self._rebuild_scene(
+            preserve_view=True
+        )
+
+    def _valid_points(self, polygon):
+        result = []
+
+        for point in polygon or []:
+            try:
+                if point is None or len(point) < 2:
+                    continue
+
+                x = float(point[0])
+                y = float(point[1])
+
+                if (
+                    math.isfinite(x)
+                    and math.isfinite(y)
+                ):
+                    result.append(
+                        QtCore.QPointF(x, -y)
+                    )
+
+            except Exception:
+                continue
+
+        return result
+
+    def _rebuild_scene(self, preserve_view=False):
+        old_center = None
 
         try:
-            w = int(self._size_px)
-            h = int(self._size_px)
-
-            poly = self._poly or []
-
-            if len(poly) > 10000:
-                App.Console.PrintWarning(
-                    "[OffcutPreview][DEBUG] polygon has %d points; "
-                    "rendering may be slow\n" % len(poly)
+            if preserve_view:
+                old_center = self.mapToScene(
+                    self.viewport().rect().center()
                 )
+        except Exception:
+            old_center = None
 
-            # Validate polygon point data before giving it to Qt.
-            valid_points = []
+        self._scene.clear()
 
-            for index, point in enumerate(poly):
-                try:
-                    if point is None or len(point) < 2:
-                        App.Console.PrintWarning(
-                            "[OffcutPreview][DEBUG] invalid point #%d: %s\n"
-                            % (index, str(point))
-                        )
-                        continue
+        outer_points = self._valid_points(
+            self._outer
+        )
 
-                    x = float(point[0])
-                    y = float(point[1])
-
-                    if not (math.isfinite(x) and math.isfinite(y)):
-                        App.Console.PrintWarning(
-                            "[OffcutPreview][DEBUG] non-finite point #%d: %s\n"
-                            % (index, str(point))
-                        )
-                        continue
-
-                    valid_points.append([x, y])
-
-                except Exception:
-                    App.Console.PrintWarning(
-                        "[OffcutPreview][DEBUG] failed to read point #%d: %s\n"
-                        % (index, traceback.format_exc())
-                    )
-            pm = QtGui.QPixmap(w, h)
-            pm.fill(QtGui.QColor("white"))
-
-            painter = QtGui.QPainter(pm)
-            painter.setRenderHint(
-                QtGui.QPainter.Antialiasing,
-                True
-            )
-
-            # Draw light axes using integer coordinates.
-            painter.setPen(
+        if len(outer_points) >= 3:
+            outer_item = self._scene.addPolygon(
+                QtGui.QPolygonF(outer_points),
                 QtGui.QPen(
-                    QtGui.QColor(235, 235, 235),
-                    1
+                    QtGui.QColor(0, 0, 0),
+                    2
+                ),
+                QtGui.QBrush(
+                    QtGui.QColor(245, 245, 245)
                 )
             )
-            painter.drawLine(0, int(h / 2), w, int(h / 2))
-            painter.drawLine(int(w / 2), 0, int(w / 2), h)
 
-            if len(valid_points) >= 2:
-                xs = [p[0] for p in valid_points]
-                ys = [p[1] for p in valid_points]
+            outer_item.setZValue(0)
 
-                min_x = min(xs)
-                max_x = max(xs)
-                min_y = min(ys)
-                max_y = max(ys)
+        for index, hole in enumerate(self._holes):
+            hole_points = self._valid_points(hole)
 
-                dx = max(1e-9, max_x - min_x)
-                dy = max(1e-9, max_y - min_y)
+            if len(hole_points) < 3:
+                continue
 
-                pad = 10.0
-                avail_w = float(w) - 2.0 * pad
-                avail_h = float(h) - 2.0 * pad
-                scale = min(avail_w / dx, avail_h / dy)
+            selected = True
 
-                scaled_w = dx * scale
-                scaled_h = dy * scale
-                ox = pad + 0.5 * (avail_w - scaled_w)
-                oy = pad + 0.5 * (avail_h - scaled_h)
-
-                def map_pt(x, y):
-                    px = ox + (x - min_x) * scale
-                    py = oy + (max_y - y) * scale
-                    return QtCore.QPointF(px, py)
-
-                qt_points = [
-                    map_pt(point[0], point[1])
-                    for point in valid_points
-                ]
-
-                painter.setPen(
-                    QtGui.QPen(
-                        QtGui.QColor(0, 0, 0),
-                        2
-                    )
+            if index < len(
+                self._selected_holes
+            ):
+                selected = bool(
+                    self._selected_holes[index]
                 )
 
-                if qt_points:
-                    qt_points_closed = qt_points + [qt_points[0]]
+            hole_item = _HoleGraphicsItem(
+                hole_index=index,
+                polygon=hole_points,
+                selected=selected,
+                callback=self._hole_clicked,
+            )
 
-                    
+            hole_item.setZValue(1)
+            self._scene.addItem(hole_item)
 
-                    painter.drawPolyline(
-                        QtGui.QPolygonF(qt_points_closed)
-                    )
+        # Add a small margin around the whole model.
+        bounds = self._scene.itemsBoundingRect()
 
-            self._draw_grain_arrow(painter, w, h)
+        if not bounds.isNull():
+            margin = max(
+                10.0,
+                max(
+                    bounds.width(),
+                    bounds.height()
+                ) * 0.03
+            )
 
-            painter.end()
+            self._scene.setSceneRect(
+                bounds.adjusted(
+                    -margin,
+                    -margin,
+                    margin,
+                    margin
+                )
+            )
 
-            self.setPixmap(pm)
+        if not self._has_user_zoom:
+            self.fitInView(
+                self._scene.sceneRect(),
+                QtCore.Qt.KeepAspectRatio
+            )
 
-            elapsed = time.time() - render_started
+        if old_center is not None:
+            try:
+                self.centerOn(old_center)
+            except Exception:
+                pass
 
-            
+    def _hole_clicked(self, hole_index, enabled):
+        while len(self._selected_holes) <= hole_index:
+            self._selected_holes.append(True)
+
+        self._selected_holes[hole_index] = bool(
+            enabled
+        )
+
+        if self._on_hole_clicked:
+            self._on_hole_clicked(
+                hole_index,
+                bool(enabled)
+            )
+
+    def wheelEvent(self, event):
+        """
+        Mouse wheel zoom.
+
+        Scroll up:
+            zoom in
+
+        Scroll down:
+            zoom out
+        """
+        try:
+            delta = event.angleDelta().y()
+
+            if delta == 0:
+                event.ignore()
+                return
+
+            if delta > 0:
+                factor = 1.20
+            else:
+                factor = 1.0 / 1.20
+
+            new_zoom = self._zoom * factor
+            new_zoom = max(
+                0.15,
+                min(12.0, new_zoom)
+            )
+
+            factor = new_zoom / self._zoom
+            self._zoom = new_zoom
+            self._has_user_zoom = True
+
+            self.scale(
+                factor,
+                factor
+            )
+
+            event.accept()
 
         except Exception:
+            App.Console.PrintError(
+                "OffcutPreview.wheelEvent failed:\n"
+                + traceback.format_exc()
+            )
+            event.ignore()
 
-            try:
-                pm = QtGui.QPixmap(
-                    int(self._size_px),
-                    int(self._size_px)
+    def mouseDoubleClickEvent(self, event):
+        """
+        Double-click resets the preview to fit the whole sheet.
+        """
+        try:
+            if event.button() == QtCore.Qt.LeftButton:
+                self._zoom = 1.0
+                self._has_user_zoom = False
+                self.resetTransform()
+
+                self.fitInView(
+                    self._scene.sceneRect(),
+                    QtCore.Qt.KeepAspectRatio
                 )
-                pm.fill(QtGui.QColor("white"))
-                self.setPixmap(pm)
+
+                event.accept()
+                return
+
+        except Exception:
+            pass
+
+        super(_OffcutPreview, self).mouseDoubleClickEvent(
+            event
+        )
+
+    def resizeEvent(self, event):
+        super(_OffcutPreview, self).resizeEvent(event)
+
+        if not self._has_user_zoom:
+            try:
+                self.fitInView(
+                    self._scene.sceneRect(),
+                    QtCore.Qt.KeepAspectRatio
+                )
             except Exception:
                 pass
 
@@ -230,9 +401,12 @@ class OffcutShowDialog(QtGui.QDialog):
         super(OffcutShowDialog, self).__init__(parent)
         self.setWindowTitle("Offcuts")
         self.setModal(True)
+        
+        self.setSizeGripEnabled(True)
 
-        # 1) Minimum dialog size 700x500
-        self.setMinimumSize(700, 500)
+        # 1) Minimum dialog size 900x700
+        self.resize(1100, 850)
+        self.setMinimumSize(900, 700)
 
         self._offcuts = offcuts  # list of dicts, mutated in place
 
@@ -256,11 +430,10 @@ class OffcutShowDialog(QtGui.QDialog):
         # Build cards
         for idx, off in enumerate(self._offcuts):
             card = QtGui.QGroupBox()
-            card_lay = QtGui.QHBoxLayout(card)
-            card_lay.setContentsMargins(8, 8, 8, 8)
-            card_lay.setSpacing(12)
+            card_lay = QtGui.QVBoxLayout(card)
+            card_lay.setContentsMargins(10, 10, 10, 10)
+            card_lay.setSpacing(8)
 
-            left = QtGui.QVBoxLayout()
             label = str(off.get("label", "Offcut"))
 
             try:
@@ -276,93 +449,215 @@ class OffcutShowDialog(QtGui.QDialog):
             except Exception:
                 count = 1
 
+            # -------------------------
+            # Controls above the model
+            # -------------------------
+            header_lay = QtGui.QHBoxLayout()
+            header_lay.setSpacing(12)
+
             title = QtGui.QLabel(
-                "<b>%s</b><br>Count: %d"
+                "<b>%s</b>  |  Count: %d"
                 % (label, count)
             )
-            left.addWidget(title)
-            
-            try:
-                
+            header_lay.addWidget(title)
 
-                
+            header_lay.addStretch(1)
 
-                polygons = off.get("polygons") or []
-
-                
-
-                poly = polygons[0] if polygons else []
-                grain = off.get("grain") or "None"
-
-                
-
-                prev = _OffcutPreview(
-                    poly=poly,
-                    grain=grain,
-                    size_px=200
-                )
-
-                
-
-                left.addWidget(prev)
-
-            except Exception:
-                App.Console.PrintError(
-                    "[OffcutDialog][DEBUG] failed to build card #%d:\n"
-                    % idx
-                    + traceback.format_exc()
-                )
-                continue
-            card_lay.addLayout(left)
-
-            right = QtGui.QVBoxLayout()
-            row = QtGui.QHBoxLayout()
-            row.addWidget(QtGui.QLabel("Grain direction:"))
+            header_lay.addWidget(
+                QtGui.QLabel("Grain direction:")
+            )
 
             combo = QtGui.QComboBox()
-            # 2) Add None option; default must be None
             combo.addItems(["None", "X", "Y"])
-            # 3) Minimum width 50px
-            combo.setMinimumWidth(50)
+            combo.setMinimumWidth(75)
 
-            g = (off.get("grain") or "None").strip().upper()
-            if g == "X":
+            grain = str(
+                off.get("grain", "None")
+                or "None"
+            ).strip().upper()
+
+            if grain == "X":
                 combo.setCurrentIndex(1)
-            elif g == "Y":
+            elif grain == "Y":
                 combo.setCurrentIndex(2)
             else:
                 combo.setCurrentIndex(0)
 
-            def _on_combo_changed(i, _idx=idx, _prev=prev):
+            header_lay.addWidget(combo)
+            card_lay.addLayout(header_lay)
+
+            # DXF path below the header, still above the model
+            path = str(off.get("path", "") or "")
+
+            if path:
+                path_label = QtGui.QLabel(path)
+                path_label.setWordWrap(True)
+                path_label.setTextInteractionFlags(
+                    QtCore.Qt.TextSelectableByMouse
+                )
+                card_lay.addWidget(path_label)
+
+            # -------------------------
+            # Outer contour and holes
+            # -------------------------
+            outer = off.get("outer") or []
+
+            # Compatibility with older records
+            if not outer:
+                polygons = off.get("polygons") or []
+                outer = polygons[0] if polygons else []
+
+            holes = list(off.get("holes") or [])
+
+            selected_holes = off.get("selected_holes")
+
+            if selected_holes is None:
+                selected_holes = [True for _ in holes]
+                off["selected_holes"] = selected_holes
+            else:
+                selected_holes = list(selected_holes)
+
+            while len(selected_holes) < len(holes):
+                selected_holes.append(True)
+
+            off["selected_holes"] = selected_holes
+
+            # -------------------------
+            # Hole controls above model
+            # -------------------------
+            hole_controls = QtGui.QHBoxLayout()
+
+            if holes:
+                hole_controls.addWidget(
+                    QtGui.QLabel("Holes:")
+                )
+
+                for hole_index in range(len(holes)):
+                    hole_checkbox = QtGui.QCheckBox(
+                        "Hole %d" % (hole_index + 1)
+                    )
+                    hole_checkbox.setChecked(
+                        bool(selected_holes[hole_index])
+                    )
+
+                    def _on_hole_checkbox_changed(
+                        state,
+                        _idx=hole_index,
+                        _off=off
+                    ):
+                        try:
+                            selected = _off.setdefault(
+                                "selected_holes",
+                                [
+                                    True
+                                    for _ in (
+                                        _off.get("holes")
+                                        or []
+                                    )
+                                ]
+                            )
+
+                            while len(selected) <= _idx:
+                                selected.append(True)
+
+                            selected[_idx] = bool(state)
+
+                            preview = _off.get(
+                                "_preview_widget"
+                            )
+
+                            if preview is not None:
+                                preview._render()
+
+                        except Exception:
+                            App.Console.PrintError(
+                                "Failed to update hole checkbox:\n"
+                                + traceback.format_exc()
+                            )
+
+                    hole_checkbox.stateChanged.connect(
+                        _on_hole_checkbox_changed
+                    )
+
+                    hole_controls.addWidget(
+                        hole_checkbox
+                    )
+
+                hole_controls.addStretch(1)
+                card_lay.addLayout(hole_controls)
+
+            # -------------------------
+            # Large preview
+            # -------------------------
+            def _on_hole_clicked(
+                hole_index,
+                enabled,
+                _off=off
+            ):
                 try:
-                    if int(i) == 1:
-                        self._offcuts[_idx]["grain"] = "X"
-                        _prev.set_grain("X")
-                    elif int(i) == 2:
-                        self._offcuts[_idx]["grain"] = "Y"
-                        _prev.set_grain("Y")
+                    selected = _off.setdefault(
+                        "selected_holes",
+                        [
+                            True
+                            for _ in (
+                                _off.get("holes")
+                                or []
+                            )
+                        ]
+                    )
+
+                    while len(selected) <= hole_index:
+                        selected.append(True)
+
+                    selected[hole_index] = bool(enabled)
+
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to update hole state:\n"
+                        + traceback.format_exc()
+                    )
+
+            preview = _OffcutPreview(
+                outer=outer,
+                holes=holes,
+                selected_holes=selected_holes,
+                on_hole_clicked=_on_hole_clicked,
+                grain=grain,
+                parent=card,
+                size_px=700
+            )
+
+            # Store preview so checkbox callbacks can refresh it.
+            off["_preview_widget"] = preview
+
+            card_lay.addWidget(
+                preview,
+                1
+            )
+
+            def _on_combo_changed(
+                index,
+                _off=off,
+                _preview=preview
+            ):
+                try:
+                    if int(index) == 1:
+                        _off["grain"] = "X"
+                        _preview.set_grain("X")
+                    elif int(index) == 2:
+                        _off["grain"] = "Y"
+                        _preview.set_grain("Y")
                     else:
-                        self._offcuts[_idx]["grain"] = "None"
-                        _prev.set_grain("None")
+                        _off["grain"] = "None"
+                        _preview.set_grain("None")
                 except Exception:
                     pass
 
-            combo.currentIndexChanged.connect(_on_combo_changed)
+            combo.currentIndexChanged.connect(
+                _on_combo_changed
+            )
 
-            row.addWidget(combo)
-            row.addStretch(1)
-            right.addLayout(row)
-
-            # Show full path (optional but useful)
-            path_lbl = QtGui.QLabel(off.get("path", ""))
-            path_lbl.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
-            path_lbl.setWordWrap(True)
-            right.addWidget(path_lbl)
-
-            right.addStretch(1)
-            card_lay.addLayout(right, 1)
-
-            v.addWidget(card)
+            v.addWidget(card, 1)
 
         v.addStretch(1)
         scroll.setWidget(container)
@@ -459,16 +754,24 @@ class OffcutMaterialsController(object):
                 )
                 return
 
-            poly, bbox = extract_offcut_from_dxf(
+            outer, holes, bbox = extract_offcut_from_dxf(
                 path,
                 debug=False
             )
-
-            if not poly:
+            
+            App.Console.PrintMessage(
+                "[Offcuts] Outer points: %d, holes: %d\n"
+                % (
+                    len(outer or []),
+                    len(holes or [])
+                )
+            )
+            
+            if not outer:
                 QtGui.QMessageBox.warning(
                     self.panel.form,
                     "DXF offcut",
-                    "No closed contour was found in the DXF file."
+                    "No closed outer contour was found in the DXF file."
                 )
                 return
 
@@ -478,7 +781,16 @@ class OffcutMaterialsController(object):
                 "path": path,
                 "label": os.path.basename(path),
                 "grain": "None",
-                "polygons": [poly],
+
+                "outer": outer,
+                "holes": holes,
+                "selected_holes": [
+                    True for _ in holes
+                ],
+
+                # Compatibility with old code
+                "polygons": [outer],
+
                 "bbox": bbox,
                 "count": quantity,
                 "quantity": quantity,
@@ -542,18 +854,32 @@ class OffcutMaterialsController(object):
                     height
                 ),
                 "grain": "None",
+
+                "outer": [
+                    [0.0, 0.0],
+                    [width, 0.0],
+                    [width, height],
+                    [0.0, height],
+                ],
+
+                "holes": [],
+                "selected_holes": [],
+
+                # Compatibility
                 "polygons": [[
                     [0.0, 0.0],
                     [width, 0.0],
                     [width, height],
                     [0.0, height],
                 ]],
+
                 "bbox": {
                     "min_x": 0.0,
                     "min_y": 0.0,
                     "max_x": width,
                     "max_y": height,
                 },
+
                 "width": width,
                 "height": height,
                 "quantity": quantity,
