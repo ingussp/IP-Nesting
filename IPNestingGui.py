@@ -230,11 +230,13 @@ class NestingTaskPanel:
             "Grain",
             "Move",
         ])
+        self.offcuts_table.horizontalHeaderItem(1).setToolTip("Number of sheets or offcuts.")
         
         self.offcuts_table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.offcuts_table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.offcuts_table.setEditTriggers( QtGui.QAbstractItemView.DoubleClicked | QtGui.QAbstractItemView.EditKeyPressed)
         self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
         self.offcuts_table.setMinimumHeight(120)
 
         # Column sizing

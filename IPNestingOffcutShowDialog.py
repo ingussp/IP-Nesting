@@ -261,7 +261,25 @@ class OffcutShowDialog(QtGui.QDialog):
             card_lay.setSpacing(12)
 
             left = QtGui.QVBoxLayout()
-            title = QtGui.QLabel("<b>%s</b>" % (off.get("label", "Offcut"),))
+            label = str(off.get("label", "Offcut"))
+
+            try:
+                count = max(
+                    1,
+                    int(
+                        off.get(
+                            "count",
+                            off.get("quantity", 1)
+                        )
+                    )
+                )
+            except Exception:
+                count = 1
+
+            title = QtGui.QLabel(
+                "<b>%s</b><br>Count: %d"
+                % (label, count)
+            )
             left.addWidget(title)
             
             try:
@@ -361,6 +379,8 @@ class OffcutMaterialsController(object):
     
     def __init__(self, panel):
         self.panel = panel
+        self._count_update_guard = False
+        self._table_rebuild_guard = False
 
     @property
     def offcuts(self):
@@ -369,7 +389,7 @@ class OffcutMaterialsController(object):
     @property
     def offcuts_table(self):
         return self.panel.offcuts_table
-
+    
     def add_offcut_dxf(self):
         """
         Open the add sheet/offcut dialog and process its result.
@@ -559,6 +579,84 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    def _set_count_cell_text(self, item, value):
+        """
+        Safely restore or update a Count cell without triggering
+        recursive Count processing.
+        """
+        try:
+            self._count_update_guard = True
+            item.setText(str(max(1, int(value))))
+        except Exception:
+            pass
+        finally:
+            self._count_update_guard = False
+    
+    def on_offcut_count_changed(self, item):
+        """
+        Update the material count when the Count cell is edited.
+        """
+        if self._count_update_guard:
+            return
+
+        if item is None:
+            return
+
+        # Count is column 1.
+        if item.column() != 1:
+            return
+
+        row = item.row()
+
+        if row < 0 or row >= len(self.offcuts):
+            return
+
+        material = self.offcuts[row]
+
+        try:
+            text = str(item.text()).strip()
+
+            # Empty or invalid input restores the previous value.
+            new_count = int(text)
+
+            if new_count < 1:
+                new_count = 1
+
+            if new_count > 100000:
+                new_count = 100000
+
+        except Exception:
+            try:
+                old_count = int(
+                    material.get(
+                        "count",
+                        material.get("quantity", 1)
+                    )
+                )
+            except Exception:
+                old_count = 1
+
+            self._set_count_cell_text(item, old_count)
+            return
+
+        try:
+            self._count_update_guard = True
+
+            material["count"] = new_count
+            material["quantity"] = new_count
+
+            if item.text() != str(new_count):
+                item.setText(str(new_count))
+
+        except Exception:
+            App.Console.PrintError(
+                "on_offcut_count_changed failed:\n"
+                + traceback.format_exc()
+            )
+
+        finally:
+            self._count_update_guard = False
+    
     def remove_offcuts(self):
         """
         Remove the currently selected material row.
@@ -622,12 +720,13 @@ class OffcutMaterialsController(object):
             
     def _rebuild_offcuts_table(self, selected_row=None):
         """
-        Rebuild the table from self.offcuts.
-
-        This guarantees that the visual order and model order
-        remain identical.
+        Rebuild the materials table from self.offcuts.
         """
+        if self._table_rebuild_guard:
+            return
+
         try:
+            self._table_rebuild_guard = True
             self.offcuts_table.setUpdatesEnabled(False)
 
             self.offcuts_table.clearContents()
@@ -656,6 +755,7 @@ class OffcutMaterialsController(object):
         finally:
             self.offcuts_table.setUpdatesEnabled(True)
             self.offcuts_table.viewport().update()
+            self._table_rebuild_guard = False
             
     def _append_offcut_table_row(self, material, row=None):
         """
@@ -705,10 +805,12 @@ class OffcutMaterialsController(object):
 
             count_item = QtGui.QTableWidgetItem(str(count))
             count_item.setFlags(
-                QtCore.Qt.ItemIsEnabled |
-                QtCore.Qt.ItemIsSelectable
+                QtCore.Qt.ItemIsEnabled
+                | QtCore.Qt.ItemIsSelectable
+                | QtCore.Qt.ItemIsEditable
             )
             count_item.setTextAlignment(QtCore.Qt.AlignCenter)
+            count_item.setToolTip("Enter the number of sheets or offcuts.")
             self.offcuts_table.setItem(row, 1, count_item)
 
             # Column 2: Grain
@@ -810,15 +912,61 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
-    def show_offcuts_popup(self):
-        """Show popup with ALL offcuts and allow changing grain X/Y per offcut."""
+    def _get_selected_offcuts(self):
+        """
+        Return material records corresponding to selected table rows.
+        The order follows the table/model order.
+        """
+        selected = []
+
         try:
-            if not self.offcuts:
-                QtGui.QMessageBox.information(None, "Offcuts", "No offcuts added.")
-                return
-            parent = QtGui.QApplication.activeWindow()
-            dlg = OffcutShowDialog(self.offcuts, parent=parent)
-            dlg.exec_()
-            self._refresh_offcut_grain_column()
+            indexes = self.offcuts_table.selectionModel().selectedRows()
+
+            rows = sorted(
+                set(index.row() for index in indexes)
+            )
+
+            for row in rows:
+                if 0 <= row < len(self.offcuts):
+                    selected.append(self.offcuts[row])
+
         except Exception:
-            App.Console.PrintError("show_offcuts_popup failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "_get_selected_offcuts failed:\n"
+                + traceback.format_exc()
+            )
+
+        return selected
+    
+    def show_offcuts_popup(self):
+        """
+        Show previews only for the selected sheet/offcut rows.
+        """
+        try:
+            selected_offcuts = self._get_selected_offcuts()
+
+            if not selected_offcuts:
+                QtGui.QMessageBox.information(
+                    self.panel.form,
+                    "Sheets and Offcuts",
+                    "Select at least one sheet or offcut first."
+                )
+                return
+
+            parent = QtGui.QApplication.activeWindow()
+
+            dlg = OffcutShowDialog(
+                selected_offcuts,
+                parent=parent
+            )
+
+            dlg.exec_()
+
+            # Grain values are updated in-place by OffcutShowDialog.
+            self._refresh_offcut_grain_column()
+
+        except Exception:
+            App.Console.PrintError(
+                "show_offcuts_popup failed:\n"
+                + traceback.format_exc()
+            )
