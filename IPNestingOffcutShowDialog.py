@@ -950,10 +950,28 @@ class OffcutMaterialsController(object):
                 )
                 return
 
+            try:
+                boundary_resolution = float(
+                    self.panel.res.text().strip()
+                )
+            except Exception:
+                boundary_resolution = 0.1
+
+            boundary_resolution = max(
+                0.001,
+                min(100.0, boundary_resolution)
+            )
+
+            App.Console.PrintMessage(
+                "[Offcuts] DXF deflection: %.4f\n"
+                % boundary_resolution
+            )
+
             outer, holes, bbox, contour_info = (
                 extract_offcut_from_dxf(
                     path,
-                    debug=False
+                    debug=False,
+                    deflection=boundary_resolution
                 )
             )
             

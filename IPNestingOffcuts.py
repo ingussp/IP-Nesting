@@ -269,12 +269,22 @@ def _collect_edges_from_shape(shp):
         pass
     return edges
     
-def extract_offcut_from_dxf(path, debug=False):
+def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
     """
     Import a DXF into a temporary document and extract
     the largest closed contour.
     """
     doc = None
+    
+    try:
+        deflection = float(deflection)
+    except Exception:
+        deflection = 0.1
+
+    deflection = max(
+        0.001,
+        min(100.0, deflection)
+    )
 
     try:
         if not path or not os.path.exists(path):
@@ -358,7 +368,7 @@ def extract_offcut_from_dxf(path, debug=False):
                     except Exception:
                         continue
 
-                    polygon = _wire_to_polyline_2d(wire)
+                    polygon = _wire_to_polyline_2d(wire,deflection=deflection)
 
                     _append_unique_contour(
                         candidate_polygons,
@@ -404,7 +414,7 @@ def extract_offcut_from_dxf(path, debug=False):
                     if not is_closed:
                         continue
 
-                    polygon = _wire_to_polyline_2d(edge)
+                    polygon = _wire_to_polyline_2d(edge,deflection=deflection)
 
                     _append_unique_contour(
                         candidate_polygons,
@@ -429,7 +439,7 @@ def extract_offcut_from_dxf(path, debug=False):
             )
 
             for wire in closed_wires:
-                polygon = _wire_to_polyline_2d(wire)
+                polygon = _wire_to_polyline_2d(wire,deflection=deflection)
 
                 _append_unique_contour(
                     candidate_polygons,
