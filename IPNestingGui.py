@@ -2673,6 +2673,61 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
             
+    def _normalize_table_decimal_separator(self, text):
+        """
+        Convert decimal comma to decimal point.
+
+        Examples:
+            12,5      -> 12.5
+            12,50     -> 12.50
+            90,180    -> unchanged, because this is treated
+                        as a comma-separated rotation list
+
+        For multiple decimal rotation values use semicolon:
+            12,5;45,5 -> 12.5,45.5
+        """
+        try:
+            s = str(text or "").strip()
+
+            if not s:
+                return s
+
+            # Semicolon explicitly separates rotation values.
+            if ";" in s:
+                values = []
+
+                for value in s.split(";"):
+                    value = value.strip()
+
+                    if not value:
+                        continue
+
+                    value = value.replace(",", ".")
+                    values.append(value)
+
+                return ",".join(values)
+
+            # A single comma followed by one or two digits is
+            # interpreted as a decimal separator.
+            if s.count(",") == 1:
+                left, right = s.split(",", 1)
+
+                if (
+                    left.strip()
+                    and right.strip().isdigit()
+                    and len(right.strip()) <= 2
+                ):
+                    return (
+                        left.strip()
+                        + "."
+                        + right.strip()
+                    )
+
+            return s
+
+        except Exception:
+            return text
+    
     def _clamp_rotation_degrees_text(self, txt):
         """
         Clamp each comma-separated rotation token to [0.1 .. 359].
@@ -2683,7 +2738,8 @@ class NestingTaskPanel:
         try:
             if txt is None:
                 return "90"
-            s = str(txt).strip()
+            s = self._normalize_table_decimal_separator(txt)
+            s = str(s).strip()
             if not s:
                 return "90"
 

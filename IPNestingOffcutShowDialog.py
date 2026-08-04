@@ -594,6 +594,9 @@ class OffcutShowDialog(QtGui.QDialog):
         self.setMinimumSize(900, 700)
 
         self._offcuts = offcuts  # list of dicts, mutated in place
+        
+        self._cards = []
+        self._scroll_area = None
 
         root = QtGui.QVBoxLayout(self)
 
@@ -605,6 +608,15 @@ class OffcutShowDialog(QtGui.QDialog):
 
         scroll = QtGui.QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff
+        )
+        scroll.setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAsNeeded
+        )
+
+        self._scroll_area = scroll
+
         root.addWidget(scroll, 1)
 
         container = QtGui.QWidget()
@@ -615,6 +627,7 @@ class OffcutShowDialog(QtGui.QDialog):
         # Build cards
         for idx, off in enumerate(self._offcuts):
             card = QtGui.QGroupBox()
+            self._cards.append(card)
             card_lay = QtGui.QVBoxLayout(card)
             card_lay.setContentsMargins(10, 10, 10, 10)
             card_lay.setSpacing(8)
@@ -862,6 +875,61 @@ class OffcutShowDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         buttons.accepted.connect(self.accept)
         root.addWidget(buttons)
+        QtCore.QTimer.singleShot(
+            0,
+            self._resize_cards_to_viewport
+        )
+        
+    def _resize_cards_to_viewport(self):
+        """
+        Make every card fill the available scroll viewport height
+        while preserving the outer margins.
+        """
+        try:
+            if self._scroll_area is None:
+                return
+
+            viewport_height = int(
+                self._scroll_area.viewport().height()
+            )
+
+            if viewport_height <= 0:
+                return
+
+            # Preserve the container margins and a small safety gap.
+            card_height = max(
+                500,
+                viewport_height - 20
+            )
+
+            for card in self._cards:
+                try:
+                    card.setMinimumHeight(card_height)
+                    card.setSizePolicy(
+                        QtGui.QSizePolicy.Expanding,
+                        QtGui.QSizePolicy.Fixed
+                    )
+                except Exception:
+                    pass
+
+        except Exception:
+            App.Console.PrintError(
+                "_resize_cards_to_viewport failed:\n"
+                + traceback.format_exc()
+            )
+            
+    def resizeEvent(self, event):
+        try:
+            super(OffcutShowDialog, self).resizeEvent(
+                event
+            )
+        except Exception:
+            pass
+
+        QtCore.QTimer.singleShot(
+            0,
+            self._resize_cards_to_viewport
+        )
         
 class OffcutMaterialsController(object):
     """
