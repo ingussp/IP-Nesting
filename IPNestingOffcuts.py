@@ -3,17 +3,17 @@ IPNestingOffcuts - DXF offcut extraction utilities.
 
 Goal:
 - Import a DXF into a temporary FreeCAD document.
-- Extract the largest closed contour as a 2D polygon for nesting.
-- Return polygon points and bbox in document units (typically mm).
+- Extract all valid closed contours as 2D polygons.
+- Treat the largest contour as the outer sheet contour.
+- Preserve every other contour for user selection in the Show dialog.
+- Return:
+    outer,
+    holes,
+    bbox,
+    contour_info
 
-One DXF = one offcut sheet.
-If DXF contains multiple closed contours, pick the one with the largest absolute area.
-
-Important note (FreeCAD DXF import):
-- Some DXF imports create Layer/LayerContainer objects (no Shape) and put actual geometry
-  inside groups or elsewhere in the document structure.
-- Therefore we scan the WHOLE temp document (recursively expanding Group containers)
-  to find Shape-bearing objects.
+`holes` is initially empty. The user-selected contours are converted
+to holes later by the UI/export pipeline.
 """
 
 import os
@@ -282,7 +282,7 @@ def extract_offcut_from_dxf(path, debug=False):
                 "[Offcuts] DXF file does not exist: %s\n"
                 % str(path)
             )
-            return None, None, None
+            return None, None, None, []
 
         doc_name = "IPNesting_OffcutTmp"
 
@@ -292,7 +292,7 @@ def extract_offcut_from_dxf(path, debug=False):
         doc = App.newDocument(doc_name)
 
         if not _import_dxf(path, doc.Name):
-            return None, None, None
+            return None, None, None, []
 
         try:
             doc.recompute()
@@ -309,7 +309,7 @@ def extract_offcut_from_dxf(path, debug=False):
             App.Console.PrintError(
                 "[Offcuts] Temporary DXF document contains no objects.\n"
             )
-            return None, None, None
+            return None, None, None, []
 
         all_edges = []
 
@@ -336,16 +336,19 @@ def extract_offcut_from_dxf(path, debug=False):
 
         candidate_polygons = []
 
-        # First use directly available closed wires.
+        # -------------------------------------------------
+        # 1. Direct closed wires and edges.
+        # -------------------------------------------------
         for obj in objects:
             try:
                 shape = getattr(obj, "Shape", None)
+
                 if shape is None:
                     continue
 
-                processed_edges = set()
+                processed_edge_keys = set()
 
-                # Normal multi-edge wires.
+                # Closed wires.
                 for wire in list(
                     getattr(shape, "Wires", []) or []
                 ):
@@ -355,31 +358,31 @@ def extract_offcut_from_dxf(path, debug=False):
                     except Exception:
                         continue
 
-                    poly = _wire_to_polyline_2d(wire)
+                    polygon = _wire_to_polyline_2d(wire)
 
-                    if len(poly) >= 3:
-                        area = abs(polygon_area(poly))
-                        candidate_polygons.append(
-                            (area, poly)
-                        )
+                    _append_unique_contour(
+                        candidate_polygons,
+                        polygon
+                    )
 
                     try:
                         for edge in wire.Edges:
-                            processed_edges.add(
+                            processed_edge_keys.add(
                                 edge.hashCode()
                             )
                     except Exception:
                         pass
 
-                # Single closed edges, especially circles.
+                # Single closed edges, such as circles.
                 for edge in list(
                     getattr(shape, "Edges", []) or []
                 ):
                     try:
                         edge_key = edge.hashCode()
 
-                        if edge_key in processed_edges:
+                        if edge_key in processed_edge_keys:
                             continue
+
                     except Exception:
                         edge_key = None
 
@@ -392,62 +395,67 @@ def extract_offcut_from_dxf(path, debug=False):
 
                     if not is_closed:
                         try:
-                            is_closed = len(edge.Vertexes) == 1
+                            is_closed = (
+                                len(edge.Vertexes) == 1
+                            )
                         except Exception:
                             is_closed = False
 
                     if not is_closed:
                         continue
 
-                    poly = _wire_to_polyline_2d(edge)
+                    polygon = _wire_to_polyline_2d(edge)
 
-                    if len(poly) >= 3:
-                        area = abs(polygon_area(poly))
-                        candidate_polygons.append(
-                            (area, poly)
-                        )
+                    _append_unique_contour(
+                        candidate_polygons,
+                        polygon
+                    )
 
             except Exception:
                 if debug:
                     App.Console.PrintWarning(
-                        "[Offcuts][DEBUG] Direct contour scan failed:\n"
+                        "[Offcuts][DEBUG] "
+                        "Direct contour scan failed:\n"
                         + traceback.format_exc()
                     )
 
-        # If direct wires were not available, assemble them from edges.
-        if not candidate_polygons:
+        # -------------------------------------------------
+        # 2. Always assemble contours from all edges.
+        # -------------------------------------------------
+        try:
             closed_wires = _closed_wires_from_edges(
                 all_edges,
                 debug=debug
             )
 
             for wire in closed_wires:
-                try:
-                    poly = _wire_to_polyline_2d(wire)
-                    if len(poly) >= 3:
-                        area = abs(polygon_area(poly))
-                        candidate_polygons.append((area, poly))
-                except Exception:
-                    if debug:
-                        App.Console.PrintWarning(
-                            "[Offcuts][DEBUG] Wire conversion failed:\n"
-                            + traceback.format_exc()
-                        )
+                polygon = _wire_to_polyline_2d(wire)
 
+                _append_unique_contour(
+                    candidate_polygons,
+                    polygon
+                )
+
+        except Exception:
+            if debug:
+                App.Console.PrintWarning(
+                    "[Offcuts][DEBUG] "
+                    "Assembled contour scan failed:\n"
+                    + traceback.format_exc()
+                )
+
+        # If direct wires were not available, assemble them from edges.
         if not candidate_polygons:
             App.Console.PrintError(
                 "[Offcuts] No closed contours found in %s\n"
                 % os.path.basename(path)
             )
-            return None, None, None
+            return None, None, None, []
 
-        candidate_polygons.sort(
-            key=lambda item: item[0],
-            reverse=True
-        )
-
-        outer, holes, bbox = _classify_contours(
-            candidate_polygons
+        outer, holes, bbox, contour_info = (
+            _classify_contours(
+                candidate_polygons
+            )
         )
 
         if not outer:
@@ -455,16 +463,21 @@ def extract_offcut_from_dxf(path, debug=False):
                 "[Offcuts] No valid outer contour found in %s\n"
                 % os.path.basename(path)
             )
-            return None, None, None
+            return None, None, None, []
 
-        return outer, holes, bbox
+        return (
+            outer,
+            holes,
+            bbox,
+            contour_info
+        )
 
     except Exception:
         App.Console.PrintError(
             "[Offcuts] extract_offcut_from_dxf failed:\n"
             + traceback.format_exc()
         )
-        return None, None, None
+        return None, None, None, []
 
     finally:
         if doc is not None:
@@ -698,33 +711,123 @@ def _point_inside_polygon(point, polygon):
 
     return inside
     
+def _make_contour_record(index, polygon, area, is_outer=False):
+    """
+    Create a normalized contour record.
+
+    `selected` is only meaningful for non-outer contours.
+    The outer contour can never be selected as a hole.
+    """
+    return {
+        "index": int(index),
+        "polygon": list(polygon or []),
+        "area": float(abs(area)),
+        "bbox": poly_bbox(polygon),
+        "is_outer": bool(is_outer),
+        "selected": False,
+    }
+
+def _polygons_are_same(poly_a, poly_b, tolerance=1e-6):
+    """
+    Best-effort duplicate contour detection using area and bbox.
+    """
+    try:
+        if not poly_a or not poly_b:
+            return False
+
+        area_a = abs(polygon_area(poly_a))
+        area_b = abs(polygon_area(poly_b))
+
+        if abs(area_a - area_b) > max(
+            tolerance,
+            max(area_a, area_b) * 1e-6
+        ):
+            return False
+
+        bbox_a = poly_bbox(poly_a)
+        bbox_b = poly_bbox(poly_b)
+
+        for key in (
+            "min_x",
+            "min_y",
+            "max_x",
+            "max_y",
+        ):
+            if abs(
+                float(bbox_a[key])
+                - float(bbox_b[key])
+            ) > tolerance:
+                return False
+
+        return True
+
+    except Exception:
+        return False
+
+def _append_unique_contour(candidate_polygons, polygon):
+    """
+    Append a contour only if it is valid and not already present.
+    """
+    try:
+        if not polygon or len(polygon) < 3:
+            return
+
+        area = abs(polygon_area(polygon))
+
+        if area <= 1e-9:
+            return
+
+        for existing_area, existing_polygon in candidate_polygons:
+            if _polygons_are_same(
+                existing_polygon,
+                polygon
+            ):
+                return
+
+        candidate_polygons.append(
+            (area, polygon)
+        )
+
+    except Exception:
+        return
+
 def _classify_contours(contours):
     """
-    Classify closed contours into:
-        outer: the largest contour
-        holes: contours located inside outer
+    Return all detected contours.
 
-    contours is a list of:
-        (absolute_area, polygon)
+    The largest contour is automatically assigned as outer.
+    Every other contour remains selectable by the user.
+
+    Returns:
+        outer,
+        holes,
+        bbox,
+        contour_info
     """
     valid = []
 
     for area, polygon in contours or []:
-        if not polygon or len(polygon) < 3:
-            continue
+        try:
+            if not polygon or len(polygon) < 3:
+                continue
 
-        if area <= 1e-9:
-            continue
+            area = abs(float(area))
 
-        valid.append(
-            (
-                float(area),
-                polygon
+            if area <= 1e-9:
+                continue
+
+            valid.append(
+                (
+                    area,
+                    list(polygon)
+                )
             )
-        )
+
+        except Exception:
+            continue
 
     if not valid:
-        return None, [], None
+        return None, [], None, []
 
     valid.sort(
         key=lambda item: item[0],
@@ -732,19 +835,24 @@ def _classify_contours(contours):
     )
 
     outer_area, outer = valid[0]
+    bbox = poly_bbox(outer)
+
+    contour_info = []
+
+    for index, (area, polygon) in enumerate(valid):
+        is_outer = index == 0
+
+        contour_info.append(
+            _make_contour_record(
+                index=index,
+                polygon=polygon,
+                area=area,
+                is_outer=is_outer
+            )
+        )
+
+    # No holes are selected automatically.
+    # The user chooses all non-outer contours in Show.
     holes = []
 
-    for area, polygon in valid[1:]:
-        try:
-            test_point = polygon[0]
-
-            if _point_inside_polygon(
-                test_point,
-                outer
-            ):
-                holes.append(polygon)
-
-        except Exception:
-            continue
-
-    return outer, holes, poly_bbox(outer)
+    return outer, holes, bbox, contour_info

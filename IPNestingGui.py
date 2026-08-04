@@ -21,8 +21,7 @@ from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
-from IPNestingOffcuts import (extract_offcut_from_dxf,add_or_increment_material,)
-from IPNestingOffcutShowDialog import (OffcutShowDialog,OffcutMaterialsController,)
+from IPNestingOffcutShowDialog import OffcutMaterialsController
 
 
 try:

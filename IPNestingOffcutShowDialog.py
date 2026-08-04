@@ -16,35 +16,79 @@ import time
 import os
 
 from IPNestingAddSheet import AddSheetOrOffcutDialog
-from IPNestingOffcuts import (extract_offcut_from_dxf,add_or_increment_material,)
+from IPNestingOffcuts import (extract_offcut_from_dxf,add_or_increment_material,polygon_area)
 
 import FreeCAD as App
 from PySide import QtGui, QtCore
 
 
-class _HoleGraphicsItem(QtGui.QGraphicsPolygonItem):
+def _sync_compatibility_holes(offcut):
     """
-    Clickable hole polygon.
-    Active hole = forbidden area for nesting.
+    Synchronize compatibility fields from user-selected contours.
+
+    The new source of truth is:
+        offcut["contours"][...]["selected"]
+
+    The old fields holes and selected_holes are kept synchronized
+    for compatibility with code that still reads them.
+    """
+    try:
+        contours = offcut.get("contours") or []
+
+        selected_holes = []
+
+        for contour in contours:
+            if contour.get("is_outer"):
+                continue
+
+            if not contour.get("selected", False):
+                continue
+
+            polygon = contour.get("polygon") or []
+
+            if len(polygon) >= 3:
+                selected_holes.append(
+                    list(polygon)
+                )
+
+        offcut["holes"] = selected_holes
+        offcut["selected_holes"] = [
+            True for _ in selected_holes
+        ]
+
+    except Exception:
+        App.Console.PrintError(
+            "_sync_compatibility_holes failed:\n"
+            + traceback.format_exc()
+        )
+
+
+class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
+    """
+    Clickable non-outer contour.
+
+    Selected contour is exported as a forbidden nesting area.
+    The outer contour is never represented by this class.
     """
 
     def __init__(
         self,
-        hole_index,
+        contour_index,
         polygon,
         selected,
         callback,
         parent=None
     ):
-        super(_HoleGraphicsItem, self).__init__(
+        super(_ContourGraphicsItem, self).__init__(
             QtGui.QPolygonF(polygon),
             parent
         )
 
-        self.hole_index = int(hole_index)
+        self.contour_index = int(contour_index)
         self.selected = bool(selected)
         self.callback = callback
 
+        self.setZValue(10)
         self.setAcceptedMouseButtons(
             QtCore.Qt.LeftButton
         )
@@ -84,14 +128,14 @@ class _HoleGraphicsItem(QtGui.QGraphicsPolygonItem):
 
             if self.callback:
                 self.callback(
-                    self.hole_index,
+                    self.contour_index,
                     self.selected
                 )
 
             event.accept()
             return
 
-        super(_HoleGraphicsItem, self).mousePressEvent(event)
+        event.ignore()
 
 
 class _OffcutPreview(QtGui.QGraphicsView):
@@ -108,9 +152,8 @@ class _OffcutPreview(QtGui.QGraphicsView):
     def __init__(
         self,
         outer=None,
-        holes=None,
-        selected_holes=None,
-        on_hole_clicked=None,
+        contours=None,
+        on_contour_clicked=None,
         grain="None",
         parent=None,
         size_px=700
@@ -118,21 +161,18 @@ class _OffcutPreview(QtGui.QGraphicsView):
         super(_OffcutPreview, self).__init__(parent)
 
         self._outer = list(outer or [])
-        self._holes = [
-            list(hole or [])
-            for hole in (holes or [])
-        ]
 
-        self._selected_holes = list(
-            selected_holes or []
+        self._contours = []
+
+        for contour in contours or []:
+            self._contours.append(
+                dict(contour)
+            )
+
+        self._on_contour_clicked = (
+            on_contour_clicked
         )
 
-        while len(self._selected_holes) < len(
-            self._holes
-        ):
-            self._selected_holes.append(True)
-
-        self._on_hole_clicked = on_hole_clicked
         self._grain = "None"
         self._zoom = 1.0
         self._has_user_zoom = False
@@ -170,20 +210,6 @@ class _OffcutPreview(QtGui.QGraphicsView):
         )
 
         self.set_grain(grain)
-        self._rebuild_scene()
-
-    def set_grain(self, grain):
-        value = str(
-            grain or "None"
-        ).strip().upper()
-
-        if value not in ("X", "Y"):
-            value = "None"
-
-        self._grain = value
-        self._rebuild_scene(
-            preserve_view=True
-        )
 
     def _valid_points(self, polygon):
         result = []
@@ -200,6 +226,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                     math.isfinite(x)
                     and math.isfinite(y)
                 ):
+                    # Invert Y for QGraphicsScene coordinates.
                     result.append(
                         QtCore.QPointF(x, -y)
                     )
@@ -208,7 +235,175 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 continue
 
         return result
+    
+    def _add_grain_arrow_to_scene(self):
+        """
+        Add a red grain-direction arrow over the preview.
 
+        The arrow is drawn in scene coordinates. The model uses
+        inverted Y coordinates, therefore scene_y is negative
+        model_y.
+        """
+        try:
+            if self._grain == "None":
+                return
+
+            outer_points = self._valid_points(
+                self._outer
+            )
+
+            if len(outer_points) < 3:
+                return
+
+            xs = [
+                point.x()
+                for point in outer_points
+            ]
+
+            ys = [
+                point.y()
+                for point in outer_points
+            ]
+
+            min_x = min(xs)
+            max_x = max(xs)
+            min_y = min(ys)
+            max_y = max(ys)
+
+            width = max_x - min_x
+            height = max_y - min_y
+
+            if width <= 1e-9 or height <= 1e-9:
+                return
+
+            # Keep the arrow inside the outer contour bbox.
+            margin_x = width * 0.12
+            margin_y = height * 0.12
+
+            arrow_pen = QtGui.QPen(
+                QtGui.QColor(210, 0, 0),
+                max(1.0, min(width, height) * 0.008)
+            )
+
+            arrow_brush = QtGui.QBrush(
+                QtGui.QColor(210, 0, 0)
+            )
+
+            if self._grain == "X":
+                # Horizontal arrow: left -> right.
+                y = min_y + margin_y
+                x1 = min_x + margin_x
+                x2 = max_x - margin_x
+
+                line = self._scene.addLine(
+                    x1,
+                    y,
+                    x2,
+                    y,
+                    arrow_pen
+                )
+                line.setZValue(5)
+
+                head_size = max(
+                    min(width, height) * 0.04,
+                    1.0
+                )
+
+                head = QtGui.QPolygonF([
+                    QtCore.QPointF(
+                        x2,
+                        y
+                    ),
+                    QtCore.QPointF(
+                        x2 - head_size,
+                        y - head_size * 0.55
+                    ),
+                    QtCore.QPointF(
+                        x2 - head_size,
+                        y + head_size * 0.55
+                    ),
+                ])
+
+            else:
+                # Vertical arrow: top -> bottom.
+                x = min_x + margin_x
+                y1 = min_y + margin_y
+                y2 = max_y - margin_y
+
+                line = self._scene.addLine(
+                    x,
+                    y1,
+                    x,
+                    y2,
+                    arrow_pen
+                )
+                line.setZValue(5)
+
+                head_size = max(
+                    min(width, height) * 0.04,
+                    1.0
+                )
+
+                head = QtGui.QPolygonF([
+                    QtCore.QPointF(
+                        x,
+                        y2
+                    ),
+                    QtCore.QPointF(
+                        x - head_size * 0.55,
+                        y2 - head_size
+                    ),
+                    QtCore.QPointF(
+                        x + head_size * 0.55,
+                        y2 - head_size
+                    ),
+                ])
+
+            head_item = self._scene.addPolygon(
+                head,
+                arrow_pen,
+                arrow_brush
+            )
+            head_item.setZValue(5)
+
+        except Exception:
+            App.Console.PrintError(
+                "_add_grain_arrow_to_scene failed:\n"
+                + traceback.format_exc()
+            )
+    
+    def set_grain(self, grain):
+        value = str(
+            grain or "None"
+        ).strip().upper()
+
+        if value not in ("X", "Y"):
+            value = "None"
+
+        self._grain = value
+        
+        self._rebuild_scene(
+            preserve_view=True
+        )
+    
+    def _contour_clicked(self, contour_index, selected):
+        for contour in self._contours:
+            if int(
+                contour.get("index", -1)
+            ) == int(contour_index):
+
+                if contour.get("is_outer"):
+                    return
+
+                contour["selected"] = bool(selected)
+                break
+
+        if self._on_contour_clicked:
+            self._on_contour_clicked(
+                contour_index,
+                bool(selected)
+            )
+    
     def _rebuild_scene(self, preserve_view=False):
         old_center = None
 
@@ -238,34 +433,41 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 )
             )
 
+            # Outer contour is always above background
+            # but below selectable contours.
             outer_item.setZValue(0)
 
-        for index, hole in enumerate(self._holes):
-            hole_points = self._valid_points(hole)
-
-            if len(hole_points) < 3:
+        for contour in self._contours:
+            if contour.get("is_outer"):
                 continue
 
-            selected = True
-
-            if index < len(
-                self._selected_holes
-            ):
-                selected = bool(
-                    self._selected_holes[index]
-                )
-
-            hole_item = _HoleGraphicsItem(
-                hole_index=index,
-                polygon=hole_points,
-                selected=selected,
-                callback=self._hole_clicked,
+            contour_index = int(
+                contour.get("index", -1)
             )
 
-            hole_item.setZValue(1)
-            self._scene.addItem(hole_item)
+            polygon = self._valid_points(
+                contour.get("polygon") or []
+            )
 
-        # Add a small margin around the whole model.
+            if len(polygon) < 3:
+                continue
+
+            selected = bool(
+                contour.get("selected", False)
+            )
+
+            item = _ContourGraphicsItem(
+                contour_index=contour_index,
+                polygon=polygon,
+                selected=selected,
+                callback=self._contour_clicked
+            )
+
+            self._scene.addItem(item)
+
+        # Draw grain arrow after outer and selectable contours.
+        self._add_grain_arrow_to_scene()
+        
         bounds = self._scene.itemsBoundingRect()
 
         if not bounds.isNull():
@@ -293,24 +495,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
             )
 
         if old_center is not None:
-            try:
-                self.centerOn(old_center)
-            except Exception:
-                pass
-
-    def _hole_clicked(self, hole_index, enabled):
-        while len(self._selected_holes) <= hole_index:
-            self._selected_holes.append(True)
-
-        self._selected_holes[hole_index] = bool(
-            enabled
-        )
-
-        if self._on_hole_clicked:
-            self._on_hole_clicked(
-                hole_index,
-                bool(enabled)
-            )
+            self.centerOn(old_center)
 
     def wheelEvent(self, event):
         """
@@ -502,89 +687,67 @@ class OffcutShowDialog(QtGui.QDialog):
             # -------------------------
             outer = off.get("outer") or []
 
-            # Compatibility with older records
+            # Compatibility with older records.
             if not outer:
                 polygons = off.get("polygons") or []
                 outer = polygons[0] if polygons else []
 
-            holes = list(off.get("holes") or [])
+            contours = off.get("contours")
 
-            selected_holes = off.get("selected_holes")
+            if contours is None:
+                # Compatibility fallback for old records that only
+                # contain outer/holes.
+                contours = []
 
-            if selected_holes is None:
-                selected_holes = [True for _ in holes]
-                off["selected_holes"] = selected_holes
-            else:
-                selected_holes = list(selected_holes)
+                contours.append({
+                    "index": 0,
+                    "polygon": outer,
+                    "area": abs(polygon_area(outer)),
+                    "is_outer": True,
+                    "selected": False,
+                })
 
-            while len(selected_holes) < len(holes):
-                selected_holes.append(True)
+                for hole_index, hole in enumerate(
+                    off.get("holes") or [],
+                    start=1
+                ):
+                    contours.append({
+                        "index": hole_index,
+                        "polygon": hole,
+                        "area": abs(polygon_area(hole)),
+                        "is_outer": False,
+                        "selected": True,
+                    })
 
-            off["selected_holes"] = selected_holes
+            off["contours"] = contours
+            
+            # Ensure every contour has normalized fields.
+            normalized_contours = []
 
-            # -------------------------
-            # Hole controls above model
-            # -------------------------
-            hole_controls = QtGui.QHBoxLayout()
+            for contour in contours or []:
+                normalized_contours.append({
+                    "index": int(
+                        contour.get("index", 0)
+                    ),
+                    "polygon": list(
+                        contour.get("polygon") or []
+                    ),
+                    "area": float(
+                        contour.get("area", 0.0)
+                    ),
+                    "bbox": dict(
+                        contour.get("bbox") or {}
+                    ),
+                    "is_outer": bool(
+                        contour.get("is_outer", False)
+                    ),
+                    "selected": bool(
+                        contour.get("selected", False)
+                    ),
+                })
 
-            if holes:
-                hole_controls.addWidget(
-                    QtGui.QLabel("Holes:")
-                )
-
-                for hole_index in range(len(holes)):
-                    hole_checkbox = QtGui.QCheckBox(
-                        "Hole %d" % (hole_index + 1)
-                    )
-                    hole_checkbox.setChecked(
-                        bool(selected_holes[hole_index])
-                    )
-
-                    def _on_hole_checkbox_changed(
-                        state,
-                        _idx=hole_index,
-                        _off=off
-                    ):
-                        try:
-                            selected = _off.setdefault(
-                                "selected_holes",
-                                [
-                                    True
-                                    for _ in (
-                                        _off.get("holes")
-                                        or []
-                                    )
-                                ]
-                            )
-
-                            while len(selected) <= _idx:
-                                selected.append(True)
-
-                            selected[_idx] = bool(state)
-
-                            preview = _off.get(
-                                "_preview_widget"
-                            )
-
-                            if preview is not None:
-                                preview._render()
-
-                        except Exception:
-                            App.Console.PrintError(
-                                "Failed to update hole checkbox:\n"
-                                + traceback.format_exc()
-                            )
-
-                    hole_checkbox.stateChanged.connect(
-                        _on_hole_checkbox_changed
-                    )
-
-                    hole_controls.addWidget(
-                        hole_checkbox
-                    )
-
-                hole_controls.addStretch(1)
-                card_lay.addLayout(hole_controls)
+            contours = normalized_contours
+            off["contours"] = contours
 
             # -------------------------
             # Large preview
@@ -617,14 +780,47 @@ class OffcutShowDialog(QtGui.QDialog):
                         + traceback.format_exc()
                     )
 
+            def _on_contour_clicked(
+                contour_index,
+                selected,
+                _off=off
+            ):
+                try:
+                    contours = _off.get(
+                        "contours"
+                    ) or []
+
+                    for contour in contours:
+                        if int(
+                            contour.get("index", -1)
+                        ) != int(contour_index):
+                            continue
+
+                        if contour.get("is_outer"):
+                            return
+
+                        contour["selected"] = bool(
+                            selected
+                        )
+                        break
+
+                    _sync_compatibility_holes(
+                        _off
+                    )
+
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to update contour state:\n"
+                        + traceback.format_exc()
+                    )
+            
             preview = _OffcutPreview(
                 outer=outer,
-                holes=holes,
-                selected_holes=selected_holes,
-                on_hole_clicked=_on_hole_clicked,
+                contours=contours,
+                on_contour_clicked=_on_contour_clicked,
                 grain=grain,
                 parent=card,
-                size_px=700
+                size_px=700,
             )
 
             # Store preview so checkbox callbacks can refresh it.
@@ -754,16 +950,18 @@ class OffcutMaterialsController(object):
                 )
                 return
 
-            outer, holes, bbox = extract_offcut_from_dxf(
-                path,
-                debug=False
+            outer, holes, bbox, contour_info = (
+                extract_offcut_from_dxf(
+                    path,
+                    debug=False
+                )
             )
             
             App.Console.PrintMessage(
-                "[Offcuts] Outer points: %d, holes: %d\n"
+                "[Offcuts] Outer points: %d, contours: %d\n"
                 % (
                     len(outer or []),
-                    len(holes or [])
+                    len(contour_info or [])
                 )
             )
             
@@ -775,23 +973,48 @@ class OffcutMaterialsController(object):
                 )
                 return
 
+            contours = []
+
+            for contour in contour_info or []:
+                contours.append({
+                    "index": int(
+                        contour.get("index", 0)
+                    ),
+                    "polygon": list(
+                        contour.get("polygon") or []
+                    ),
+                    "area": float(
+                        contour.get("area", 0.0)
+                    ),
+                    "bbox": dict(
+                        contour.get("bbox") or {}
+                    ),
+                    "is_outer": bool(
+                        contour.get("is_outer", False)
+                    ),
+                    "selected": False,
+                })
+
             offcut = {
-                "id": int(self.panel._offcut_next_id),
+                "id": int(
+                    self.panel._offcut_next_id
+                ),
                 "type": "dxf",
                 "path": path,
                 "label": os.path.basename(path),
                 "grain": "None",
 
                 "outer": outer,
-                "holes": holes,
-                "selected_holes": [
-                    True for _ in holes
-                ],
+                "contours": contours,
 
-                # Compatibility with old code
+                # Compatibility fields.
+                "holes": [],
+                "selected_holes": [],
                 "polygons": [outer],
 
                 "bbox": bbox,
+                "contour_info": contour_info,
+
                 "count": quantity,
                 "quantity": quantity,
                 "duplicate": False,
@@ -845,33 +1068,47 @@ class OffcutMaterialsController(object):
                 )
                 return
 
+            outer = [
+                [0.0, 0.0],
+                [width, 0.0],
+                [width, height],
+                [0.0, height],
+            ]
+            
             sheet = {
-                "id": int(self.panel._offcut_next_id),
+                "id": int(
+                    self.panel._offcut_next_id
+                ),
                 "type": "rectangular",
                 "path": "",
-                "label": "Sheet %.0f x %.0f mm" % (
-                    width,
-                    height
-                ),
+                "label": "Sheet %.0f x %.0f mm"
+                % (width, height),
                 "grain": "None",
 
-                "outer": [
-                    [0.0, 0.0],
-                    [width, 0.0],
-                    [width, height],
-                    [0.0, height],
+                "outer": outer,
+
+                "contours": [
+                    {
+                        "index": 0,
+                        "polygon": outer,
+                        "area": float(
+                            width * height
+                        ),
+                        "bbox": {
+                            "min_x": 0.0,
+                            "min_y": 0.0,
+                            "max_x": width,
+                            "max_y": height,
+                        },
+                        "is_outer": True,
+                        "selected": False,
+                    }
                 ],
 
+                # Compatibility fields.
                 "holes": [],
                 "selected_holes": [],
-
-                # Compatibility
-                "polygons": [[
-                    [0.0, 0.0],
-                    [width, 0.0],
-                    [width, height],
-                    [0.0, height],
-                ]],
+                "polygons": [outer],
 
                 "bbox": {
                     "min_x": 0.0,
