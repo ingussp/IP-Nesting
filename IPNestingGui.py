@@ -23,6 +23,8 @@ from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 from IPNestingOffcutShowDialog import OffcutMaterialsController
 
+MM_PER_INCH = 25.4
+
 
 try:
     from IPNestingImport import apply_nesting_result
@@ -171,6 +173,17 @@ class NestingTaskPanel:
 
         self._suppress_selection_update = False
         self._suppress_qty_update = False
+        
+        # Display units. Geometry and nesting calculations remain in mm.
+        self.display_units = "mm"
+        self._units_change_guard = False
+        
+        # Canonical dimension values. Always stored in mm.
+        self._dimension_values_mm = {
+            "sheet_margin": 5.0,
+            "spacing": 6.0,
+            "boundary_resolution": 0.1,
+        }
 
         # NEW: offcuts model
         self.offcuts = []
@@ -203,18 +216,22 @@ class NestingTaskPanel:
         sheet_box = QtGui.QGroupBox("Sheet Settings")
         sheet_lay = QtGui.QVBoxLayout(sheet_box)
 
-        self.sheet_margin = self.create_input_in_layout(
-            sheet_lay,
-            "Sheet Margin (mm):",
-            "5.00",
-            "Distance from the sheet edge."
+        self.sheet_margin, self.sheet_margin_label = (
+            self.create_input_in_layout(
+                sheet_lay,
+                "Sheet Margin (mm):",
+                "5.00",
+                "Distance from the sheet edge."
+            )
         )
 
-        self.spacing = self.create_input_in_layout(
-            sheet_lay,
-            "Part Spacing (mm):",
-            "6.00",
-            "Minimum distance between parts."
+        self.spacing, self.spacing_label = (
+            self.create_input_in_layout(
+                sheet_lay,
+                "Part Spacing (mm):",
+                "6.00",
+                "Minimum distance between parts."
+            )
         )
 
         # NEW: Offcuts (DXF) (LEFT, row 1)
@@ -279,19 +296,35 @@ class NestingTaskPanel:
         # General Parameters (LEFT, row 2)  (shifted down by 1)
         general_box = QtGui.QGroupBox("General Parameters")
         general_lay = QtGui.QVBoxLayout(general_box)
-        self.res = self.create_input_in_layout(general_lay, "Boundary Resolution:", "0.1", "Curve resolution.")
+        self.res, self.res_label = (
+            self.create_input_in_layout(
+                general_lay,
+                "Boundary Resolution (mm):",
+                "0.1",
+                "Curve resolution."
+            )
+        )
 
-        # Placement Strategy (RIGHT, row 0)
-        strategy_box = QtGui.QGroupBox("Placement Strategy")
-        strategy_lay = QtGui.QVBoxLayout(strategy_box)
-        self.select_strategy = QtGui.QComboBox()
-        self.select_strategy.addItems([
-            "Largest Area First",
-            "Smallest Area First",
-            "Longest Edge First"
+        # Display Units (RIGHT, row 0)
+        units_box = QtGui.QGroupBox("Units")
+        units_lay = QtGui.QVBoxLayout(units_box)
+
+        self.units_combo = QtGui.QComboBox()
+        self.units_combo.addItems([
+            "mm",
+            "inch",
         ])
-        self.select_strategy.setCurrentIndex(0)
-        strategy_lay.addWidget(self.select_strategy)
+        self.units_combo.setCurrentIndex(0)
+        self.units_combo.setToolTip(
+            "Display and input units for dimensions. "
+            "Internal geometry remains in millimetres."
+        )
+
+        units_lay.addWidget(self.units_combo)
+
+        self.units_combo.currentIndexChanged.connect(
+            self._on_units_changed
+        )
 
         # Placement Algorithm (RIGHT, row 1)
         algo_box = QtGui.QGroupBox("Placement Algorithm")
@@ -346,7 +379,7 @@ class NestingTaskPanel:
         cfg_grid.addWidget(general_box, 2, 0)
         cfg_grid.addWidget(gpu_box,     3, 0)
 
-        cfg_grid.addWidget(strategy_box, 0, 1)
+        cfg_grid.addWidget(units_box, 0, 1)
         cfg_grid.addWidget(algo_box,     1, 1)
         cfg_grid.addWidget(geom_box,     2, 1)
         cfg_grid.addWidget(opt_box,      3, 1)
@@ -505,14 +538,19 @@ class NestingTaskPanel:
             except Exception:
                 pass
     
-    def create_input_in_layout(self, parent_layout, label, default, tooltip):
+    def create_input_in_layout(self,parent_layout,label,default,tooltip):
         row = QtGui.QHBoxLayout()
+
+        label_widget = QtGui.QLabel(label)
         edit = QtGui.QLineEdit(default)
         edit.setToolTip(tooltip)
-        row.addWidget(QtGui.QLabel(label))
+
+        row.addWidget(label_widget)
         row.addWidget(edit)
+
         parent_layout.addLayout(row)
-        return edit
+
+        return edit, label_widget
     
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
@@ -2355,7 +2393,249 @@ class NestingTaskPanel:
         except Exception:
             return None
 
+    def _parse_decimal_input(self, text):
+        """
+        Parse decimal input using dot or comma.
+
+        Fractions such as 1/4 are deliberately rejected.
+        """
+        try:
+            value = str(text or "").strip()
+
+            if not value:
+                return None
+
+            if "/" in value:
+                return None
+
+            value = value.replace(",", ".")
+
+            return float(value)
+
+        except Exception:
+            return None
+
+    def _format_dimension(self, value):
+        """
+        Format a dimension in the currently selected display units.
+
+        Internal value is always millimetres.
+        """
+        try:
+            value_mm = float(value)
+
+            if self.display_units == "inch":
+                value_display = value_mm / MM_PER_INCH
+            else:
+                value_display = value_mm
+
+            # Keep enough precision for values such as 12.9
+            # and smaller custom values.
+            text = "%.6f" % value_display
+
+            return (
+                text.rstrip("0").rstrip(".")
+                or "0"
+            )
+
+        except Exception:
+            return "0"
+
+    def _display_to_mm(self, value):
+        """
+        Convert a value from the active display unit to mm.
+        """
+        if self.display_units == "inch":
+            return float(value) * MM_PER_INCH
+
+        return float(value)
+
+    def _mm_to_display(self, value_mm):
+        """
+        Convert a millimetre value to the active display unit.
+        """
+        if self.display_units == "inch":
+            return float(value_mm) / MM_PER_INCH
+
+        return float(value_mm)
+
+    def _dimension_field_key(self, line_edit):
+        if line_edit is self.sheet_margin:
+            return "sheet_margin"
+
+        if line_edit is self.spacing:
+            return "spacing"
+
+        if line_edit is self.res:
+            return "boundary_resolution"
+
+        return None
+    
+    def _dimension_fields(self):
+        """
+        Return all dimension QLineEdit fields in the main panel.
+        """
+        return [
+            self.sheet_margin,
+            self.spacing,
+            self.res,
+        ]
+
+    def _read_dimension_field_mm(self, line_edit):
+        """
+        Read one dimension field and return mm.
+        """
+        value = self._parse_decimal_input(
+            line_edit.text()
+        )
+
+        if value is None or value < 0.0:
+            return None
+
+        return self._display_to_mm(value)
+
+    def _write_dimension_field_mm(
+        self,
+        line_edit,
+        value_mm
+    ):
+        """
+        Store the canonical value in mm and display it
+        using the current units.
+        """
+        key = self._dimension_field_key(line_edit)
+
+        if key is not None:
+            self._dimension_values_mm[key] = float(
+                value_mm
+            )
+
+        line_edit.blockSignals(True)
+
+        try:
+            line_edit.setText(
+                self._format_dimension(value_mm)
+            )
+        finally:
+            line_edit.blockSignals(False)
+
+    def _update_dimension_labels(self):
+        suffix = (
+            "inch"
+            if self.display_units == "inch"
+            else "mm"
+        )
+
+        self.sheet_margin_label.setText(
+            "Sheet Margin (%s):" % suffix
+        )
+
+        self.spacing_label.setText(
+            "Part Spacing (%s):" % suffix
+        )
+
+        self.res_label.setText(
+            "Boundary Resolution (%s):" % suffix
+        )
+    
+    def _on_units_changed(self, index):
+        """
+        Change display units using canonical mm values.
+
+        Values are never converted from the current display text.
+        This prevents mm/inch conversion drift.
+        """
+        if self._units_change_guard:
+            return
+
+        try:
+            new_units = (
+                "inch"
+                if int(index) == 1
+                else "mm"
+            )
+
+            if new_units == self.display_units:
+                return
+
+            self._units_change_guard = True
+
+            try:
+                self.display_units = new_units
+
+                for field in self._dimension_fields():
+                    key = self._dimension_field_key(
+                        field
+                    )
+
+                    if key is None:
+                        continue
+
+                    value_mm = self._dimension_values_mm.get(
+                        key
+                    )
+
+                    if value_mm is None:
+                        continue
+
+                    self._write_dimension_field_mm(
+                        field,
+                        value_mm
+                    )
+
+                self._update_dimension_labels()
+
+                # Save only the unit selection.
+                self._save_settings_to_prefs()
+
+                popup = getattr(
+                    self,
+                    "_active_offcut_dialog",
+                    None
+                )
+
+                if popup is not None:
+                    try:
+                        popup.set_display_units(
+                            self.display_units
+                        )
+                    except Exception:
+                        pass
+
+            finally:
+                self._units_change_guard = False
+
+        except Exception:
+            self._units_change_guard = False
+
+            App.Console.PrintError(
+                "_on_units_changed failed:\n"
+                + traceback.format_exc()
+            )
+    
+    def get_dimension_value_mm(
+        self,
+        line_edit,
+        default_mm=0.0
+    ):
+        """
+        Read one visible dimension and return its value in mm.
+        """
+        try:
+            value = self._parse_decimal_input(
+                line_edit.text()
+            )
+
+            if value is None or value < 0.0:
+                return float(default_mm)
+
+            return self._display_to_mm(value)
+
+        except Exception:
+            return float(default_mm)
+    
     def _load_settings_from_prefs(self):
+        self.display_units = "mm"
         p = self._prefs()
         if not p:
             return
@@ -2365,7 +2645,7 @@ class NestingTaskPanel:
                 self.sheet_margin,
                 self.spacing,
                 self.res,
-                self.select_strategy,
+                self.units_combo,
                 self.nesting_algorithm,
                 self.geometry_engine,
                 self.optimization_combo,
@@ -2376,24 +2656,87 @@ class NestingTaskPanel:
                     w.blockSignals(True)
                 except Exception:
                     pass
+            
+            # Load canonical dimension values from preferences.
+            # Preferences always store values in millimetres.
+            try:
+                sheet_margin_mm = float(
+                    str(
+                        p.GetString(
+                            "SheetMargin",
+                            "5.0"
+                        )
+                    ).replace(",", ".")
+                )
+            except Exception:
+                sheet_margin_mm = 5.0
 
-            # QLineEdits
+            try:
+                spacing_mm = float(
+                    str(
+                        p.GetString(
+                            "PartSpacing",
+                            "6.0"
+                        )
+                    ).replace(",", ".")
+                )
+            except Exception:
+                spacing_mm = 6.0
+
+            try:
+                boundary_resolution_mm = float(
+                    str(
+                        p.GetString(
+                            "BoundaryResolution",
+                            "0.1"
+                        )
+                    ).replace(",", ".")
+                )
+            except Exception:
+                boundary_resolution_mm = 0.1
+
+            self._dimension_values_mm = {
+                "sheet_margin": sheet_margin_mm,
+                "spacing": spacing_mm,
+                "boundary_resolution": (
+                    boundary_resolution_mm
+                ),
+            }
+
+            # Load saved display units.
+            saved_units = str(
+                p.GetString(
+                    "DisplayUnits",
+                    "mm"
+                )
+            ).strip().lower()
+
+            if saved_units == "inch":
+                self.display_units = "inch"
+                self.units_combo.setCurrentIndex(1)
+            else:
+                self.display_units = "mm"
+                self.units_combo.setCurrentIndex(0)
+
+            # Display the stored mm values in the selected units.
             self.sheet_margin.setText(
-                str(p.GetString("SheetMargin", self.sheet_margin.text()))
+                self._format_dimension(
+                    sheet_margin_mm
+                )
             )
 
             self.spacing.setText(
-                str(p.GetString("PartSpacing", self.spacing.text()))
+                self._format_dimension(
+                    spacing_mm
+                )
             )
 
             self.res.setText(
-                str(p.GetString("BoundaryResolution", self.res.text()))
+                self._format_dimension(
+                    boundary_resolution_mm
+                )
             )
-
-            try:
-                self.select_strategy.setCurrentIndex(int(p.GetInt("StrategyIndex", self.select_strategy.currentIndex())))
-            except Exception:
-                pass
+            
             try:
                 self.nesting_algorithm.setCurrentIndex(int(p.GetInt("AlgorithmIndex", self.nesting_algorithm.currentIndex())))
             except Exception:
@@ -2424,60 +2767,148 @@ class NestingTaskPanel:
                     w.blockSignals(False)
                 except Exception:
                     pass
-
+            self._update_dimension_labels()
+    
     def _save_settings_to_prefs(self):
         p = self._prefs()
+
         if not p:
             return
-        try:
-            p.SetString("SheetMargin", self.sheet_margin.text().strip())
-            p.SetString("PartSpacing", self.spacing.text().strip())
-            p.SetString("BoundaryResolution", self.res.text().strip())
 
-            p.SetInt("StrategyIndex", int(self.select_strategy.currentIndex()))
-            p.SetInt("AlgorithmIndex", int(self.nesting_algorithm.currentIndex()))
-            p.SetInt("GeometryEngineIndex", int(self.geometry_engine.currentIndex()))
-            p.SetInt("OptimizationIndex", int(self.optimization_combo.currentIndex()))
+        try:
+            p.SetString(
+                "SheetMargin",
+                "%.6f" % self._dimension_values_mm[
+                    "sheet_margin"
+                ]
+            )
+
+            p.SetString(
+                "PartSpacing",
+                "%.6f" % self._dimension_values_mm[
+                    "spacing"
+                ]
+            )
+
+            p.SetString(
+                "BoundaryResolution",
+                "%.6f" % self._dimension_values_mm[
+                    "boundary_resolution"
+                ]
+            )
+
+            p.SetString(
+                "DisplayUnits",
+                self.display_units
+            )
+
+            p.SetInt(
+                "AlgorithmIndex",
+                int(
+                    self.nesting_algorithm.currentIndex()
+                )
+            )
+
+            p.SetInt(
+                "GeometryEngineIndex",
+                int(
+                    self.geometry_engine.currentIndex()
+                )
+            )
+
+            p.SetInt(
+                "OptimizationIndex",
+                int(
+                    self.optimization_combo.currentIndex()
+                )
+            )
 
             try:
-                p.SetString("GpuName", self.gpu_combo.currentText().strip())
+                p.SetString(
+                    "GpuName",
+                    self.gpu_combo.currentText().strip()
+                )
             except Exception:
-                p.SetString("GpuName", "None")
+                p.SetString(
+                    "GpuName",
+                    "None"
+                )
+
         except Exception:
-            pass
+            App.Console.PrintError(
+                "_save_settings_to_prefs failed:\n"
+                + traceback.format_exc()
+            )
+
+    def _update_dimension_value_from_field(
+        self,
+        line_edit
+    ):
+        """
+        Read one field in the current display units
+        and save its canonical value in mm.
+        """
+        try:
+            key = self._dimension_field_key(
+                line_edit
+            )
+
+            if key is None:
+                return
+
+            value = self._parse_decimal_input(
+                line_edit.text()
+            )
+
+            if value is None or value < 0.0:
+                return
+
+            value_mm = self._display_to_mm(value)
+
+            self._dimension_values_mm[key] = (
+                float(value_mm)
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "_update_dimension_value_from_field failed:\n"
+                + traceback.format_exc()
+            )
+
+    def get_boundary_resolution_mm(self):
+        return float(
+            self._dimension_values_mm.get(
+                "boundary_resolution",
+                0.1
+            )
+        )
 
     def _normalize_decimal_field(self, line_edit):
         """
-        Normalize a single decimal input field.
-
-        The field accepts both:
-            12.5
-            12,5
-
-        Internally the value is stored with a dot because Python float()
-        expects a dot as decimal separator.
-
-        Only the supplied field is changed.
+        Normalize one field and update its canonical mm value.
         """
         try:
             if line_edit is None:
                 return
 
-            text = str(line_edit.text()).strip()
+            text = str(
+                line_edit.text()
+            ).strip()
 
             if not text:
                 return
 
-            # Only decimal separator is normalized.
-            # Do not touch other fields.
             normalized = text.replace(",", ".")
 
             if normalized != text:
                 cursor_pos = line_edit.cursorPosition()
 
                 line_edit.blockSignals(True)
+
                 try:
-                    line_edit.setText(normalized)
+                    line_edit.setText(
+                        normalized
+                    )
                     line_edit.setCursorPosition(
                         min(
                             cursor_pos,
@@ -2486,6 +2917,10 @@ class NestingTaskPanel:
                     )
                 finally:
                     line_edit.blockSignals(False)
+
+            self._update_dimension_value_from_field(
+                line_edit
+            )
 
         except Exception:
             App.Console.PrintError(
@@ -2521,10 +2956,6 @@ class NestingTaskPanel:
                     pass
 
             # combos
-            try:
-                self.select_strategy.currentIndexChanged.connect(self._save_settings_to_prefs)
-            except Exception:
-                pass
             try:
                 self.nesting_algorithm.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:

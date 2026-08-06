@@ -20,7 +20,7 @@ from IPNestingOffcuts import (extract_offcut_from_dxf,add_or_increment_material,
 
 import FreeCAD as App
 from PySide import QtGui, QtCore
-
+MM_PER_INCH = 25.4
 
 def _sync_compatibility_holes(offcut):
     """
@@ -607,6 +607,45 @@ def _format_clearance_value(value):
     except Exception:
         return "0"
 
+def _parse_display_dimension(text, units):
+    try:
+        value = str(text or "").strip()
+
+        if not value or "/" in value:
+            return None
+
+        value = float(
+            value.replace(",", ".")
+        )
+
+        if value < 0.0:
+            return None
+
+        if str(units).lower() == "inch":
+            return value * MM_PER_INCH
+
+        return value
+
+    except Exception:
+        return None
+
+
+def _format_display_dimension(value_mm, units):
+    try:
+        value_mm = float(value_mm)
+
+        if str(units).lower() == "inch":
+            value = value_mm / MM_PER_INCH
+        else:
+            value = value_mm
+
+        return (
+            "%.6f" % value
+        ).rstrip("0").rstrip(".") or "0"
+
+    except Exception:
+        return "0"
+
 class OffcutShowDialog(QtGui.QDialog):
     def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
@@ -621,9 +660,16 @@ class OffcutShowDialog(QtGui.QDialog):
 
         self._offcuts = offcuts  # list of dicts, mutated in place
         self._panel = panel
+        
+        self._display_units = getattr(
+            panel,
+            "display_units",
+            "mm"
+        ) if panel is not None else "mm"
 
         self._clearance_combos = []
         self._clearance_edits = []
+        self._preview_widgets = []
         
         if self._panel is not None:
             self._clearance_mode = str(
@@ -770,10 +816,6 @@ class OffcutShowDialog(QtGui.QDialog):
             )
             clearance_lay.addStretch(1)
 
-            card_lay.addLayout(
-                clearance_lay
-            )
-
             header_lay.addStretch(1)
 
             header_lay.addWidget(
@@ -798,6 +840,9 @@ class OffcutShowDialog(QtGui.QDialog):
 
             header_lay.addWidget(combo)
             card_lay.addLayout(header_lay)
+            card_lay.addLayout(
+                clearance_lay
+            )            
 
             # DXF path below the header, still above the model
             path = str(off.get("path", "") or "")
@@ -880,33 +925,6 @@ class OffcutShowDialog(QtGui.QDialog):
             # -------------------------
             # Large preview
             # -------------------------
-            def _on_hole_clicked(
-                hole_index,
-                enabled,
-                _off=off
-            ):
-                try:
-                    selected = _off.setdefault(
-                        "selected_holes",
-                        [
-                            True
-                            for _ in (
-                                _off.get("holes")
-                                or []
-                            )
-                        ]
-                    )
-
-                    while len(selected) <= hole_index:
-                        selected.append(True)
-
-                    selected[hole_index] = bool(enabled)
-
-                except Exception:
-                    App.Console.PrintError(
-                        "Failed to update hole state:\n"
-                        + traceback.format_exc()
-                    )
 
             def _on_contour_clicked(
                 contour_index,
@@ -950,6 +968,9 @@ class OffcutShowDialog(QtGui.QDialog):
                 parent=card,
                 size_px=700,
             )
+            self._preview_widgets.append(
+                preview
+            )            
 
             # Store preview so checkbox callbacks can refresh it.
             off["_preview_widget"] = preview
@@ -995,7 +1016,30 @@ class OffcutShowDialog(QtGui.QDialog):
             0,
             self._resize_cards_to_viewport
         )
-        
+    
+    def set_display_units(self, units):
+        """
+        Update all visible Offcut card dimension fields.
+        """
+        try:
+            units = str(units or "mm").lower()
+
+            if units not in ("mm", "inch"):
+                units = "mm"
+
+            self._display_units = units
+
+            # Rebuild or refresh dimension labels/widgets here.
+            # Clearance widgets should be refreshed by the
+            # shared-clearance update method.
+            self._apply_shared_clearance_to_widgets()
+
+        except Exception:
+            App.Console.PrintError(
+                "OffcutShowDialog.set_display_units failed:\n"
+                + traceback.format_exc()
+            )
+    
     def _resize_cards_to_viewport(self):
         """
         Make every card fill the available scroll viewport height
@@ -1082,8 +1126,9 @@ class OffcutShowDialog(QtGui.QDialog):
 
                 try:
                     edit.setText(
-                        _format_clearance_value(
-                            self._custom_clearance
+                        _format_display_dimension(
+                            self._custom_clearance,
+                            self._display_units
                         )
                     )
                     edit.setEnabled(is_custom)
@@ -1128,10 +1173,13 @@ class OffcutShowDialog(QtGui.QDialog):
             if not text:
                 value = 0.0
             else:
-                value = _parse_clearance_value(
+                value = _parse_display_dimension(
                     text,
-                    default=self._custom_clearance
+                    self._display_units
                 )
+
+                if value is None:
+                    value = self._custom_clearance
 
             self._custom_clearance = value
             self._clearance_mode = "custom"
@@ -1218,6 +1266,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    
     def _process_dxf_offcut_result(self, data):
         """
         Import the selected DXF and add it as one grouped material row.
@@ -1246,8 +1295,8 @@ class OffcutMaterialsController(object):
                 return
 
             try:
-                boundary_resolution = float(
-                    self.panel.res.text().strip()
+                boundary_resolution = (
+                    self.panel.get_boundary_resolution_mm()
                 )
             except Exception:
                 boundary_resolution = 0.1
@@ -1837,7 +1886,17 @@ class OffcutMaterialsController(object):
                 panel=self.panel
             )
 
-            dlg.exec_()
+            self.panel._active_offcut_dialog = dlg
+
+            try:
+                dlg.exec_()
+            finally:
+                if getattr(
+                    self.panel,
+                    "_active_offcut_dialog",
+                    None
+                ) is dlg:
+                    self.panel._active_offcut_dialog = None
 
             # Grain values are updated in-place by OffcutShowDialog.
             self._refresh_offcut_grain_column()
