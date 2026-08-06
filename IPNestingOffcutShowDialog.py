@@ -581,8 +581,34 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 pass
 
 
+def _parse_clearance_value(text, default=0.0):
+    """
+    Parse a decimal value using either comma or dot.
+    """
+    try:
+        value = str(text or "").strip()
+        value = value.replace(",", ".")
+        return max(0.0, float(value))
+    except Exception:
+        return float(default)
+
+
+def _format_clearance_value(value):
+    """
+    Format clearance value for display.
+    """
+    try:
+        value = max(0.0, float(value))
+
+        text = "%.6f" % value
+        text = text.rstrip("0").rstrip(".")
+
+        return text or "0"
+    except Exception:
+        return "0"
+
 class OffcutShowDialog(QtGui.QDialog):
-    def __init__(self, offcuts, parent=None):
+    def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
         self.setWindowTitle("Offcuts")
         self.setModal(True)
@@ -594,6 +620,41 @@ class OffcutShowDialog(QtGui.QDialog):
         self.setMinimumSize(900, 700)
 
         self._offcuts = offcuts  # list of dicts, mutated in place
+        self._panel = panel
+
+        self._clearance_combos = []
+        self._clearance_edits = []
+        
+        if self._panel is not None:
+            self._clearance_mode = str(
+                getattr(
+                    self._panel,
+                    "offcut_clearance_mode",
+                    "same"
+                )
+                or "same"
+            ).strip().lower()
+
+            self._custom_clearance = max(
+                0.0,
+                float(
+                    getattr(
+                        self._panel,
+                        "offcut_custom_clearance",
+                        0.0
+                    )
+                    or 0.0
+                )
+            )
+        else:
+            self._clearance_mode = "same"
+            self._custom_clearance = 0.0
+
+        if self._clearance_mode not in (
+            "same",
+            "custom"
+        ):
+            self._clearance_mode = "same"
         
         self._cards = []
         self._scroll_area = None
@@ -658,6 +719,60 @@ class OffcutShowDialog(QtGui.QDialog):
                 % (label, count)
             )
             header_lay.addWidget(title)
+            
+            clearance_lay = QtGui.QHBoxLayout()
+            clearance_lay.setSpacing(8)
+
+            clearance_lay.addWidget(
+                QtGui.QLabel(
+                    "Hole-to-part clearance:"
+                )
+            )
+
+            clearance_combo = QtGui.QComboBox()
+            clearance_combo.addItems([
+                "same as part spacing",
+                "custom",
+            ])
+            clearance_combo.setMinimumWidth(180)
+
+            clearance_edit = QtGui.QLineEdit()
+            clearance_edit.setMinimumWidth(90)
+            clearance_edit.setMaximumWidth(120)
+            clearance_edit.setToolTip(
+                "Custom distance from hole edge to part edge."
+            )
+
+            self._clearance_combos.append(
+                clearance_combo
+            )
+            self._clearance_edits.append(
+                clearance_edit
+            )
+
+            clearance_combo.currentIndexChanged.connect(
+                self._on_shared_clearance_mode_changed
+            )
+
+            clearance_edit.editingFinished.connect(
+                lambda _checked=False,
+                _edit=clearance_edit:
+                    self._on_shared_clearance_value_changed(
+                        _edit
+                    )
+            )
+
+            clearance_lay.addWidget(
+                clearance_combo
+            )
+            clearance_lay.addWidget(
+                clearance_edit
+            )
+            clearance_lay.addStretch(1)
+
+            card_lay.addLayout(
+                clearance_lay
+            )
 
             header_lay.addStretch(1)
 
@@ -875,6 +990,7 @@ class OffcutShowDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         buttons.accepted.connect(self.accept)
         root.addWidget(buttons)
+        self._apply_shared_clearance_to_widgets()
         QtCore.QTimer.singleShot(
             0,
             self._resize_cards_to_viewport
@@ -918,6 +1034,117 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
             
+    def _store_shared_clearance_state(self):
+        """
+        Store the shared clearance state on the main panel.
+
+        This is session/workbench state, not per-offcut state.
+        """
+        try:
+            if self._panel is None:
+                return
+
+            self._panel.offcut_clearance_mode = (
+                self._clearance_mode
+            )
+
+            self._panel.offcut_custom_clearance = (
+                self._custom_clearance
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "_store_shared_clearance_state failed:\n"
+                + traceback.format_exc()
+            )
+
+    def _apply_shared_clearance_to_widgets(self):
+        """
+        Update all cards so every card shows the same shared setting.
+        """
+        try:
+            is_custom = (
+                self._clearance_mode == "custom"
+            )
+
+            for combo in self._clearance_combos:
+                combo.blockSignals(True)
+
+                try:
+                    combo.setCurrentIndex(
+                        1 if is_custom else 0
+                    )
+                finally:
+                    combo.blockSignals(False)
+
+            for edit in self._clearance_edits:
+                edit.blockSignals(True)
+
+                try:
+                    edit.setText(
+                        _format_clearance_value(
+                            self._custom_clearance
+                        )
+                    )
+                    edit.setEnabled(is_custom)
+                finally:
+                    edit.blockSignals(False)
+
+        except Exception:
+            App.Console.PrintError(
+                "_apply_shared_clearance_to_widgets failed:\n"
+                + traceback.format_exc()
+            )
+
+    def _on_shared_clearance_mode_changed(self, index):
+        """
+        Change the shared mode for all cards.
+        """
+        try:
+            if int(index) == 1:
+                self._clearance_mode = "custom"
+            else:
+                self._clearance_mode = "same"
+
+            self._store_shared_clearance_state()
+            self._apply_shared_clearance_to_widgets()
+
+        except Exception:
+            App.Console.PrintError(
+                "_on_shared_clearance_mode_changed failed:\n"
+                + traceback.format_exc()
+            )
+
+    def _on_shared_clearance_value_changed(self, edit):
+        """
+        Update the shared custom clearance value.
+
+        Only the edited field is normalized first; then all cards
+        receive the same value.
+        """
+        try:
+            text = str(edit.text()).strip()
+
+            if not text:
+                value = 0.0
+            else:
+                value = _parse_clearance_value(
+                    text,
+                    default=self._custom_clearance
+                )
+
+            self._custom_clearance = value
+            self._clearance_mode = "custom"
+
+            self._store_shared_clearance_state()
+            self._apply_shared_clearance_to_widgets()
+
+        except Exception:
+            App.Console.PrintError(
+                "_on_shared_clearance_value_changed failed:\n"
+                + traceback.format_exc()
+            )
+    
     def resizeEvent(self, event):
         try:
             super(OffcutShowDialog, self).resizeEvent(
@@ -1606,7 +1833,8 @@ class OffcutMaterialsController(object):
 
             dlg = OffcutShowDialog(
                 selected_offcuts,
-                parent=parent
+                parent=parent,
+                panel=self.panel
             )
 
             dlg.exec_()

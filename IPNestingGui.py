@@ -175,6 +175,12 @@ class NestingTaskPanel:
         # NEW: offcuts model
         self.offcuts = []
         self._offcut_next_id = 1
+        
+        # Shared Hole-to-part clearance for all sheets/offcuts.
+        # This is intentionally reset every time the workbench opens.
+        self.offcut_clearance_mode = "same"
+        self.offcut_custom_clearance = 0.0
+        
         self.offcut_controller = OffcutMaterialsController(self)
 
         self.form = QtGui.QWidget()
@@ -209,13 +215,6 @@ class NestingTaskPanel:
             "Part Spacing (mm):",
             "6.00",
             "Minimum distance between parts."
-        )
-
-        self.hole_to_part_clearance = self.create_input_in_layout(
-            sheet_lay,
-            "Hole-to-part clearance (mm):",
-            "6.00",
-            "Minimum distance from a hole edge to a part edge."
         )
 
         # NEW: Offcuts (DXF) (LEFT, row 1)
@@ -2365,7 +2364,6 @@ class NestingTaskPanel:
             widgets = [
                 self.sheet_margin,
                 self.spacing,
-                self.hole_to_part_clearance,
                 self.res,
                 self.select_strategy,
                 self.nesting_algorithm,
@@ -2386,15 +2384,6 @@ class NestingTaskPanel:
 
             self.spacing.setText(
                 str(p.GetString("PartSpacing", self.spacing.text()))
-            )
-
-            self.hole_to_part_clearance.setText(
-                str(
-                    p.GetString(
-                        "HoleToPartClearance",
-                        self.hole_to_part_clearance.text()
-                    )
-                )
             )
 
             self.res.setText(
@@ -2443,10 +2432,6 @@ class NestingTaskPanel:
         try:
             p.SetString("SheetMargin", self.sheet_margin.text().strip())
             p.SetString("PartSpacing", self.spacing.text().strip())
-            p.SetString(
-                "HoleToPartClearance",
-                self.hole_to_part_clearance.text().strip()
-            )
             p.SetString("BoundaryResolution", self.res.text().strip())
 
             p.SetInt("StrategyIndex", int(self.select_strategy.currentIndex()))
@@ -2516,7 +2501,6 @@ class NestingTaskPanel:
             for le in [
                 self.sheet_margin,
                 self.spacing,
-                self.hole_to_part_clearance,
                 self.res,
             ]:
                 try:
