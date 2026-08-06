@@ -2461,10 +2461,58 @@ class NestingTaskPanel:
         except Exception:
             pass
 
+    def _normalize_decimal_field(self, line_edit):
+        """
+        Normalize a single decimal input field.
+
+        The field accepts both:
+            12.5
+            12,5
+
+        Internally the value is stored with a dot because Python float()
+        expects a dot as decimal separator.
+
+        Only the supplied field is changed.
+        """
+        try:
+            if line_edit is None:
+                return
+
+            text = str(line_edit.text()).strip()
+
+            if not text:
+                return
+
+            # Only decimal separator is normalized.
+            # Do not touch other fields.
+            normalized = text.replace(",", ".")
+
+            if normalized != text:
+                cursor_pos = line_edit.cursorPosition()
+
+                line_edit.blockSignals(True)
+                try:
+                    line_edit.setText(normalized)
+                    line_edit.setCursorPosition(
+                        min(
+                            cursor_pos,
+                            len(normalized)
+                        )
+                    )
+                finally:
+                    line_edit.blockSignals(False)
+
+        except Exception:
+            App.Console.PrintError(
+                "_normalize_decimal_field failed:\n"
+                + traceback.format_exc()
+            )
+    
     def _connect_settings_persistence(self):
         # Save on change
         try:
-            # line edits
+            # Decimal fields: normalize only the field being edited,
+            # then save preferences.
             for le in [
                 self.sheet_margin,
                 self.spacing,
@@ -2472,7 +2520,19 @@ class NestingTaskPanel:
                 self.res,
             ]:
                 try:
-                    le.editingFinished.connect(self._save_settings_to_prefs)
+                    le.editingFinished.connect(
+                        partial(
+                            self._normalize_decimal_field,
+                            le
+                        )
+                    )
+                except Exception:
+                    pass
+
+                try:
+                    le.editingFinished.connect(
+                        self._save_settings_to_prefs
+                    )
                 except Exception:
                     pass
 
@@ -2672,61 +2732,6 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
-            
-    def _normalize_table_decimal_separator(self, text):
-        """
-        Convert decimal comma to decimal point.
-
-        Examples:
-            12,5      -> 12.5
-            12,50     -> 12.50
-            90,180    -> unchanged, because this is treated
-                        as a comma-separated rotation list
-
-        For multiple decimal rotation values use semicolon:
-            12,5;45,5 -> 12.5,45.5
-        """
-        try:
-            s = str(text or "").strip()
-
-            if not s:
-                return s
-
-            # Semicolon explicitly separates rotation values.
-            if ";" in s:
-                values = []
-
-                for value in s.split(";"):
-                    value = value.strip()
-
-                    if not value:
-                        continue
-
-                    value = value.replace(",", ".")
-                    values.append(value)
-
-                return ",".join(values)
-
-            # A single comma followed by one or two digits is
-            # interpreted as a decimal separator.
-            if s.count(",") == 1:
-                left, right = s.split(",", 1)
-
-                if (
-                    left.strip()
-                    and right.strip().isdigit()
-                    and len(right.strip()) <= 2
-                ):
-                    return (
-                        left.strip()
-                        + "."
-                        + right.strip()
-                    )
-
-            return s
-
-        except Exception:
-            return text
     
     def _clamp_rotation_degrees_text(self, txt):
         """
@@ -2738,16 +2743,20 @@ class NestingTaskPanel:
         try:
             if txt is None:
                 return "90"
-            s = self._normalize_table_decimal_separator(txt)
-            s = str(s).strip()
+
+            s = str(txt).strip()
+
             if not s:
                 return "90"
 
             out = []
+
             for token in s.replace("°", "").split(","):
                 token = token.strip()
+
                 if not token:
                     continue
+
                 try:
                     v = float(token)
                 except Exception:
@@ -2755,28 +2764,36 @@ class NestingTaskPanel:
 
                 if v < 0.1:
                     v = 0.1
+
                 if v > 359.0:
                     v = 359.0
 
-                # avoid ugly trailing .0 for integers
                 if abs(v - round(v)) < 1e-9:
-                    out.append(str(int(round(v))))
+                    out.append(
+                        str(int(round(v)))
+                    )
                 else:
-                    # keep one decimal (matches 0.1 requirement)
-                    out.append(("{:.3f}".format(v)).rstrip("0").rstrip("."))
+                    out.append(
+                        ("{:.3f}".format(v))
+                        .rstrip("0")
+                        .rstrip(".")
+                    )
+
             if not out:
                 return "90,180,270"
 
-            # remove duplicates while preserving order
             seen = set()
             out2 = []
-            for t in out:
-                if t in seen:
+
+            for value in out:
+                if value in seen:
                     continue
-                seen.add(t)
-                out2.append(t)
+
+                seen.add(value)
+                out2.append(value)
 
             return ",".join(out2)
+
         except Exception:
             return "90,180,270"
 
