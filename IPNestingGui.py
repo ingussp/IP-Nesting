@@ -386,7 +386,8 @@ class NestingTaskPanel:
 
         # Make columns expand nicely
         try:
-            cfg_grid.setColumnStretch(0, 1)
+            # Left column = 2/3, right column = 1/3.
+            cfg_grid.setColumnStretch(0, 2)
             cfg_grid.setColumnStretch(1, 1)
         except Exception:
             pass

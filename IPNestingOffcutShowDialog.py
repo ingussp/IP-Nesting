@@ -669,6 +669,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         self._clearance_combos = []
         self._clearance_edits = []
+        self._clearance_unit_labels = []
         self._preview_widgets = []
         
         if self._panel is not None:
@@ -788,6 +789,13 @@ class OffcutShowDialog(QtGui.QDialog):
             clearance_edit.setToolTip(
                 "Custom distance from hole edge to part edge."
             )
+            
+            clearance_unit_label = QtGui.QLabel(
+                "mm"
+            )
+            clearance_unit_label.setMinimumWidth(
+                35
+            )            
 
             self._clearance_combos.append(
                 clearance_combo
@@ -795,6 +803,9 @@ class OffcutShowDialog(QtGui.QDialog):
             self._clearance_edits.append(
                 clearance_edit
             )
+            self._clearance_unit_labels.append(
+                clearance_unit_label
+            )            
 
             clearance_combo.currentIndexChanged.connect(
                 self._on_shared_clearance_mode_changed
@@ -811,9 +822,15 @@ class OffcutShowDialog(QtGui.QDialog):
             clearance_lay.addWidget(
                 clearance_combo
             )
+            
             clearance_lay.addWidget(
                 clearance_edit
             )
+
+            clearance_lay.addWidget(
+                clearance_unit_label
+            )
+
             clearance_lay.addStretch(1)
 
             header_lay.addStretch(1)
@@ -1134,6 +1151,17 @@ class OffcutShowDialog(QtGui.QDialog):
                     edit.setEnabled(is_custom)
                 finally:
                     edit.blockSignals(False)
+                    
+            unit_text = (
+                "inch"
+                if self._display_units == "inch"
+                else "mm"
+            )
+
+            for unit_label in self._clearance_unit_labels:
+                unit_label.setText(
+                    unit_text
+                )
 
         except Exception:
             App.Console.PrintError(
