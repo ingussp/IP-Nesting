@@ -155,6 +155,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
         contours=None,
         on_contour_clicked=None,
         grain="None",
+        display_units="mm",
         parent=None,
         size_px=700
     ):
@@ -174,6 +175,15 @@ class _OffcutPreview(QtGui.QGraphicsView):
         )
 
         self._grain = "None"
+        self._display_units = str(
+            display_units or "mm"
+        ).strip().lower()
+
+        if self._display_units not in (
+            "mm",
+            "inch"
+        ):
+            self._display_units = "mm"
         self._zoom = 1.0
         self._has_user_zoom = False
 
@@ -235,6 +245,251 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 continue
 
         return result
+
+    def _add_outer_dimension_labels(self):
+        """
+        Add labels for the four longest outer polygon segments
+        whose length is greater than 10 mm.
+
+        Segment lengths are calculated in millimetres.
+        Labels are displayed in the selected display units.
+        """
+        try:
+            outer_points = self._valid_points(
+                self._outer
+            )
+
+            if len(outer_points) < 3:
+                return
+
+            # Calculate an approximate contour center.
+            center_x = sum(
+                point.x()
+                for point in outer_points
+            ) / float(len(outer_points))
+
+            center_y = sum(
+                point.y()
+                for point in outer_points
+            ) / float(len(outer_points))
+
+            xs = [
+                point.x()
+                for point in outer_points
+            ]
+
+            ys = [
+                point.y()
+                for point in outer_points
+            ]
+
+            contour_width = max(xs) - min(xs)
+            contour_height = max(ys) - min(ys)
+
+            if (
+                contour_width <= 1e-9
+                or contour_height <= 1e-9
+            ):
+                return
+
+            # This threshold is always in mm.
+            min_length_mm = 10.0
+            max_labels = 4
+
+            edges = []
+
+            point_count = len(outer_points)
+
+            for index in range(point_count):
+                p1 = outer_points[index]
+                p2 = outer_points[
+                    (index + 1) % point_count
+                ]
+
+                dx = p2.x() - p1.x()
+                dy = p2.y() - p1.y()
+
+                length_mm = math.sqrt(
+                    dx * dx + dy * dy
+                )
+
+                if length_mm <= min_length_mm:
+                    continue
+
+                edges.append({
+                    "index": index,
+                    "p1": p1,
+                    "p2": p2,
+                    "dx": dx,
+                    "dy": dy,
+                    "length_mm": length_mm,
+                })
+
+            # Longest segments first.
+            edges.sort(
+                key=lambda edge: edge["length_mm"],
+                reverse=True
+            )
+
+            edges = edges[:max_labels]
+
+            min_dimension = min(
+                contour_width,
+                contour_height
+            )
+
+            inside_offset = max(
+                4.0,
+                min_dimension * 0.025
+            )
+
+            for edge in edges:
+                p1 = edge["p1"]
+                p2 = edge["p2"]
+                dx = edge["dx"]
+                dy = edge["dy"]
+                length_mm = edge["length_mm"]
+
+                length = math.sqrt(
+                    dx * dx + dy * dy
+                )
+
+                if length <= 1e-9:
+                    continue
+
+                midpoint_x = (
+                    p1.x() + p2.x()
+                ) * 0.5
+
+                midpoint_y = (
+                    p1.y() + p2.y()
+                ) * 0.5
+
+                # Two possible normals.
+                nx = -dy / length
+                ny = dx / length
+
+                # Choose the normal pointing approximately
+                # toward the inside of the contour.
+                candidate_a_x = (
+                    midpoint_x
+                    + nx * inside_offset
+                )
+                candidate_a_y = (
+                    midpoint_y
+                    + ny * inside_offset
+                )
+
+                candidate_b_x = (
+                    midpoint_x
+                    - nx * inside_offset
+                )
+                candidate_b_y = (
+                    midpoint_y
+                    - ny * inside_offset
+                )
+
+                distance_a = math.sqrt(
+                    (
+                        center_x
+                        - candidate_a_x
+                    ) ** 2
+                    + (
+                        center_y
+                        - candidate_a_y
+                    ) ** 2
+                )
+
+                distance_b = math.sqrt(
+                    (
+                        center_x
+                        - candidate_b_x
+                    ) ** 2
+                    + (
+                        center_y
+                        - candidate_b_y
+                    ) ** 2
+                )
+
+                if distance_b < distance_a:
+                    nx = -nx
+                    ny = -ny
+
+                label_x = (
+                    midpoint_x
+                    + nx * inside_offset
+                )
+
+                label_y = (
+                    midpoint_y
+                    + ny * inside_offset
+                )
+
+                display_value = _format_display_dimension(
+                    length_mm,
+                    self._display_units
+                )
+
+                unit_text = (
+                    "inch"
+                    if self._display_units == "inch"
+                    else "mm"
+                )
+
+                text = "%s %s" % (
+                    display_value,
+                    unit_text
+                )
+
+                label = QtGui.QGraphicsSimpleTextItem(
+                    text
+                )
+
+                # Thin, normal font.
+                font = QtGui.QFont()
+                font.setPointSizeF(8.0)
+                font.setBold(False)
+                font.setWeight(
+                    QtGui.QFont.Normal
+                )
+
+                label.setFont(font)
+                label.setBrush(
+                    QtGui.QBrush(
+                        QtGui.QColor(70, 70, 70)
+                    )
+                )
+
+                # Keep the text parallel to the segment.
+                angle = math.degrees(
+                    math.atan2(dy, dx)
+                )
+
+                # Do not display text upside down.
+                if angle > 90.0 or angle < -90.0:
+                    angle += 180.0
+
+                label.setRotation(angle)
+
+                label_rect = label.boundingRect()
+
+                label.setPos(
+                    label_x
+                    - label_rect.width() * 0.5,
+                    label_y
+                    - label_rect.height() * 0.5
+                )
+
+                # Above geometry, below the grain arrow.
+                label.setZValue(15)
+
+                self._scene.addItem(label)
+
+        except Exception:
+            App.Console.PrintError(
+                "_add_outer_dimension_labels failed:\n"
+                + traceback.format_exc()
+            )
     
     def _add_grain_arrow_to_scene(self):
         """
@@ -371,6 +626,36 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 "_add_grain_arrow_to_scene failed:\n"
                 + traceback.format_exc()
             )
+
+    def set_display_units(self, units):
+        """
+        Change display units for dimension labels.
+
+        Geometry remains in millimetres. Only the label text
+        is reformatted.
+        """
+        try:
+            units = str(
+                units or "mm"
+            ).strip().lower()
+
+            if units not in (
+                "mm",
+                "inch"
+            ):
+                units = "mm"
+
+            self._display_units = units
+
+            self._rebuild_scene(
+                preserve_view=True
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                "_OffcutPreview.set_display_units failed:\n"
+                + traceback.format_exc()
+            )
     
     def set_grain(self, grain):
         value = str(
@@ -436,6 +721,9 @@ class _OffcutPreview(QtGui.QGraphicsView):
             # Outer contour is always above background
             # but below selectable contours.
             outer_item.setZValue(0)
+            
+            # Add labels for the four longest outer segments.
+            self._add_outer_dimension_labels()
 
         for contour in self._contours:
             if contour.get("is_outer"):
@@ -982,6 +1270,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 contours=contours,
                 on_contour_clicked=_on_contour_clicked,
                 grain=grain,
+                display_units=self._display_units,
                 parent=card,
                 size_px=700,
             )
@@ -1046,10 +1335,15 @@ class OffcutShowDialog(QtGui.QDialog):
 
             self._display_units = units
 
-            # Rebuild or refresh dimension labels/widgets here.
-            # Clearance widgets should be refreshed by the
-            # shared-clearance update method.
             self._apply_shared_clearance_to_widgets()
+
+            for preview in self._preview_widgets:
+                try:
+                    preview.set_display_units(
+                        units
+                    )
+                except Exception:
+                    pass
 
         except Exception:
             App.Console.PrintError(
