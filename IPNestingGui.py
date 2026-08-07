@@ -3037,21 +3037,6 @@ class NestingTaskPanel:
     
     def _save_deepnest_settings(self, prefs):
         text_fields = {
-            "DeepnestScale": (
-                self.deepnest_scale
-            ),
-            "DeepnestEndpointTolerance": (
-                self.deepnest_endpoint_tolerance
-            ),
-            "DeepnestDxfImportScale": (
-                self.deepnest_dxf_import_scale
-            ),
-            "DeepnestDxfExportScale": (
-                self.deepnest_dxf_export_scale
-            ),
-            "DeepnestExportSheetsSpaceValue": (
-                self.deepnest_export_sheets_space_value
-            ),
             "DeepnestTimeRatio": (
                 self.deepnest_time_ratio
             ),
@@ -3060,6 +3045,9 @@ class NestingTaskPanel:
             ),
             "DeepnestMutationRate": (
                 self.deepnest_mutation_rate
+            ),
+            "DeepnestExportSheetsSpaceValue": (
+                self.deepnest_export_sheets_space_value
             ),
         }
 
@@ -3073,23 +3061,11 @@ class NestingTaskPanel:
                 pass
 
         boolean_fields = {
-            "DeepnestSimplify": (
-                self.deepnest_simplify
-            ),
-            "DeepnestUseSvgPreProcessor": (
-                self.deepnest_svg_preprocessor
-            ),
             "DeepnestExportWithSheetBoundaries": (
                 self.deepnest_export_sheet_boundaries
             ),
             "DeepnestExportWithSheetsSpace": (
                 self.deepnest_export_sheets_space
-            ),
-            "DeepnestMergeLines": (
-                self.deepnest_merge_lines
-            ),
-            "DeepnestUseQuantityFromFileName": (
-                self.deepnest_quantity_from_filename
             ),
         }
 
@@ -3314,21 +3290,12 @@ class NestingTaskPanel:
                 pass
                 
             for widget in [
-                self.deepnest_curve_tolerance,
-                self.deepnest_simplify,
-                self.deepnest_svg_preprocessor,
-                self.deepnest_scale,
-                self.deepnest_endpoint_tolerance,
-                self.deepnest_dxf_import_scale,
-                self.deepnest_dxf_export_scale,
                 self.deepnest_export_sheet_boundaries,
                 self.deepnest_export_sheets_space,
                 self.deepnest_export_sheets_space_value,
-                self.deepnest_merge_lines,
                 self.deepnest_time_ratio,
                 self.deepnest_population_size,
                 self.deepnest_mutation_rate,
-                self.deepnest_quantity_from_filename,
             ]:
                 try:
                     if isinstance(
