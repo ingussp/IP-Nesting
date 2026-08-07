@@ -12,7 +12,6 @@ import time
 import re
 import tempfile
 import subprocess
-import sys
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
@@ -252,7 +251,7 @@ class NestingTaskPanel:
         self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
-        self.offcuts_table.setMinimumHeight(190)
+        self.offcuts_table.setMinimumHeight(200)
 
         # Column sizing
         try:
@@ -555,28 +554,29 @@ class NestingTaskPanel:
             1
         )
 
-        # Use GPU (LEFT, row 3)
-        gpu_box = QtGui.QGroupBox("Use GPU")
-        gpu_lay = QtGui.QVBoxLayout(gpu_box)
 
-        self.gpu_combo = QtGui.QComboBox()
-        self.gpu_combo.addItem("None")
-        self.gpu_combo.setToolTip(
-            "Selects the GPU used by supported nesting operations. "
-            "None disables GPU acceleration."
-        )
-        gpu_lay.addWidget(self.gpu_combo)
-
-        self.show_gpu_btn = QtGui.QPushButton("Show GPU")
-        self.show_gpu_btn.setToolTip("Detect and show available GPUs")
-        self.show_gpu_btn.clicked.connect(self._on_show_gpu_clicked)
-        gpu_lay.addWidget(self.show_gpu_btn)
 
         # Place boxes in 2-column grid
-        cfg_grid.addWidget(sheet_box,   0, 0)
-        cfg_grid.addWidget(offcut_box,  1, 0)
-        cfg_grid.addWidget(general_box, 2, 0)
-        cfg_grid.addWidget(gpu_box,     3, 0)
+        cfg_grid.addWidget(
+            sheet_box,
+            0,
+            0
+        )
+
+        # Offcut table spans rows 1 and 2.
+        cfg_grid.addWidget(
+            offcut_box,
+            1,
+            0,
+            2,
+            1
+        )
+
+        cfg_grid.addWidget(
+            general_box,
+            3,
+            0
+        )
 
         cfg_grid.addWidget(units_box, 0, 1)
         cfg_grid.addWidget(placement_box,2, 1)
@@ -839,224 +839,6 @@ class NestingTaskPanel:
             except Exception:
                 return 1
 
-    def _on_show_gpu_clicked(self):
-        """Populate GPU combo only when the button is pressed, with loading indicator."""
-        progress = None
-        try:
-            current = self.gpu_combo.currentText() if hasattr(self, "gpu_combo") else "None"
-        except Exception:
-            current = "None"
-
-        try:
-            progress = QtGui.QProgressDialog("Loading GPUs...", None, 0, 0, self.form)
-            progress.setWindowTitle("Please wait")
-            progress.setWindowModality(QtCore.Qt.ApplicationModal)
-            progress.setCancelButton(None)
-            progress.setMinimumDuration(0)
-            progress.setAutoClose(False)
-            progress.setAutoReset(False)
-            progress.show()
-
-            try:
-                QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            except Exception:
-                pass
-
-            try:
-                self.show_gpu_btn.setEnabled(False)
-                self.show_gpu_btn.setText("Loading...")
-            except Exception:
-                pass
-
-            # Force UI repaint before blocking detection starts
-            try:
-                QtGui.QApplication.processEvents()
-            except Exception:
-                pass
-
-            self._populate_gpu_combo()
-
-            # try to preserve previous selection if still available
-            try:
-                idx = self.gpu_combo.findText(current)
-                if idx >= 0:
-                    self.gpu_combo.setCurrentIndex(idx)
-            except Exception:
-                pass
-
-            try:
-                self._save_settings_to_prefs()
-            except Exception:
-                pass
-
-        except Exception:
-            App.Console.PrintError("Show GPU failed:\n" + traceback.format_exc())
-        finally:
-            try:
-                if progress is not None:
-                    progress.close()
-            except Exception:
-                pass
-            try:
-                QtGui.QApplication.restoreOverrideCursor()
-            except Exception:
-                pass
-            try:
-                self.show_gpu_btn.setEnabled(True)
-                self.show_gpu_btn.setText("Show GPU")
-            except Exception:
-                pass
-            try:
-                QtGui.QApplication.processEvents()
-            except Exception:
-                pass
-    
-    def _detect_available_gpus(self):
-        """
-        Best-effort GPU detection by OS command.
-        Returns list of GPU names. If detection fails, returns [].
-        """
-        gpus = []
-
-        def _clean_lines(lines):
-            out = []
-            seen = set()
-            for line in lines:
-                try:
-                    s = str(line).strip()
-                except Exception:
-                    continue
-                if not s:
-                    continue
-                low = s.lower()
-                if low in ("name", "caption", "device", "gpu", "controller"):
-                    continue
-                if s not in seen:
-                    seen.add(s)
-                    out.append(s)
-            return out
-
-        try:
-            if sys.platform.startswith("win"):
-                # Windows 11: prefer PowerShell/CIM, fallback to WMIC
-                commands = [
-                    [
-                        "powershell",
-                        "-NoProfile",
-                        "-Command",
-                        "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name"
-                    ],
-                    [
-                        "powershell",
-                        "-NoProfile",
-                        "-Command",
-                        "Get-WmiObject Win32_VideoController | Select-Object -ExpandProperty Name"
-                    ],
-                    [
-                        "wmic",
-                        "path",
-                        "win32_VideoController",
-                        "get",
-                        "name"
-                    ],
-                ]
-
-                for cmd in commands:
-                    try:
-                        p = subprocess.Popen(
-                            cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True
-                        )
-                        stdout, stderr = p.communicate(timeout=8)
-                        if p.returncode == 0 and stdout:
-                            found = _clean_lines(stdout.splitlines())
-                            if found:
-                                gpus = found
-                                break
-                    except Exception:
-                        continue
-
-            elif sys.platform.startswith("linux"):
-                # Linux
-                cmd = ["lspci"]
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-                stdout, stderr = p.communicate(timeout=5)
-                if p.returncode == 0 and stdout:
-                    gpu_lines = []
-                    for line in stdout.splitlines():
-                        low = line.lower()
-                        if ("vga compatible controller" in low or
-                            "3d controller" in low or
-                            "display controller" in low):
-                            # keep human-readable part if possible
-                            parts = line.split(":", 2)
-                            if len(parts) >= 3:
-                                gpu_lines.append(parts[2].strip())
-                            else:
-                                gpu_lines.append(line.strip())
-                    gpus = _clean_lines(gpu_lines)
-
-            elif sys.platform == "darwin":
-                # macOS
-                cmd = ["system_profiler", "SPDisplaysDataType"]
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-                stdout, stderr = p.communicate(timeout=8)
-                if p.returncode == 0 and stdout:
-                    gpu_lines = []
-                    for line in stdout.splitlines():
-                        s = line.strip()
-                        if s.startswith("Chipset Model:"):
-                            gpu_lines.append(s.split(":", 1)[1].strip())
-                    gpus = _clean_lines(gpu_lines)
-
-        except Exception:
-            pass
-
-        return gpus
-
-    def _populate_gpu_combo(self):
-        """
-        Fill GPU combo with:
-        - None
-        - auto-detected GPU names
-        """
-        try:
-            if not hasattr(self, "gpu_combo") or self.gpu_combo is None:
-                return
-
-            try:
-                prev = self.gpu_combo.currentText().strip()
-            except Exception:
-                prev = "None"
-
-            self.gpu_combo.blockSignals(True)
-            self.gpu_combo.clear()
-            self.gpu_combo.addItem("None")
-
-            gpus = self._detect_available_gpus()
-            for gpu in gpus:
-                try:
-                    s = str(gpu).strip()
-                    if s and self.gpu_combo.findText(s) < 0:
-                        self.gpu_combo.addItem(s)
-                except Exception:
-                    pass
-
-            idx = self.gpu_combo.findText(prev)
-            if idx >= 0:
-                self.gpu_combo.setCurrentIndex(idx)
-            else:
-                self.gpu_combo.setCurrentIndex(0)
-
-        except Exception:
-            App.Console.PrintError("Failed to populate GPU combo:\n" + traceback.format_exc())
-        finally:
-            try:
-                self.gpu_combo.blockSignals(False)
-            except Exception:
-                pass
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
     def _on_apply_blink_tick(self):
@@ -3021,7 +2803,6 @@ class NestingTaskPanel:
                 self.units_combo,
                 self.placement_strategy,
                 self.cpu_cores_combo,
-                self.gpu_combo,
                 self.deepnest_export_sheet_boundaries,
                 self.deepnest_export_sheets_space,
                 self.deepnest_export_sheets_space_value,
@@ -3179,17 +2960,7 @@ class NestingTaskPanel:
 
             except Exception:
                 pass
-            try:
-                saved_gpu = str(p.GetString("GpuName", "None")).strip()
-                if saved_gpu and saved_gpu != "None" and self.gpu_combo.findText(saved_gpu) < 0:
-                    self.gpu_combo.addItem(saved_gpu)
-                idx = self.gpu_combo.findText(saved_gpu if saved_gpu else "None")
-                if idx >= 0:
-                    self.gpu_combo.setCurrentIndex(idx)
-                else:
-                    self.gpu_combo.setCurrentIndex(0)
-            except Exception:
-                pass
+
 
         finally:
             for w in widgets:
@@ -3304,17 +3075,6 @@ class NestingTaskPanel:
                 p.SetInt(
                     "CpuCores",
                     1
-                )
-
-            try:
-                p.SetString(
-                    "GpuName",
-                    self.gpu_combo.currentText().strip()
-                )
-            except Exception:
-                p.SetString(
-                    "GpuName",
-                    "None"
                 )
                 
             self._save_deepnest_settings(p)
@@ -3454,10 +3214,6 @@ class NestingTaskPanel:
                 self.cpu_cores_combo.currentIndexChanged.connect(
                     self._save_settings_to_prefs
                 )
-            except Exception:
-                pass
-            try:
-                self.gpu_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:
                 pass
                 
