@@ -252,7 +252,7 @@ class NestingTaskPanel:
         self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
-        self.offcuts_table.setMinimumHeight(120)
+        self.offcuts_table.setMinimumHeight(190)
 
         # Column sizing
         try:
@@ -301,7 +301,7 @@ class NestingTaskPanel:
                 general_lay,
                 "Boundary Resolution (mm):",
                 "0.1",
-                "Curve resolution."
+                "Maximum deviation used when curved geometry is converted to line segments. Smaller values create more accurate but heavier geometry."
             )
         )
 
@@ -326,16 +326,103 @@ class NestingTaskPanel:
             self._on_units_changed
         )
 
-        # Placement Algorithm (RIGHT, row 1)
-        algo_box = QtGui.QGroupBox("Placement Algorithm")
-        algo_lay = QtGui.QVBoxLayout(algo_box)
-        self.nesting_algorithm = QtGui.QComboBox()
-        self.nesting_algorithm.addItems([
-            "Bottom Left",
-            "Extreme Points"
-        ])
-        self.nesting_algorithm.setCurrentIndex(0)
-        algo_lay.addWidget(self.nesting_algorithm)
+        # Deepnest Settings (RIGHT, row 1)
+        deepnest_box = QtGui.QGroupBox(
+            "Deepnest settings"
+        )
+        deepnest_lay = QtGui.QVBoxLayout(
+            deepnest_box
+        )
+
+        self.deepnest_time_ratio = (
+            self.create_input_in_layout(
+                deepnest_lay,
+                "Time ratio:",
+                "0.5",
+                (
+                    "Controls how much of the available nesting "
+                    "time is used for optimization. Higher values "
+                    "allow more optimization time and may improve "
+                    "the result, but can make nesting slower."
+                )
+            )[0]
+        )
+
+        self.deepnest_population_size = (
+            self.create_input_in_layout(
+                deepnest_lay,
+                "Population size:",
+                "10",
+                (
+                    "Number of candidate nesting solutions kept "
+                    "during genetic optimization. Higher values "
+                    "can improve the result, but require more "
+                    "calculation time."
+                )
+            )[0]
+        )
+
+        self.deepnest_mutation_rate = (
+            self.create_input_in_layout(
+                deepnest_lay,
+                "Mutation rate:",
+                "10",
+                (
+                    "Percentage controlling how often candidate "
+                    "solutions are randomly changed during "
+                    "optimization. Higher values increase variation "
+                    "but can make the result less stable."
+                )
+            )[0]
+        )
+
+        self.deepnest_export_sheet_boundaries = (
+            self._create_boolean_setting(
+                deepnest_lay,
+                "Export sheet boundaries:",
+                False,
+                (
+                    "If enabled, the outer boundaries of sheets "
+                    "are included in the exported nesting data. "
+                    "Enable this only when the nesting engine "
+                    "needs explicit sheet boundary geometry."
+                )
+            )
+        )
+
+        self.deepnest_export_sheets_space = (
+            self._create_boolean_setting(
+                deepnest_lay,
+                "Export sheet spacing:",
+                False,
+                (
+                    "If enabled, an additional spacing value is "
+                    "applied between exported sheets. This is "
+                    "useful when several sheets are exported "
+                    "together."
+                )
+            )
+        )
+
+        self.deepnest_export_sheets_space_value = (
+            self.create_input_in_layout(
+                deepnest_lay,
+                "Sheet spacing value:",
+                "0.13888",
+                (
+                    "Distance between exported sheets when "
+                    "'Export sheet spacing' is enabled. "
+                    "The value is interpreted in the internal "
+                    "geometry units, normally millimetres."
+                )
+            )[0]
+        )
+
+        cfg_grid.addWidget(
+            deepnest_box,
+            1,
+            1
+        )
 
         # Geometry Engine (RIGHT, row 2)
         geom_box = QtGui.QGroupBox("Geometry Engine")
@@ -347,6 +434,10 @@ class NestingTaskPanel:
             "Bounding Box"
         ])
         self.geometry_engine.setCurrentIndex(0)
+        self.geometry_engine.setToolTip(
+            "Selects the geometric collision method used during nesting. "
+            "NFP is the most accurate general-purpose option."
+        )
         geom_lay.addWidget(self.geometry_engine)
 
         # Optimization (RIGHT, row 3)
@@ -358,6 +449,10 @@ class NestingTaskPanel:
             "Genetic"
         ])
         self.optimization_combo.setCurrentIndex(0)
+        self.optimization_combo.setToolTip(
+            "Selects whether an additional optimization pass is used "
+            "after the initial nesting result."
+        )
         opt_lay.addWidget(self.optimization_combo)
 
         # Use GPU (LEFT, row 3)
@@ -366,6 +461,10 @@ class NestingTaskPanel:
 
         self.gpu_combo = QtGui.QComboBox()
         self.gpu_combo.addItem("None")
+        self.gpu_combo.setToolTip(
+            "Selects the GPU used by supported nesting operations. "
+            "None disables GPU acceleration."
+        )
         gpu_lay.addWidget(self.gpu_combo)
 
         self.show_gpu_btn = QtGui.QPushButton("Show GPU")
@@ -380,7 +479,6 @@ class NestingTaskPanel:
         cfg_grid.addWidget(gpu_box,     3, 0)
 
         cfg_grid.addWidget(units_box, 0, 1)
-        cfg_grid.addWidget(algo_box,     1, 1)
         cfg_grid.addWidget(geom_box,     2, 1)
         cfg_grid.addWidget(opt_box,      3, 1)
 
@@ -552,6 +650,44 @@ class NestingTaskPanel:
         parent_layout.addLayout(row)
 
         return edit, label_widget
+    
+    def _create_boolean_setting(
+        self,
+        parent_layout,
+        label,
+        default=False,
+        tooltip=""
+    ):
+        row = QtGui.QHBoxLayout()
+
+        label_widget = QtGui.QLabel(
+            label
+        )
+
+        combo = QtGui.QComboBox()
+        combo.addItems([
+            "False",
+            "True",
+        ])
+
+        combo.setCurrentIndex(
+            1 if bool(default) else 0
+        )
+
+        if tooltip:
+            label_widget.setToolTip(
+                tooltip
+            )
+            combo.setToolTip(
+                tooltip
+            )
+
+        row.addWidget(label_widget)
+        row.addWidget(combo)
+
+        parent_layout.addLayout(row)
+
+        return combo
     
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
@@ -2460,6 +2596,22 @@ class NestingTaskPanel:
 
         return float(value_mm)
 
+    def _normalize_dimension_mm(
+        self,
+        key,
+        value_mm
+    ):
+        """
+        Normalize canonical dimension values stored in mm.
+        Boundary resolution is kept to two decimal places.
+        """
+        value_mm = float(value_mm)
+
+        if key == "boundary_resolution":
+            return round(value_mm, 2)
+
+        return value_mm
+    
     def _dimension_field_key(self, line_edit):
         if line_edit is self.sheet_margin:
             return "sheet_margin"
@@ -2504,10 +2656,17 @@ class NestingTaskPanel:
         Store the canonical value in mm and display it
         using the current units.
         """
-        key = self._dimension_field_key(line_edit)
+        key = self._dimension_field_key(
+            line_edit
+        )
+
+        value_mm = self._normalize_dimension_mm(
+            key,
+            value_mm
+        )
 
         if key is not None:
-            self._dimension_values_mm[key] = float(
+            self._dimension_values_mm[key] = (
                 value_mm
             )
 
@@ -2641,6 +2800,72 @@ class NestingTaskPanel:
         except Exception:
             return float(default_mm)
     
+    def _load_deepnest_settings(self, prefs):
+        text_fields = {
+            "DeepnestTimeRatio": (
+                self.deepnest_time_ratio,
+                "0.5"
+            ),
+            "DeepnestPopulationSize": (
+                self.deepnest_population_size,
+                "10"
+            ),
+            "DeepnestMutationRate": (
+                self.deepnest_mutation_rate,
+                "10"
+            ),
+            "DeepnestExportSheetsSpaceValue": (
+                self.deepnest_export_sheets_space_value,
+                "0.13888"
+            ),
+        }
+
+        for key, data in text_fields.items():
+            widget, default = data
+
+            try:
+                widget.setText(
+                    str(
+                        prefs.GetString(
+                            key,
+                            default
+                        )
+                    )
+                )
+            except Exception:
+                widget.setText(
+                    default
+                )
+
+        boolean_fields = {
+            "DeepnestExportWithSheetBoundaries": (
+                self.deepnest_export_sheet_boundaries,
+                False
+            ),
+            "DeepnestExportWithSheetsSpace": (
+                self.deepnest_export_sheets_space,
+                False
+            ),
+        }
+
+        for key, data in boolean_fields.items():
+            widget, default = data
+
+            try:
+                value = prefs.GetBool(
+                    key,
+                    bool(default)
+                )
+
+                widget.setCurrentIndex(
+                    1 if value else 0
+                )
+
+            except Exception:
+                widget.setCurrentIndex(
+                    1 if default else 0
+                )
+    
     def _load_settings_from_prefs(self):
         self.display_units = "mm"
         p = self._prefs()
@@ -2653,10 +2878,15 @@ class NestingTaskPanel:
                 self.spacing,
                 self.res,
                 self.units_combo,
-                self.nesting_algorithm,
                 self.geometry_engine,
                 self.optimization_combo,
                 self.gpu_combo,
+                self.deepnest_export_sheet_boundaries,
+                self.deepnest_export_sheets_space,
+                self.deepnest_export_sheets_space_value,
+                self.deepnest_time_ratio,
+                self.deepnest_population_size,
+                self.deepnest_mutation_rate,
             ]
             for w in widgets:
                 try:
@@ -2703,12 +2933,43 @@ class NestingTaskPanel:
                 boundary_resolution_mm = 0.1
 
             self._dimension_values_mm = {
-                "sheet_margin": sheet_margin_mm,
-                "spacing": spacing_mm,
+                "sheet_margin": (
+                    self._normalize_dimension_mm(
+                        "sheet_margin",
+                        sheet_margin_mm
+                    )
+                ),
+                "spacing": (
+                    self._normalize_dimension_mm(
+                        "spacing",
+                        spacing_mm
+                    )
+                ),
                 "boundary_resolution": (
-                    boundary_resolution_mm
+                    self._normalize_dimension_mm(
+                        "boundary_resolution",
+                        boundary_resolution_mm
+                    )
                 ),
             }
+            
+            sheet_margin_mm = (
+                self._dimension_values_mm[
+                    "sheet_margin"
+                ]
+            )
+
+            spacing_mm = (
+                self._dimension_values_mm[
+                    "spacing"
+                ]
+            )
+
+            boundary_resolution_mm = (
+                self._dimension_values_mm[
+                    "boundary_resolution"
+                ]
+            )
 
             # Load saved display units.
             saved_units = str(
@@ -2744,10 +3005,8 @@ class NestingTaskPanel:
                 )
             )
             
-            try:
-                self.nesting_algorithm.setCurrentIndex(int(p.GetInt("AlgorithmIndex", self.nesting_algorithm.currentIndex())))
-            except Exception:
-                pass
+            self._load_deepnest_settings(p)
+            
             try:
                 self.geometry_engine.setCurrentIndex(int(p.GetInt("GeometryEngineIndex", self.geometry_engine.currentIndex())))
             except Exception:
@@ -2776,6 +3035,73 @@ class NestingTaskPanel:
                     pass
             self._update_dimension_labels()
     
+    def _save_deepnest_settings(self, prefs):
+        text_fields = {
+            "DeepnestScale": (
+                self.deepnest_scale
+            ),
+            "DeepnestEndpointTolerance": (
+                self.deepnest_endpoint_tolerance
+            ),
+            "DeepnestDxfImportScale": (
+                self.deepnest_dxf_import_scale
+            ),
+            "DeepnestDxfExportScale": (
+                self.deepnest_dxf_export_scale
+            ),
+            "DeepnestExportSheetsSpaceValue": (
+                self.deepnest_export_sheets_space_value
+            ),
+            "DeepnestTimeRatio": (
+                self.deepnest_time_ratio
+            ),
+            "DeepnestPopulationSize": (
+                self.deepnest_population_size
+            ),
+            "DeepnestMutationRate": (
+                self.deepnest_mutation_rate
+            ),
+        }
+
+        for key, widget in text_fields.items():
+            try:
+                prefs.SetString(
+                    key,
+                    widget.text().strip()
+                )
+            except Exception:
+                pass
+
+        boolean_fields = {
+            "DeepnestSimplify": (
+                self.deepnest_simplify
+            ),
+            "DeepnestUseSvgPreProcessor": (
+                self.deepnest_svg_preprocessor
+            ),
+            "DeepnestExportWithSheetBoundaries": (
+                self.deepnest_export_sheet_boundaries
+            ),
+            "DeepnestExportWithSheetsSpace": (
+                self.deepnest_export_sheets_space
+            ),
+            "DeepnestMergeLines": (
+                self.deepnest_merge_lines
+            ),
+            "DeepnestUseQuantityFromFileName": (
+                self.deepnest_quantity_from_filename
+            ),
+        }
+
+        for key, widget in boolean_fields.items():
+            try:
+                prefs.SetBool(
+                    key,
+                    widget.currentIndex() == 1
+                )
+            except Exception:
+                pass
+    
     def _save_settings_to_prefs(self):
         p = self._prefs()
 
@@ -2797,23 +3123,27 @@ class NestingTaskPanel:
                 ]
             )
 
+            boundary_resolution_mm = (
+                self._normalize_dimension_mm(
+                    "boundary_resolution",
+                    self._dimension_values_mm[
+                        "boundary_resolution"
+                    ]
+                )
+            )
+
+            self._dimension_values_mm[
+                "boundary_resolution"
+            ] = boundary_resolution_mm
+
             p.SetString(
                 "BoundaryResolution",
-                "%.6f" % self._dimension_values_mm[
-                    "boundary_resolution"
-                ]
+                "%.2f" % boundary_resolution_mm
             )
 
             p.SetString(
                 "DisplayUnits",
                 self.display_units
-            )
-
-            p.SetInt(
-                "AlgorithmIndex",
-                int(
-                    self.nesting_algorithm.currentIndex()
-                )
             )
 
             p.SetInt(
@@ -2840,6 +3170,8 @@ class NestingTaskPanel:
                     "GpuName",
                     "None"
                 )
+                
+            self._save_deepnest_settings(p)
 
         except Exception:
             App.Console.PrintError(
@@ -2870,10 +3202,15 @@ class NestingTaskPanel:
             if value is None or value < 0.0:
                 return
 
-            value_mm = self._display_to_mm(value)
+            value_mm = self._display_to_mm(
+                value
+            )
 
             self._dimension_values_mm[key] = (
-                float(value_mm)
+                self._normalize_dimension_mm(
+                    key,
+                    value_mm
+                )
             )
 
         except Exception:
@@ -2964,10 +3301,6 @@ class NestingTaskPanel:
 
             # combos
             try:
-                self.nesting_algorithm.currentIndexChanged.connect(self._save_settings_to_prefs)
-            except Exception:
-                pass
-            try:
                 self.geometry_engine.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:
                 pass
@@ -2979,6 +3312,38 @@ class NestingTaskPanel:
                 self.gpu_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:
                 pass
+                
+            for widget in [
+                self.deepnest_curve_tolerance,
+                self.deepnest_simplify,
+                self.deepnest_svg_preprocessor,
+                self.deepnest_scale,
+                self.deepnest_endpoint_tolerance,
+                self.deepnest_dxf_import_scale,
+                self.deepnest_dxf_export_scale,
+                self.deepnest_export_sheet_boundaries,
+                self.deepnest_export_sheets_space,
+                self.deepnest_export_sheets_space_value,
+                self.deepnest_merge_lines,
+                self.deepnest_time_ratio,
+                self.deepnest_population_size,
+                self.deepnest_mutation_rate,
+                self.deepnest_quantity_from_filename,
+            ]:
+                try:
+                    if isinstance(
+                        widget,
+                        QtGui.QComboBox
+                    ):
+                        widget.currentIndexChanged.connect(
+                            self._save_settings_to_prefs
+                        )
+                    else:
+                        widget.editingFinished.connect(
+                            self._save_settings_to_prefs
+                        )
+                except Exception:
+                    pass
         except Exception:
             pass
             
