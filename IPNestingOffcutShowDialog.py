@@ -966,6 +966,52 @@ def _format_display_dimension(value_mm, units):
         return "0"
 
 class OffcutShowDialog(QtGui.QDialog):
+    def _format_card_label(self, off):
+        """
+        Format rectangular sheet dimensions using active display units.
+        """
+        try:
+            if str(
+                off.get("type", "")
+            ).lower() != "rectangular":
+                return str(
+                    off.get(
+                        "label",
+                        "Offcut"
+                    )
+                )
+
+            width_mm = float(
+                off.get("width", 0.0)
+            )
+
+            height_mm = float(
+                off.get("height", 0.0)
+            )
+
+            if self._display_units == "inch":
+                width = width_mm / MM_PER_INCH
+                height = height_mm / MM_PER_INCH
+                suffix = "inch"
+            else:
+                width = width_mm
+                height = height_mm
+                suffix = "mm"
+
+            return "Sheet %.3f x %.3f %s" % (
+                width,
+                height,
+                suffix
+            )
+
+        except Exception:
+            return str(
+                off.get(
+                    "label",
+                    "Offcut"
+                )
+            )
+    
     def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
         self.setWindowTitle("Offcuts")
@@ -1059,7 +1105,7 @@ class OffcutShowDialog(QtGui.QDialog):
             card_lay.setContentsMargins(10, 10, 10, 10)
             card_lay.setSpacing(8)
 
-            label = str(off.get("label", "Offcut"))
+            label = self._format_card_label(off)
 
             try:
                 count = max(
@@ -1583,7 +1629,8 @@ class OffcutMaterialsController(object):
         """
         try:
             dialog = AddSheetOrOffcutDialog(
-                parent=QtGui.QApplication.activeWindow()
+                parent=self.panel.form,
+                panel=self.panel
             )
 
             result = dialog.exec_()
@@ -2035,6 +2082,62 @@ class OffcutMaterialsController(object):
             self.offcuts_table.viewport().update()
             self._table_rebuild_guard = False
             
+    def _format_material_label(self, material):
+        """
+        Format rectangular sheet label using the active display units.
+        Internal width and height values are always stored in mm.
+        """
+        try:
+            if str(
+                material.get("type", "")
+            ).lower() != "rectangular":
+                return str(
+                    material.get(
+                        "label",
+                        "Sheet or Offcut"
+                    )
+                )
+
+            width_mm = float(
+                material.get("width", 0.0)
+            )
+
+            height_mm = float(
+                material.get("height", 0.0)
+            )
+
+            units = str(
+                getattr(
+                    self.panel,
+                    "display_units",
+                    "mm"
+                )
+                or "mm"
+            ).lower()
+
+            if units == "inch":
+                width = width_mm / MM_PER_INCH
+                height = height_mm / MM_PER_INCH
+                suffix = "inch"
+            else:
+                width = width_mm
+                height = height_mm
+                suffix = "mm"
+
+            return "Sheet %.3f x %.3f %s" % (
+                width,
+                height,
+                suffix
+            )
+
+        except Exception:
+            return str(
+                material.get(
+                    "label",
+                    "Sheet or Offcut"
+                )
+            )
+    
     def _append_offcut_table_row(self, material, row=None):
         """
         Add one material row to the table.
@@ -2049,8 +2152,8 @@ class OffcutMaterialsController(object):
             self.offcuts_table.insertRow(row)
 
             # Column 0: Material
-            label = str(
-                material.get("label", "Sheet or Offcut")
+            label = self._format_material_label(
+                material
             )
 
             material_item = QtGui.QTableWidgetItem(label)
@@ -2146,6 +2249,34 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    def _refresh_offcut_material_labels(self):
+        """
+        Refresh material labels after changing mm/inch units.
+        """
+        try:
+            for row, material in enumerate(
+                self.offcuts
+            ):
+                item = self.offcuts_table.item(
+                    row,
+                    0
+                )
+
+                if item is None:
+                    continue
+
+                item.setText(
+                    self._format_material_label(
+                        material
+                    )
+                )
+
+        except Exception:
+            App.Console.PrintError(
+                "_refresh_offcut_material_labels failed:\n"
+                + traceback.format_exc()
+            )
+    
     def _refresh_offcut_grain_column(self):
         try:
             for row in range(self.offcuts_table.rowCount()):

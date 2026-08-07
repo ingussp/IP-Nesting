@@ -2589,6 +2589,12 @@ class NestingTaskPanel:
                 # Save only the unit selection.
                 self._save_settings_to_prefs()
 
+                try:
+                    self.offcut_controller.\
+                        _refresh_offcut_material_labels()
+                except Exception:
+                    pass
+                
                 popup = getattr(
                     self,
                     "_active_offcut_dialog",
