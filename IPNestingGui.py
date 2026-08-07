@@ -424,21 +424,62 @@ class NestingTaskPanel:
             1
         )
 
-        # Geometry Engine (RIGHT, row 2)
-        geom_box = QtGui.QGroupBox("Geometry Engine")
-        geom_lay = QtGui.QVBoxLayout(geom_box)
-        self.geometry_engine = QtGui.QComboBox()
-        self.geometry_engine.addItems([
-            "NFP",
-            "NFP + Bitmask",
-            "Bounding Box"
-        ])
-        self.geometry_engine.setCurrentIndex(0)
-        self.geometry_engine.setToolTip(
-            "Selects the geometric collision method used during nesting. "
-            "NFP is the most accurate general-purpose option."
+        # Placement Strategy (RIGHT, row 2)
+        placement_box = QtGui.QGroupBox(
+            "Placement strategy"
         )
-        geom_lay.addWidget(self.geometry_engine)
+        placement_lay = QtGui.QVBoxLayout(
+            placement_box
+        )
+
+        self.placement_strategy = QtGui.QComboBox()
+        self.placement_strategy.addItems([
+            "Gravity",
+            "Bounding box",
+            "Squeeze",
+        ])
+        self.placement_strategy.setCurrentIndex(0)
+
+        self.placement_strategy.setItemData(
+            0,
+            (
+                "Minimize the width of the nest. "
+                "Good when using a rectangular sheet and "
+                "the leftover material can be used for another cut."
+            ),
+            QtCore.Qt.ToolTipRole
+        )
+
+        self.placement_strategy.setItemData(
+            1,
+            (
+                "Reduce the overall rectangular bounds. "
+                "Best for conserving material when only a small "
+                "portion of the sheet is used."
+            ),
+            QtCore.Qt.ToolTipRole
+        )
+
+        self.placement_strategy.setItemData(
+            2,
+            (
+                "Reduce the overall area. This may produce nests "
+                "that are not rectangular. Best for irregularly "
+                "shaped sheets or when unused space is not important."
+            ),
+            QtCore.Qt.ToolTipRole
+        )
+
+        self.placement_strategy.setToolTip(
+            "Controls how placed parts are packed together. "
+            "Gravity minimizes nest width, Bounding box minimizes "
+            "the rectangular bounds, and Squeeze minimizes the "
+            "overall occupied area."
+        )
+
+        placement_lay.addWidget(
+            self.placement_strategy
+        )
 
         # Optimization (RIGHT, row 3)
         opt_box = QtGui.QGroupBox("Optimization")
@@ -479,7 +520,7 @@ class NestingTaskPanel:
         cfg_grid.addWidget(gpu_box,     3, 0)
 
         cfg_grid.addWidget(units_box, 0, 1)
-        cfg_grid.addWidget(geom_box,     2, 1)
+        cfg_grid.addWidget(placement_box,2, 1)
         cfg_grid.addWidget(opt_box,      3, 1)
 
         # Make columns expand nicely
@@ -2878,7 +2919,7 @@ class NestingTaskPanel:
                 self.spacing,
                 self.res,
                 self.units_combo,
-                self.geometry_engine,
+                self.placement_strategy,
                 self.optimization_combo,
                 self.gpu_combo,
                 self.deepnest_export_sheet_boundaries,
@@ -3008,7 +3049,7 @@ class NestingTaskPanel:
             self._load_deepnest_settings(p)
             
             try:
-                self.geometry_engine.setCurrentIndex(int(p.GetInt("GeometryEngineIndex", self.geometry_engine.currentIndex())))
+                self.placement_strategy.setCurrentIndex(int(p.GetInt("PlacementStrategyIndex",self.placement_strategy.currentIndex())))
             except Exception:
                 pass
             try:
@@ -3123,9 +3164,9 @@ class NestingTaskPanel:
             )
 
             p.SetInt(
-                "GeometryEngineIndex",
+                "PlacementStrategyIndex",
                 int(
-                    self.geometry_engine.currentIndex()
+                    self.placement_strategy.currentIndex()
                 )
             )
 
@@ -3277,7 +3318,7 @@ class NestingTaskPanel:
 
             # combos
             try:
-                self.geometry_engine.currentIndexChanged.connect(self._save_settings_to_prefs)
+                self.placement_strategy.currentIndexChanged.connect(self._save_settings_to_prefs)
             except Exception:
                 pass
             try:
