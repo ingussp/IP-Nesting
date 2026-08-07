@@ -445,9 +445,40 @@ class _OffcutPreview(QtGui.QGraphicsView):
                     text
                 )
 
-                # Thin, normal font.
+                # Scale dimension text according to the sheet size.
+                # Geometry is in mm, so the font size is also
+                # calculated relative to the contour dimensions.
+                min_dimension = min(
+                    contour_width,
+                    contour_height
+                )
+
+                font_size = min_dimension * 0.02
+
+                # Keep small sheets readable and prevent very large
+                # sheets from getting excessively large labels.
+                font_size = max(
+                    8.0,
+                    min(
+                        32.0,
+                        font_size
+                    )
+                )
+
+                # Do not allow the label to become too large for
+                # the corresponding edge.
+                edge_length_limit = length * 0.12
+
+                font_size = min(
+                    font_size,
+                    max(
+                        8.0,
+                        edge_length_limit
+                    )
+                )
+
                 font = QtGui.QFont()
-                font.setPointSizeF(8.0)
+                font.setPointSizeF(font_size)
                 font.setBold(False)
                 font.setWeight(
                     QtGui.QFont.Normal
