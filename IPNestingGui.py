@@ -481,20 +481,79 @@ class NestingTaskPanel:
             self.placement_strategy
         )
 
-        # Optimization (RIGHT, row 3)
-        opt_box = QtGui.QGroupBox("Optimization")
-        opt_lay = QtGui.QVBoxLayout(opt_box)
-        self.optimization_combo = QtGui.QComboBox()
-        self.optimization_combo.addItems([
-            "None",
-            "Genetic"
-        ])
-        self.optimization_combo.setCurrentIndex(0)
-        self.optimization_combo.setToolTip(
-            "Selects whether an additional optimization pass is used "
-            "after the initial nesting result."
+        # CPU Cores (RIGHT, row 3)
+        cpu_box = QtGui.QGroupBox(
+            "CPU cores"
         )
-        opt_lay.addWidget(self.optimization_combo)
+        cpu_lay = QtGui.QVBoxLayout(
+            cpu_box
+        )
+
+        self.cpu_cores_combo = QtGui.QComboBox()
+
+        detected_cores = self._detect_cpu_core_count()
+
+        # Use at least one core and cap the selectable value at 16.
+        max_cpu_cores = max(
+            1,
+            min(
+                detected_cores,
+                16
+            )
+        )
+
+        for core_count in range(
+            1,
+            max_cpu_cores + 1
+        ):
+            self.cpu_cores_combo.addItem(
+                str(core_count)
+            )
+
+        default_cpu_cores = max(
+            1,
+            min(
+                detected_cores,
+                16
+            )
+        )
+
+        self.cpu_cores_combo.setCurrentText(
+            str(default_cpu_cores)
+        )
+
+        self.cpu_cores_combo.setToolTip(
+            "Number of CPU worker cores available to the "
+            "nesting calculation.\n\n"
+            "The list is based on the logical CPU cores detected "
+            "on this computer and is limited to 16 choices. "
+            "This limit is intentional: nesting performance is "
+            "not guaranteed to improve when more than 16 workers "
+            "are used, especially when the calculation contains "
+            "serial operations, memory traffic, synchronization, "
+            "or a single-threaded geometry step.\n\n"
+            "Recommended values:\n"
+            "• 1–4 cores: safer for older or low-power computers.\n"
+            "• 4–8 cores: good general-purpose setting.\n"
+            "• 8–16 cores: useful for complex nesting or large "
+            "part collections, if the nesting engine supports "
+            "parallel workers.\n"
+            "• More than 16 cores: not offered by this UI because "
+            "the expected benefit is uncertain and CPU, RAM, and "
+            "synchronization overhead may increase.\n\n"
+            "This setting only affects the calculation if the "
+            "external nesting engine receives and uses the value."
+        )
+
+        cpu_lay.addWidget(
+            self.cpu_cores_combo
+        )
+
+        cfg_grid.addWidget(
+            cpu_box,
+            3,
+            1
+        )
 
         # Use GPU (LEFT, row 3)
         gpu_box = QtGui.QGroupBox("Use GPU")
@@ -521,7 +580,11 @@ class NestingTaskPanel:
 
         cfg_grid.addWidget(units_box, 0, 1)
         cfg_grid.addWidget(placement_box,2, 1)
-        cfg_grid.addWidget(opt_box,      3, 1)
+        cfg_grid.addWidget(
+            cpu_box,
+            3,
+            1
+        )
 
         # Make columns expand nicely
         try:
@@ -739,6 +802,43 @@ class NestingTaskPanel:
         self.layout.addLayout(row)
         return edit
         
+    def _detect_cpu_core_count(self):
+        """
+        Return the number of logical CPU cores available to Python.
+
+        The result is always at least 1. The UI later limits the
+        selectable value to 16.
+        """
+        try:
+            # Prefer the process affinity mask on supported systems.
+            # This reflects cores actually available to the process.
+            if hasattr(
+                os,
+                "sched_getaffinity"
+            ):
+                count = len(
+                    os.sched_getaffinity(0)
+                )
+            else:
+                count = os.cpu_count()
+
+            if count is None:
+                count = 1
+
+            return max(
+                1,
+                int(count)
+            )
+
+        except Exception:
+            try:
+                return max(
+                    1,
+                    int(os.cpu_count() or 1)
+                )
+            except Exception:
+                return 1
+
     def _on_show_gpu_clicked(self):
         """Populate GPU combo only when the button is pressed, with loading indicator."""
         progress = None
@@ -2920,7 +3020,7 @@ class NestingTaskPanel:
                 self.res,
                 self.units_combo,
                 self.placement_strategy,
-                self.optimization_combo,
+                self.cpu_cores_combo,
                 self.gpu_combo,
                 self.deepnest_export_sheet_boundaries,
                 self.deepnest_export_sheets_space,
@@ -3053,7 +3153,30 @@ class NestingTaskPanel:
             except Exception:
                 pass
             try:
-                self.optimization_combo.setCurrentIndex(int(p.GetInt("OptimizationIndex", self.optimization_combo.currentIndex())))
+                saved_cpu_cores = int(
+                    p.GetInt(
+                        "CpuCores",
+                        self.cpu_cores_combo.currentText()
+                    )
+                )
+
+                max_index = (
+                    self.cpu_cores_combo.count()
+                    - 1
+                )
+
+                saved_cpu_cores = max(
+                    1,
+                    min(
+                        saved_cpu_cores,
+                        max_index + 1
+                    )
+                )
+
+                self.cpu_cores_combo.setCurrentText(
+                    str(saved_cpu_cores)
+                )
+
             except Exception:
                 pass
             try:
@@ -3170,12 +3293,18 @@ class NestingTaskPanel:
                 )
             )
 
-            p.SetInt(
-                "OptimizationIndex",
-                int(
-                    self.optimization_combo.currentIndex()
+            try:
+                p.SetInt(
+                    "CpuCores",
+                    int(
+                        self.cpu_cores_combo.currentText()
+                    )
                 )
-            )
+            except Exception:
+                p.SetInt(
+                    "CpuCores",
+                    1
+                )
 
             try:
                 p.SetString(
@@ -3322,7 +3451,9 @@ class NestingTaskPanel:
             except Exception:
                 pass
             try:
-                self.optimization_combo.currentIndexChanged.connect(self._save_settings_to_prefs)
+                self.cpu_cores_combo.currentIndexChanged.connect(
+                    self._save_settings_to_prefs
+                )
             except Exception:
                 pass
             try:
