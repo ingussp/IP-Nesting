@@ -1409,346 +1409,218 @@ class NestingTaskPanel:
             App.Console.PrintError("on_cell_clicked failed:\n" + traceback.format_exc())
 
     def on_item_changed(self, item):
-        """Handle edits to table items. We use this to react to Qty column changes (column 1)."""
-        
-        mgr = NestingRelayoutManager(preview_doc_name=self.preview_doc_name, grid_cols=self.grid_cols, padding=50.0)
-        
+        """
+        Handle Qty and Rotation edits.
+
+        Qty changes no longer create physical FreeCAD copies.
+        Each table row keeps one preview object; the Qty value is
+        exported separately as the requested nesting quantity.
+        """
         try:
-            if getattr(self, "_suppress_qty_update", False):
+            if getattr(
+                self,
+                "_suppress_qty_update",
+                False
+            ):
                 return
-            if not item:
+
+            if item is None:
                 return
-            col = item.column()
+
             row = item.row()
-            # ignore changes in control rows
-            if row >= self.table.rowCount() - self.control_rows:
+            col = item.column()
+
+            # Ignore control rows.
+            if row >= (
+                self.table.rowCount()
+                - self.control_rows
+            ):
                 return
-            # NEW: Rotation degree clamp (col 2)
+
+            # Rotation degree column.
             if col == 2:
                 self._clamp_rotation_cell(row)
                 return
+
+            # Only Qty column is handled below.
             if col != 1:
                 return
 
-            # Validate and clamp qty
-            txt = item.text().strip()
+            text = str(
+                item.text()
+            ).strip()
+
             try:
-                val = int(txt)
+                quantity = int(text)
             except Exception:
-                val = 0
-            if val < 0:
-                val = 0
-            if val > 5000:
-                val = 5000
+                quantity = 0
 
-            # If clamped/changed, update cell without re-entering handler
-            if str(val) != txt:
-                try:
-                    self._suppress_qty_update = True
-                    item.setText(str(val))
-                finally:
-                    self._suppress_qty_update = False
+            # Keep the existing allowed range.
+            quantity = max(
+                0,
+                min(
+                    5000,
+                    quantity
+                )
+            )
 
-            # Now ensure preview doc has exactly val copies for this row
-            p_doc = App.getDocument(self.preview_doc_name) if self.preview_doc_name in App.listDocuments() else None
-            if not p_doc:
-                return
+            # Qty = 0 removes the complete table row and its
+            # single preview object.
+            if quantity == 0:
+                name_item = self.table.item(
+                    row,
+                    0
+                )
 
-            name_item = self.table.item(row, 0)
-            if not name_item:
-                return
+                names = []
 
-            # primary name stored at UserRole (string) for compatibility
-            primary_name = name_item.data(QtCore.Qt.UserRole)
-            list_data = name_item.data(QtCore.Qt.UserRole + 1)
-
-            obj_names = []
-            if list_data:
-                try:
-                    if isinstance(list_data, list):
-                        obj_names = list(list_data)
-                    else:
-                        obj_names = json.loads(list_data)
-                except Exception:
-                    # fallback: use primary if present
-                    if primary_name:
-                        obj_names = [primary_name]
-            else:
-                if primary_name:
-                    obj_names = [primary_name]
-
-            current_count = len(obj_names)
-            desired = val
-
-            if desired == current_count:
-                # after Qty edit, keep selection consistent: select all copies for row
-                try:
-                    self.select_preview_objects_for_row(row)
-                except Exception:
-                    pass
-                return
-
-            # Case (a): Desired <= 0 -> delete all preview objects for this row and remove the table row
-            if desired <= 0:
-                try:
-                    # delete all preview objects associated with this row
-                    names_to_delete = list(obj_names) if obj_names else []
-                    removed = self.delete_preview_objects(names_to_delete)
-
-                    # Remove widgets in both select and grain columns
+                if name_item is not None:
                     try:
-                        w = self.table.cellWidget(row, 3)
-                        if w is not None:
-                            w.setParent(None)
+                        names_json = name_item.data(
+                            QtCore.Qt.UserRole + 1
+                        )
+
+                        if names_json:
+                            if isinstance(
+                                names_json,
+                                list
+                            ):
+                                names = list(
+                                    names_json
+                                )
+                            else:
+                                names = json.loads(
+                                    names_json
+                                )
                     except Exception:
-                        pass
-                    try:
-                        w2 = self.table.cellWidget(row, 4)
-                        if w2 is not None:
-                            w2.setParent(None)
-                    except Exception:
-                        pass
+                        names = []
 
-                    # remove the table row
-                    self.table.removeRow(row)
-                    # adjust added_count already performed in delete_preview_objects
-                    try:
-                        if self.added_count < 0:
-                            self.added_count = 0
-                    except Exception:
-                        pass
-
-                except Exception:
-                    App.Console.PrintError("Failed to remove row when Qty set to 0:\n" + traceback.format_exc())
-                finally:
-                    try:
-                        self._update_apply_blink_state()
-                    except Exception:
-                        pass
-                return
-                
-            # If need to increase quantity: copy base object
-            if desired > current_count:
-                base_name = obj_names[0] if obj_names else primary_name
-                base_obj = p_doc.getObject(base_name) if base_name else None
-                if not base_obj:
-                    App.Console.PrintMessage("No base object available to copy for row %d\n" % (row,))
-                    # update stored names to current state (maybe empty) and exit
-                    try:
-                        name_item.setData(QtCore.Qt.UserRole + 1, json.dumps(obj_names))
-                    except Exception:
-                        name_item.setData(QtCore.Qt.UserRole + 1, obj_names)
-                    return
-
-                created_names = []
-                for i in range(desired - current_count):
-                    try:
-                        new_obj = p_doc.copyObject(base_obj, False)
-                        if not new_obj:
-                            continue
-
-                        # keep label consistent (optional but nice)
+                    if not names:
                         try:
-                            new_obj.Label = base_obj.Label
+                            primary_name = name_item.data(
+                                QtCore.Qt.UserRole
+                            )
+
+                            if primary_name:
+                                names = [
+                                    primary_name
+                                ]
                         except Exception:
                             pass
 
-                        # IMPORTANT: always track the new copy in row list + created list
-                        created_names.append(new_obj.Name)
-                        obj_names.append(new_obj.Name)
-
-                    except Exception:
-                        App.Console.PrintError("Failed to create copy in Qty change:\n" + traceback.format_exc())
-                        break
                 try:
-                    p_doc.recompute()
-                    mgr.run(copy_selection=True)
-                    mgr.run(copy_selection=True)
+                    if names:
+                        self.delete_preview_objects(
+                            names
+                        )
                 except Exception:
-                    App.Console.PrintError("Recompute failed after adding copies:\n" + traceback.format_exc())
+                    App.Console.PrintError(
+                        "Failed to delete preview object "
+                        "when Qty was set to zero:\n"
+                        + traceback.format_exc()
+                    )
 
-                # update stored list
                 try:
-                    name_item.setData(QtCore.Qt.UserRole + 1, json.dumps(obj_names))
+                    self.table.removeRow(row)
                 except Exception:
-                    name_item.setData(QtCore.Qt.UserRole + 1, obj_names)
-                # ensure primary remains the first
-                if obj_names:
-                    try:
-                        name_item.setData(QtCore.Qt.UserRole, obj_names[0])
-                    except Exception:
-                        pass
+                    App.Console.PrintError(
+                        "Failed to remove table row:\n"
+                        + traceback.format_exc()
+                    )
 
-                # If grain checkbox for this row is checked, draw arrows for all newly created copies
                 try:
-                    grain_widget = self.table.cellWidget(row, 4)
-                    if grain_widget:
-                        cb = grain_widget.findChild(QtGui.QCheckBox)
-                        combo = grain_widget.findChild(QtGui.QComboBox)
-                        axis = combo.currentText() if combo and hasattr(combo, "currentText") else "X"
-                        if cb and cb.isChecked() and created_names:
-                            for n in created_names:
-                                try:
-                                    if GrainPreparer is not None:
-                                        GrainPreparer.update_grain_arrow(self.preview_doc_name, n, enable=True, axis=axis)
-                                except Exception:
-                                    App.Console.PrintError("Failed to draw arrow for new copy '%s':\n" % (str(n),) + traceback.format_exc())
+                    if self.added_count < 0:
+                        self.added_count = 0
                 except Exception:
-                    App.Console.PrintError("Failed to update arrows after qty increase:\n" + traceback.format_exc())
-                
-                # TRIGGER LAYOUT UPDATE
-                self.update_grain_layout_and_perimeters()
+                    pass
 
-                # after adding copies, update blink state (in case checkboxes present)
                 try:
                     self._update_apply_blink_state()
                 except Exception:
                     pass
 
-            # Case (b): decrease but desired >= 1 -> remove highest-numbered copies first when numeric 3-digit suffixes present
-            else:
-                to_remove = current_count - desired
+                return
+
+            # Normalize the Qty cell without recursively triggering
+            # this handler.
+            normalized_text = str(
+                quantity
+            )
+
+            if text != normalized_text:
                 try:
-                    removed_list = []
-                    # If original had >1, try to remove suffixed copies with 3-digit numeric endings
-                    suffix_matches = []
-                    non_suffix = []
-                    # Prefer to detect a base prefix. If primary_name is present and other names start with primary_name, use that.
-                    prefix = primary_name or ""
-                    for n in obj_names:
-                        if prefix and n == prefix:
-                            # base object, treat as number 0
-                            continue
-                        m = re.match(r'^(.*?)(\d{3})$', n)
-                        if m:
-                            # capture numeric suffix
-                            try:
-                                num = int(m.group(2))
-                            except Exception:
-                                num = None
-                            suffix_matches.append((n, num))
+                    self._suppress_qty_update = True
+                    item.setText(
+                        normalized_text
+                    )
+                finally:
+                    self._suppress_qty_update = False
+
+            # Keep exactly one preview object associated with the row.
+            # The exported JSON reads the quantity from this table cell.
+            name_item = self.table.item(
+                row,
+                0
+            )
+
+            if name_item is not None:
+                names = []
+
+                try:
+                    names_json = name_item.data(
+                        QtCore.Qt.UserRole + 1
+                    )
+
+                    if names_json:
+                        if isinstance(
+                            names_json,
+                            list
+                        ):
+                            names = list(
+                                names_json
+                            )
                         else:
-                            non_suffix.append(n)
+                            names = json.loads(
+                                names_json
+                            )
+                except Exception:
+                    names = []
 
-                    # sort suffix matches by numeric desc (largest first)
-                    suffix_matches_sorted = sorted([s for s in suffix_matches if s[1] is not None], key=lambda x: x[1], reverse=True)
+                # Remove any legacy duplicate references from the
+                # row, keeping only the first preview object.
+                if names:
+                    primary_name = names[0]
 
-                    # remove from largest numeric suffixes first
-                    for (name_to_remove, num) in suffix_matches_sorted:
-                        if to_remove <= 0:
-                            break
-                        try:
-                            obj = p_doc.getObject(name_to_remove)
-                            if obj:
-                                # remove possible grain arrow tied to this preview object before removal
-                                try:
-                                    if GrainPreparer is not None:
-                                        GrainPreparer.remove_grain_arrow(self.preview_doc_name, name_to_remove)
-                                except Exception:
-                                    pass
-                                p_doc.removeObject(name_to_remove)
-                                removed_list.append(name_to_remove)
-                                to_remove -= 1
-                            else:
-                                # maybe name exists but getObject returned None (rare) - skip
-                                to_remove -= 1
-                                removed_list.append(name_to_remove)
-                        except Exception:
-                            App.Console.PrintError("Failed to remove object '%s' during selective decrease:\n%s\n" % (name_to_remove, traceback.format_exc()))
-                            continue
-
-                    # if still need to remove more, remove from the end of obj_names (avoid removing primary if possible)
-                    if to_remove > 0:
-                        remaining = [n for n in obj_names if n not in removed_list]
-                        # try to avoid removing primary_name; remove other instances first
-                        remaining_sorted = list(reversed(remaining))
-                        for name_to_remove in remaining_sorted:
-                            if to_remove <= 0:
-                                break
-                            if name_to_remove == primary_name:
-                                # skip primary if others available
-                                others = [r for r in remaining_sorted if r != primary_name]
-                                if others:
-                                    continue
-                            try:
-                                obj = p_doc.getObject(name_to_remove)
-                                if obj:
-                                    try:
-                                        if GrainPreparer is not None:
-                                            GrainPreparer.remove_grain_arrow(self.preview_doc_name, name_to_remove)
-                                    except Exception:
-                                        pass
-                                    p_doc.removeObject(name_to_remove)
-                                removed_list.append(name_to_remove)
-                                to_remove -= 1
-                            except Exception:
-                                App.Console.PrintError("Failed to remove object '%s' in fallback removal:\n%s\n" % (name_to_remove, traceback.format_exc()))
-                                continue
-
-                    # update obj_names by removing removed_list entries preserving order
-                    obj_names = [n for n in obj_names if n not in removed_list]
+                    name_item.setData(
+                        QtCore.Qt.UserRole,
+                        primary_name
+                    )
 
                     try:
-                        p_doc.recompute()
-                        mgr.run(copy_selection=True)
-                        mgr.run(copy_selection=True)
+                        name_item.setData(
+                            QtCore.Qt.UserRole + 1,
+                            json.dumps([
+                                primary_name
+                            ])
+                        )
                     except Exception:
-                        App.Console.PrintError("Recompute failed after selective removals:\n" + traceback.format_exc())
+                        name_item.setData(
+                            QtCore.Qt.UserRole + 1,
+                            [
+                                primary_name
+                            ]
+                        )
 
-                except Exception:
-                    App.Console.PrintError("Error while removing copies during Qty decrease:\n" + traceback.format_exc())
-
-                # TRIGGER LAYOUT UPDATE
-                self.update_grain_layout_and_perimeters()
-
-                # after removals, update blink state
-                try:
-                    self._update_apply_blink_state()
-                except Exception:
-                    pass
-
-            # Update stored list and primary UserRole (keep primary as first or blank)
             try:
-                name_item.setData(QtCore.Qt.UserRole + 1, json.dumps(obj_names))
-            except Exception:
-                name_item.setData(QtCore.Qt.UserRole + 1, obj_names)
-
-            if obj_names:
-                try:
-                    name_item.setData(QtCore.Qt.UserRole, obj_names[0])
-                except Exception:
-                    pass
-            else:
-                try:
-                    name_item.setData(QtCore.Qt.UserRole, "")
-                except Exception:
-                    pass
-
-            # After qty change, select all preview objects for the row to keep UI consistent
-            try:
-                self.select_preview_objects_for_row(row)
+                self._update_apply_blink_state()
             except Exception:
                 pass
-
-            # Keep view focused on preview doc
-            try:
-                Gui.setActiveDocument(p_doc)
-                Gui.SendMsgToActiveView("ViewFit")
-            except Exception:
-                pass
-
-            # update grain perimeter after qty change
-            try:
-                if GrainPreparer is not None:
-                    try:
-                        self.update_grain_layout_and_perimeters()
-                    except Exception:
-                        App.Console.PrintError("Failed to update grain layout/perimeters after apply_change_grain:\n" + traceback.format_exc())
-            except Exception:
-                App.Console.PrintError("Failed to draw grain perimeter after qty change:\n" + traceback.format_exc())
 
         except Exception:
-            App.Console.PrintError("on_item_changed failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "on_item_changed failed:\n"
+                + traceback.format_exc()
+            )
 
     # Delegation wrappers to NestingRotator
     def apply_bulk_rotate(self):
