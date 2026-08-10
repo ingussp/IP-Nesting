@@ -902,13 +902,13 @@ class NestingTaskPanel:
             self.bulk_angle_combo = QtGui.QComboBox()
             self.bulk_angle_combo.addItems(["90°", "180°"])
             self.bulk_angle_combo.setCurrentIndex(1)
-            self.bulk_angle_combo.setFixedWidth(70)
+            self.bulk_angle_combo.setFixedWidth(100)
             htop.addWidget(self.bulk_angle_combo)
 
             self.bulk_axis_combo = QtGui.QComboBox()
             self.bulk_axis_combo.addItems(["X", "Y"])
             self.bulk_axis_combo.setCurrentIndex(0)
-            self.bulk_axis_combo.setFixedWidth(55)
+            self.bulk_axis_combo.setFixedWidth(85)
             htop.addWidget(self.bulk_axis_combo)
 
             self.bulk_rotate_btn = QtGui.QPushButton("Rotate")

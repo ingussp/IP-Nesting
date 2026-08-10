@@ -4,6 +4,7 @@ Manages grain checkbox/combobox state, blinking Apply Grain button, and grain ar
 """
 
 import FreeCAD as App
+import FreeCADGui as Gui
 from PySide import QtGui, QtCore
 import json
 import traceback
@@ -160,7 +161,17 @@ class GrainUIController:
         try:
             if GrainPreparer is None:
                 return
-            checked = (state == QtCore.Qt.Checked)
+            # Read the actual checkbox state instead of comparing
+            # PySide enum values, which differ between FreeCAD versions.
+            try:
+                checked = bool(
+                    grain_cb.isChecked()
+                )
+            except Exception:
+                checked = (
+                    int(state)
+                    == int(QtCore.Qt.Checked)
+                )
             # find row matching preview_obj_name and apply to all preview copies stored for that row
             row_count = self.panel.table.rowCount() - self.panel.control_rows
             for r in range(row_count):
@@ -209,9 +220,18 @@ class GrainUIController:
                             names = []
 
                     axis = "X"
+
                     try:
-                        axis = grain_combo.currentText() if hasattr(grain_combo, "currentText") else "X"
+                        axis = str(
+                            grain_combo.currentText()
+                        ).strip().upper()
                     except Exception:
+                        axis = "X"
+
+                    if axis not in (
+                        "X",
+                        "Y"
+                    ):
                         axis = "X"
 
                     # inside _on_grain_checkbox_state_changed, after you compute `names`:
@@ -282,6 +302,18 @@ class GrainUIController:
                                 part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
                         except Exception:
                             pass
+                    try:
+                        p_doc = App.getDocument(
+                            self.panel.preview_doc_name
+                        )
+
+                        if p_doc:
+                            p_doc.recompute()
+
+                        Gui.updateGui()
+
+                    except Exception:
+                        pass
                     break
                 except Exception:
                     continue
@@ -769,8 +801,18 @@ class GrainUIController:
                 if grain_parts:
                     for nm in grain_parts:
                         try:
-                            axis = "X"
-                            GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, nm, enable=True, axis=axis)
+                            axis = grain_axis_by_name.get(
+                                nm,
+                                "X"
+                            )
+
+                            GrainPreparer.update_grain_arrow(
+                                self.panel.preview_doc_name,
+                                nm,
+                                enable=True,
+                                axis=axis
+                            )
+
                         except Exception:
                             pass
                 else:
