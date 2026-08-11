@@ -117,45 +117,22 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
         App.Console.PrintError("_extract_wire_points_ordered failed:\n" + traceback.format_exc())
         return []
 
-def _parse_allowed_rotations_float(allowed_str, default=None):
+def _read_rotation_count(item, default=1):
     """
-    Parse comma-separated rotations into floats, clamp to [0.1 .. 359],
-    ensure 0.1 is present (acts like '0' but respects the min constraint).
+    Read one integer rotation count from a table item.
     """
-    if default is None:
-        default = [90.0]
-
     try:
-        s = (allowed_str or "").replace("°", "")
-        parts = [p.strip() for p in s.split(",") if p.strip()]
-        out = []
-        for p in parts:
-            try:
-                v = float(p)
-            except Exception:
-                continue
-            if v < 0.1:
-                v = 0.1
-            if v > 359.0:
-                v = 359.0
-            out.append(float(v))
+        if item is None:
+            return int(default)
 
-        if not out:
-            out = list(default)
+        value = int(float(str(item.text()).strip()))
 
-        # Ensure 0.1 exists (instead of 0)
-        # if not any(abs(x - 0.1) < 1e-9 for x in out):
-            # out.insert(0, 0.1)
+        # Keep the broad existing range for now.
+        # A Deepnest-specific maximum can be added later.
+        return max(1, min(5000, value))
 
-        # De-duplicate with tolerance, preserve order
-        uniq = []
-        for v in out:
-            if any(abs(v - u) < 1e-9 for u in uniq):
-                continue
-            uniq.append(float(v))
-        return uniq
     except Exception:
-        return list(default)
+        return int(default)
         
 def _read_boundary_deflection(panel, default=0.01):
     """
@@ -177,220 +154,542 @@ def _read_boundary_deflection(panel, default=0.01):
         return float(default)
 
 
-def execute_nesting(panel):
+def _remove_duplicate_points(points, tolerance=1e-6):
     """
-    Execute nesting operation by exporting configuration to JSON.
+    Remove consecutive duplicate points from a polygon.
+    """
+    cleaned = []
 
-    Args:
-        panel: NestingTaskPanel instance with UI widgets and state
+    for point in points or []:
+        try:
+            x = float(point[0])
+            y = float(point[1])
+        except Exception:
+            continue
+
+        if not cleaned:
+            cleaned.append([x, y])
+            continue
+
+        previous = cleaned[-1]
+
+        if (
+            abs(previous[0] - x) > tolerance
+            or abs(previous[1] - y) > tolerance
+        ):
+            cleaned.append([x, y])
+
+    if len(cleaned) > 1:
+        first = cleaned[0]
+        last = cleaned[-1]
+
+        if (
+            abs(first[0] - last[0]) <= tolerance
+            and abs(first[1] - last[1]) <= tolerance
+        ):
+            cleaned.pop()
+
+    return cleaned
+
+
+def _transform_point_without_translation(obj, point):
+    """
+    Apply the preview object's rotation to a local 2D point.
+
+    The preview object's translation is intentionally ignored because
+    Deepnest must receive local part geometry, not the temporary preview
+    grid position.
     """
     try:
-        App.Console.PrintMessage("Starting Nesting Export...\n")
-        # Temporary fallback until sheet selection is implemented.
-        # Later these values will come from the selected sheet or offcut.
-        sheet_w = 2500.0
-        sheet_h = 1250.0
+        vector = App.Vector(
+            float(point[0]),
+            float(point[1]),
+            0.0
+        )
 
-        try:
-            sheet_margin = float(panel.sheet_margin.text())
-        except Exception:
-            sheet_margin = 5.0
+        transformed = obj.Placement.Rotation.multVec(vector)
 
-        try:
-            hole_to_part_clearance = float(
-                panel.hole_to_part_clearance.text()
+        return [
+            round(float(transformed.x), 6),
+            round(float(transformed.y), 6)
+        ]
+
+    except Exception:
+        return [
+            round(float(point[0]), 6),
+            round(float(point[1]), 6)
+        ]
+
+
+def _normalize_polygon(points):
+    """
+    Move polygon coordinates so the minimum X/Y position becomes 0/0.
+    """
+    if not points:
+        return []
+
+    min_x = min(float(point[0]) for point in points)
+    min_y = min(float(point[1]) for point in points)
+
+    return [
+        {
+            "x": round(float(point[0]) - min_x, 6),
+            "y": round(float(point[1]) - min_y, 6)
+        }
+        for point in points
+    ]
+
+def _extract_part_points(obj, deflection=0.1):
+    """
+    Extract the main 2D outer contour from a preview object.
+
+    The object is assumed to have already been oriented in FreeCAD.
+    Placement translation is ignored; placement rotation is applied.
+    """
+    candidates = []
+
+    try:
+        shape = getattr(obj, "Shape", None)
+
+        if shape is None:
+            return []
+
+        # Prefer wires because DXF/SVG imports may contain wires
+        # without usable faces.
+        wires = list(getattr(shape, "Wires", []) or [])
+
+        for wire in wires:
+            try:
+                if hasattr(wire, "isClosed") and not wire.isClosed():
+                    continue
+            except Exception:
+                continue
+
+            points = _extract_wire_points_ordered(
+                wire,
+                deflection=deflection
             )
-            if hole_to_part_clearance < 0.0:
-                hole_to_part_clearance = 0.0
-        except Exception:
-            hole_to_part_clearance = 6.0
-            
-        boundary_deflection = _read_boundary_deflection(panel, default=0.01)
 
-        payload = {
-            "sheet": {
-                "width": sheet_w,
-                "height": sheet_h,
-                "margin": sheet_margin,
-                "hole_to_part_clearance": hole_to_part_clearance,
-                "grain": panel.sheet_grain_combo.currentText(),
-            },
-            "placement_strategy": panel.select_strategy.currentText() if hasattr(panel, "select_strategy") else "Largest Area First",
-            "placement_algorithm": panel.nesting_algorithm.currentText() if hasattr(panel, "nesting_algorithm") else "Bottom Left",
-            "geometry_engine": panel.geometry_engine.currentText() if hasattr(panel, "geometry_engine") else "NFP",
-            "optimization": panel.optimization_combo.currentText() if hasattr(panel, "optimization_combo") else "None",
-            "gpu": panel.gpu_combo.currentText() if hasattr(panel, "gpu_combo") else "None",
-            "parts": [],
-            "offcuts": [],
+            if len(points) >= 3:
+                transformed = [
+                    _transform_point_without_translation(obj, point)
+                    for point in points
+                ]
+
+                candidates.append(transformed)
+
+        # Fallback to horizontal faces.
+        if not candidates:
+            for face in list(getattr(shape, "Faces", []) or []):
+                try:
+                    normal = face.normalAt(0.5, 0.5)
+
+                    if abs(normal.dot(App.Vector(0, 0, 1))) <= 0.9:
+                        continue
+                except Exception:
+                    continue
+
+                try:
+                    points = _extract_wire_points_ordered(
+                        face.OuterWire,
+                        deflection=deflection
+                    )
+                except Exception:
+                    points = []
+
+                if len(points) >= 3:
+                    transformed = [
+                        _transform_point_without_translation(obj, point)
+                        for point in points
+                    ]
+
+                    candidates.append(transformed)
+
+        if not candidates:
+            return []
+
+        # Use the largest contour as the outer part contour.
+        def polygon_area(points):
+            area = 0.0
+
+            for index in range(len(points)):
+                x1, y1 = points[index]
+                x2, y2 = points[(index + 1) % len(points)]
+                area += x1 * y2 - x2 * y1
+
+            return abs(area) * 0.5
+
+        outer = max(
+            candidates,
+            key=polygon_area
+        )
+
+        outer = _remove_duplicate_points(outer)
+
+        return _normalize_polygon(outer)
+
+    except Exception:
+        App.Console.PrintError(
+            "_extract_part_points failed:\n"
+            + traceback.format_exc()
+        )
+        return []
+
+def _read_float_widget(widget, default):
+    """
+    Read a non-negative floating-point value from a Qt widget.
+    """
+    try:
+        value = float(
+            str(widget.text()).strip().replace(",", ".")
+        )
+
+        return max(0.0, value)
+
+    except Exception:
+        return float(default)
+
+
+def _read_bool_combo(widget, default=False):
+    """
+    Read a boolean value from the project's False/True combo box.
+    """
+    try:
+        return widget.currentIndex() == 1
+    except Exception:
+        return bool(default)
+
+
+def _material_to_deepnest_sheet(material):
+    """
+    Convert one IP-Nesting material record to a Deepnest sheet record.
+    """
+    material_type = str(
+        material.get("type", "")
+    ).strip().lower()
+
+    quantity = max(
+        1,
+        int(
+            material.get(
+                "quantity",
+                material.get("count", 1)
+            )
+        )
+    )
+
+    if material_type in (
+        "rectangular",
+        "rect",
+        "sheet",
+        "rectangle"
+    ):
+        return {
+            "type": "rect",
+            "width": float(material.get("width", 0.0)),
+            "height": float(material.get("height", 0.0)),
+            "quantity": quantity
         }
 
-        # Export offcuts (duplicates allowed)
-        try:
-            offcuts = getattr(panel, "offcuts", None)
-            if offcuts:
-                for off in offcuts:
-                    try:
-                        polys = off.get("polygons") or []
-                        bbox = off.get("bbox") or {}
-                        if not polys or not isinstance(polys, list):
-                            App.Console.PrintMessage("Warning: offcut missing polygons; skipping: %s\n" % str(off.get("path")))
-                            continue
-                        payload["offcuts"].append({
-                            "label": off.get("label") or os.path.basename(str(off.get("path") or "")),
-                            "path": off.get("path") or "",
-                            "grain": (off.get("grain") or "None"),
-                            "polygons": polys,
-                            "bbox": bbox,
-                        })
-                    except Exception:
-                        App.Console.PrintError("Failed exporting an offcut:\n" + traceback.format_exc())
-        except Exception:
-            App.Console.PrintError("Offcut export failed:\n" + traceback.format_exc())
+    outer = material.get("outer") or []
 
-        p_doc = App.getDocument(panel.preview_doc_name) if panel.preview_doc_name in App.listDocuments() else None
+    if not outer:
+        polygons = material.get("polygons") or []
+
+        if polygons:
+            outer = polygons[0]
+
+    holes = material.get("holes") or []
+
+    return {
+        "type": "polygon",
+        "outer": [
+            {
+                "x": round(float(point[0]), 6),
+                "y": round(float(point[1]), 6)
+            }
+            for point in outer
+            if len(point) >= 2
+        ],
+        "holes": [
+            [
+                {
+                    "x": round(float(point[0]), 6),
+                    "y": round(float(point[1]), 6)
+                }
+                for point in hole
+                if len(point) >= 2
+            ]
+            for hole in holes
+        ],
+        "quantity": quantity
+    }
+
+
+def execute_nesting(panel):
+    """
+    Export the current FreeCAD nesting state to Deepnest input.json.
+    """
+    try:
+        App.Console.PrintMessage(
+            "Starting Deepnest input export...\n"
+        )
+
+        spacing = _read_float_widget(
+            panel.spacing,
+            0.0
+        )
+
+        sheet_margin = _read_float_widget(
+            panel.sheet_margin,
+            0.0
+        )
+
+        boundary_resolution = _read_float_widget(
+            panel.res,
+            0.1
+        )
+
+        threads = 1
+
+        try:
+            threads = max(
+                1,
+                int(panel.cpu_cores_combo.currentText())
+            )
+        except Exception:
+            pass
+
+        time_ratio = _read_float_widget(
+            panel.deepnest_time_ratio,
+            0.5
+        )
+
+        population_size = max(
+            1,
+            int(
+                float(
+                    str(
+                        panel.deepnest_population_size.text()
+                    ).strip()
+                )
+            )
+        )
+
+        mutation_rate = max(
+            0,
+            int(
+                float(
+                    str(
+                        panel.deepnest_mutation_rate.text()
+                    ).strip()
+                )
+            )
+        )
+
+        export_with_sheet_boundaries = _read_bool_combo(
+            panel.deepnest_export_sheet_boundaries,
+            False
+        )
+
+        export_with_sheets_space = _read_bool_combo(
+            panel.deepnest_export_sheets_space,
+            False
+        )
+
+        sheets = []
+
+        for material in getattr(panel, "offcuts", []) or []:
+            try:
+                sheet = _material_to_deepnest_sheet(material)
+
+                if sheet.get("type") == "rect":
+                    if (
+                        sheet["width"] > 0.0
+                        and sheet["height"] > 0.0
+                    ):
+                        sheets.append(sheet)
+                else:
+                    if len(sheet.get("outer", [])) >= 3:
+                        sheets.append(sheet)
+
+            except Exception:
+                App.Console.PrintError(
+                    "Failed to convert material to Deepnest sheet:\n"
+                    + traceback.format_exc()
+                )
+
+        p_doc = (
+            App.getDocument(panel.preview_doc_name)
+            if panel.preview_doc_name in App.listDocuments()
+            else None
+        )
+
         if not p_doc:
-            App.Console.PrintMessage("No preview document found; nothing to export.\n")
+            App.Console.PrintMessage(
+                "No preview document found; nothing to export.\n"
+            )
             return
 
-        data_rows = panel.table.rowCount() - panel.control_rows
+        parts = []
+
+        data_rows = (
+            panel.table.rowCount()
+            - panel.control_rows
+        )
+
         for row in range(data_rows):
             try:
                 name_item = panel.table.item(row, 0)
                 qty_item = panel.table.item(row, 1)
-                allowed_item = panel.table.item(row, 2)
+                rotation_item = panel.table.item(row, 2)
+
                 if not name_item:
                     continue
 
-                # Qty from table cell (already validated)
-                qty = int(qty_item.text()) if qty_item and qty_item.text().isdigit() else 1
+                quantity = 1
 
-                # NEW: allowed rotations as floats (supports 0.1)
-                allowed_str = allowed_item.text() if allowed_item else ""
-                allowed_rots = _parse_allowed_rotations_float(allowed_str)
-
-                # Grain direction from per-row widget (column 4): if checkbox enabled, read combobox, else None
-                grain_value = None
                 try:
-                    grain_widget = panel.table.cellWidget(row, 4)
-                    if grain_widget:
-                        cb = grain_widget.findChild(QtGui.QCheckBox)
-                        combo = grain_widget.findChild(QtGui.QComboBox)
-                        if cb and cb.isChecked() and combo:
-                            grain_value = combo.currentText()
-                except Exception:
-                    grain_value = None
-
-                # Primary preview object name stored at UserRole (keeps compatibility)
-                primary_name = name_item.data(QtCore.Qt.UserRole)
-                # If list of preview objects exists, prefer first in list
-                try:
-                    names_json = name_item.data(QtCore.Qt.UserRole + 1)
-                    if names_json:
-                        if isinstance(names_json, list):
-                            names_list = names_json
-                        else:
-                            names_list = json.loads(names_json)
-                        if names_list:
-                            primary_name = names_list[0]
+                    quantity = max(
+                        1,
+                        int(
+                            str(
+                                qty_item.text()
+                            ).strip()
+                        )
+                    )
                 except Exception:
                     pass
 
-                obj_name = primary_name
-                obj = p_doc.getObject(obj_name) if obj_name and p_doc else None
+                rotations = _read_rotation_count(
+                    rotation_item,
+                    default=1
+                )
+
+                primary_name = name_item.data(
+                    QtCore.Qt.UserRole
+                )
+
+                try:
+                    names_data = name_item.data(
+                        QtCore.Qt.UserRole + 1
+                    )
+
+                    if names_data:
+                        if isinstance(names_data, list):
+                            names = names_data
+                        else:
+                            names = json.loads(names_data)
+
+                        if names:
+                            primary_name = names[0]
+
+                except Exception:
+                    pass
+
+                obj = (
+                    p_doc.getObject(primary_name)
+                    if primary_name
+                    else None
+                )
+
                 if not obj:
-                    App.Console.PrintMessage("Warning: preview object '%s' not found in document; skipping.\n" % str(obj_name))
+                    App.Console.PrintMessage(
+                        "Preview object not found: %s\n"
+                        % str(primary_name)
+                    )
                     continue
 
-                base = obj.Placement.Base
-                rot = obj.Placement.Rotation
-                try:
-                    axis = rot.Axis
-                    angle = rot.Angle
-                    rotation_info = {
-                        "axis": [axis.x, axis.y, axis.z],
-                        "angle_degrees": math.degrees(angle)
-                    }
-                except Exception:
-                    rotation_info = {"axis": [0, 0, 1], "angle_degrees": 0}
+                points = _extract_part_points(
+                    obj,
+                    deflection=boundary_resolution
+                )
 
-                try:
-                    bbox = obj.Shape.BoundBox
-                    bbox_w = bbox.XMax - bbox.XMin
-                    bbox_h = bbox.YMax - bbox.YMin
-                except Exception:
-                    bbox_w = 0.0
-                    bbox_h = 0.0
+                if len(points) < 3:
+                    App.Console.PrintMessage(
+                        "No valid polygon points found for: %s\n"
+                        % str(primary_name)
+                    )
+                    continue
 
-                # polygon extraction
-                polygons = []
-                try:
-                    for face in obj.Shape.Faces:
-                        try:
-                            umin, umax, vmin, vmax = face.ParameterRange
-                            u_mid = umin + (umax - umin) / 2.0
-                            v_mid = vmin + (vmax - vmin) / 2.0
-                        except Exception:
-                            u_mid = 0.5
-                            v_mid = 0.5
-                        try:
-                            normal = face.normalAt(u_mid, v_mid)
-                        except Exception:
-                            normal = App.Vector(0, 0, 1)
+                parts.append({
+                    "points": points,
+                    "quantity": quantity,
+                    "rotations": rotations
+                })
 
-                        if abs(normal.dot(App.Vector(0, 0, 1))) > 0.9:
-                            try:
-                                wire = face.OuterWire
-                                verts = _extract_wire_points_ordered(wire, deflection=boundary_deflection)
-                                if verts and len(verts) >= 2:
-                                    polygons.append(verts)
-                            except Exception:
-                                try:
-                                    pts = face.discretize()
-                                    poly = []
-                                    for pt in pts:
-                                        poly.append([round(pt.x, 6), round(pt.y, 6)])
-                                    if poly:
-                                        polygons.append(poly)
-                                except Exception:
-                                    pass
-                    if not polygons:
-                        polys = [
-                            [
-                                [round(base.x + 0, 6), round(base.y + 0, 6)],
-                                [round(base.x + bbox_w, 6), round(base.y + 0, 6)],
-                                [round(base.x + bbox_w, 6), round(base.y + bbox_h, 6)],
-                                [round(base.x + 0, 6), round(base.y + bbox_h, 6)]
-                            ]
-                        ]
-                        polygons = polys
-                except Exception:
-                    App.Console.PrintError("Failed to extract polygon for %s:\n%s\n" % (obj_name, traceback.format_exc()))
-                    polygons = []
-
-                part_entry = {
-                    "label": obj.Label,
-                    "name": obj_name,
-                    "qty": qty,
-                    "allowed_rotations": allowed_rots,  # floats now
-                    "placement": {"x": base.x, "y": base.y, "z": base.z},
-                    "rotation": rotation_info,
-                    "bbox": {"width": bbox_w, "height": bbox_h},
-                    "polygons": polygons,
-                    "grain": grain_value,
-                }
-                payload["parts"].append(part_entry)
             except Exception:
-                App.Console.PrintError("Error preparing row %d for export:\n%s\n" % (row, traceback.format_exc()))
-                continue
+                App.Console.PrintError(
+                    "Failed to export part row %d:\n%s\n"
+                    % (
+                        row,
+                        traceback.format_exc()
+                    )
+                )
 
-        try:
-            script_dir = os.path.abspath(os.path.dirname(__file__))
-            out_path = os.path.join(script_dir, "libnest2d_export.json")
-            with open(out_path, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=2, ensure_ascii=False)
-            App.Console.PrintMessage("Nesting JSON written to: %s\n" % out_path)
-        except Exception:
-            App.Console.PrintError("Failed to write JSON file:\n" + traceback.format_exc())
+        payload = {
+            "settings": {
+                "units": "mm",
+                "spacing": spacing,
+                "partToSheet": sheet_margin,
+                "partToHole": 0.0,
+                "curveTolerance": boundary_resolution,
+                "placementType": "gravity",
+                "simplify": False,
+                "threads": threads,
+                "useSvgPreProcessor": False,
+                "scale": 1.0,
+                "endpointTolerance": boundary_resolution,
+                "dxfImportScale": 1.0,
+                "dxfExportScale": 1.0,
+                "exportWithSheetBoundboarders": export_with_sheet_boundaries,
+                "exportWithSheetsSpace": export_with_sheets_space,
+                "exportWithSheetsSpaceValue": _read_float_widget(
+                    panel.deepnest_export_sheets_space_value,
+                    0.13888
+                ),
+                "mergeLines": True,
+                "timeRatio": time_ratio,
+                "populationSize": population_size,
+                "mutationRate": mutation_rate,
+                "useQuantityFromFileName": False
+            },
+            "sheets": sheets,
+            "parts": parts,
+            "autoStart": True,
+            "output": {
+                "resultJson": "result.json"
+            }
+        }
+
+        script_dir = os.path.abspath(
+            os.path.dirname(__file__)
+        )
+
+        output_path = os.path.join(
+            script_dir,
+            "input.json"
+        )
+
+        with open(
+            output_path,
+            "w",
+            encoding="utf-8"
+        ) as output_file:
+            json.dump(
+                payload,
+                output_file,
+                indent=2,
+                ensure_ascii=False
+            )
+
+        App.Console.PrintMessage(
+            "Deepnest input written to: %s\n"
+            % output_path
+        )
 
     except Exception:
-        App.Console.PrintError("execute_nesting failed:\n" + traceback.format_exc())
+        App.Console.PrintError(
+            "execute_nesting failed:\n"
+            + traceback.format_exc()
+        )

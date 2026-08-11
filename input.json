@@ -1,0 +1,66 @@
+{
+  "settings": {
+    "units": "mm",
+    "spacing": 6.35,
+    "partToSheet": 6.35,
+    "partToHole": 0.0,
+    "curveTolerance": 0.01,
+    "placementType": "gravity",
+    "simplify": false,
+    "threads": 4,
+    "useSvgPreProcessor": false,
+    "scale": 1.0,
+    "endpointTolerance": 0.01,
+    "dxfImportScale": 1.0,
+    "dxfExportScale": 1.0,
+    "exportWithSheetBoundboarders": false,
+    "exportWithSheetsSpace": false,
+    "exportWithSheetsSpaceValue": 0.13888,
+    "mergeLines": true,
+    "timeRatio": 0.5,
+    "populationSize": 10,
+    "mutationRate": 10,
+    "useQuantityFromFileName": false
+  },
+  "sheets": [],
+  "parts": [
+    {
+      "points": [
+        {
+          "x": 11.715972,
+          "y": 56.568056
+        },
+        {
+          "x": 0.0,
+          "y": 28.28423
+        },
+        {
+          "x": 11.715,
+          "y": 0.0
+        },
+        {
+          "x": 68.285001,
+          "y": 0.0
+        },
+        {
+          "x": 80.0,
+          "y": 28.28423
+        },
+        {
+          "x": 68.284029,
+          "y": 56.568056
+        },
+        {
+          "x": 40.0,
+          "y": 68.283543
+        }
+      ],
+      "quantity": 1,
+      "rotations": 1
+    }
+  ],
+  "autoStart": true,
+  "output": {
+    "resultJson": "result.json"
+  }
+}

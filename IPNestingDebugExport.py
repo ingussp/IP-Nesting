@@ -34,7 +34,17 @@ def _bbox_of_points(points):
 
 
 def _translate_poly(points, dx, dy):
-    return [[float(p[0]) + dx, float(p[1]) + dy] for p in points if len(p) >= 2]
+    """
+    Translate Deepnest point objects into debug sketch coordinates.
+    """
+    return [
+        [
+            float(point.get("x", 0.0)) + dx,
+            float(point.get("y", 0.0)) + dy
+        ]
+        for point in points or []
+        if isinstance(point, dict)
+    ]
 
 
 def _add_poly_sketch(doc, name, label, poly):
@@ -104,15 +114,17 @@ def debug_draw_export_polygons(export_path):
         for i, part in enumerate(parts):
             try:
                 label = str(part.get("label", "Part_%d" % i))
-                polygons = part.get("polygons", [])
-                if not polygons or not isinstance(polygons, list):
+                points = part.get("points", [])
+                if not points or not isinstance(points, list):
                     continue
 
                 # Collect all polygon points to estimate bbox for layout
                 all_pts = []
-                for poly in polygons:
-                    if isinstance(poly, list):
-                        all_pts.extend([p for p in poly if isinstance(p, list) and len(p) >= 2])
+                all_pts = [
+                    [point.get("x", 0.0), point.get("y", 0.0)]
+                    for point in points
+                    if isinstance(point, dict)
+                ]
 
                 bb = _bbox_of_points(all_pts)
                 if bb is None:
@@ -127,15 +139,24 @@ def debug_draw_export_polygons(export_path):
                 dy = current_y - min_y
 
                 # Draw all polygons for this part
-                for poly_idx, poly in enumerate(polygons):
-                    if not isinstance(poly, list) or len(poly) < 2:
-                        continue
+                moved = _translate_poly(
+                    points,
+                    dx,
+                    dy
+                )
 
-                    moved = _translate_poly(poly, dx, dy)
+                sketch_name = _safe_name(
+                    "Dbg_%02d_%s" % (i, label)
+                )
 
-                    sketch_name = _safe_name("Dbg_%02d_%02d_%s" % (i, poly_idx, label))
-                    sketch_label = "%s [poly %d]" % (label, poly_idx)
-                    _add_poly_sketch(doc, sketch_name, sketch_label, moved)
+                sketch_label = "%s [points]" % label
+
+                _add_poly_sketch(
+                    doc,
+                    sketch_name,
+                    sketch_label,
+                    moved
+                )
 
                 # Advance layout
                 row_max_h = max(row_max_h, height)

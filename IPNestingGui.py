@@ -598,7 +598,7 @@ class NestingTaskPanel:
         self.layout.addWidget(QtGui.QLabel("<b>Selected Parts (Preview Mode)</b>"))
         self.table = QtGui.QTableWidget(self.control_rows, 5)  # reserve control_rows initially
         self.table.setHorizontalHeaderLabels([
-            "Body", "Qty", "Rotation degree", "Select for rotation", "Grain Direction"
+            "Body", "Qty", "Rotations", "Select for rotation", "Grain Direction"
         ])
         self.table.setMinimumHeight(400)
         self.table.horizontalHeader().setStretchLastSection(False)
@@ -710,7 +710,7 @@ class NestingTaskPanel:
             execute_nesting_impl(self)
 
             script_dir = os.path.abspath(os.path.dirname(__file__))
-            export_path = os.path.join(script_dir, "libnest2d_export.json")
+            export_path = os.path.join(script_dir, "input.json")
 
             if debug_draw_export_polygons is None:
                 App.Console.PrintError("debug_draw_export_polygons is not available.\n")
@@ -1321,7 +1321,7 @@ class NestingTaskPanel:
                     qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 1, qty_item)
                     # Column 2: Rotation degree defaults (centered)
-                    rot_item = QtGui.QTableWidgetItem("90")
+                    rot_item = QtGui.QTableWidgetItem("1")
                     rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 2, rot_item)
                     # Column 3: Select for rotation (checkbox) -- center the checkbox
@@ -1901,134 +1901,63 @@ class NestingTaskPanel:
             pass
 
     def execute_nesting(self):
-        """Export nesting JSON, run external nesting exe, then import result into preview."""
+        """
+        Generate input.json for the future Deepnest execution pipeline.
+        """
         try:
-            App.Console.PrintMessage("Starting nesting pipeline...\n")
+            App.Console.PrintMessage(
+                "Starting Deepnest input generation...\n"
+            )
 
-            # 1) Export input JSON
+            # Generate input.json only.
             execute_nesting_impl(self)
 
-            script_dir = os.path.abspath(os.path.dirname(__file__))
-            input_path = os.path.join(script_dir, "libnest2d_export.json")
-            output_path = os.path.join(script_dir, "libnest2d_import.json")
+            script_dir = os.path.abspath(
+                os.path.dirname(__file__)
+            )
 
-            exe_path = r"C:\dev\test_nest\build\Release\TestApp.exe"
+            input_path = os.path.join(
+                script_dir,
+                "input.json"
+            )
 
             if not os.path.exists(input_path):
-                App.Console.PrintError("Export JSON not found: %s\n" % input_path)
-                QtGui.QMessageBox.critical(None, "Nesting", "Export JSON file was not created.")
-                return
-
-            if not os.path.exists(exe_path):
-                App.Console.PrintError("Nesting exe not found: %s\n" % exe_path)
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting",
-                    "Nesting executable not found:\n%s" % exe_path
-                )
-                return
-
-            # 2) Run external nesting exe
-            cmd = [exe_path, input_path, output_path]
-            App.Console.PrintMessage("Running nesting exe:\n%s\n" % " ".join(cmd))
-
-            progress = None
-            try:
-                progress = QtGui.QProgressDialog("Running nesting...", None, 0, 0, self.form)
-                progress.setWindowTitle("Please wait")
-                progress.setWindowModality(QtCore.Qt.ApplicationModal)
-                progress.setCancelButton(None)
-                progress.setMinimumDuration(0)
-                progress.setAutoClose(False)
-                progress.setAutoReset(False)
-                progress.show()
-                QtGui.QApplication.processEvents()
-            except Exception:
-                progress = None
-
-            proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True
-            )
-            stdout, stderr = proc.communicate()
-
-            try:
-                if progress is not None:
-                    progress.close()
-            except Exception:
-                pass
-
-            if stdout:
-                App.Console.PrintMessage(stdout + ("" if stdout.endswith("\n") else "\n"))
-            if stderr:
-                App.Console.PrintError(stderr + ("" if stderr.endswith("\n") else "\n"))
-
-            if proc.returncode != 0:
-                App.Console.PrintError("Nesting exe failed with exit code %d\n" % proc.returncode)
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting failed",
-                    "Nesting executable failed with exit code %d." % proc.returncode
-                )
-                return
-
-            if not os.path.exists(output_path):
-                App.Console.PrintError("Import JSON not found after exe run: %s\n" % output_path)
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting failed",
-                    "Result JSON file was not created."
-                )
-                return
-
-            # 3) Import result back into preview document
-            if apply_nesting_result is None:
-                App.Console.PrintError("apply_nesting_result is not available.\n")
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting failed",
-                    "Import module is not available."
-                )
-                return
-
-            if import_nesting_sheets is None:
-                App.Console.PrintError("import_nesting_sheets is not available.\n")
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting failed",
-                    "Sheet import module is not available."
-                )
-                return
-
-            ok = import_nesting_sheets(input_path, output_path)
-            if not ok:
-                App.Console.PrintError("Failed to create nesting sheet documents.\n")
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Nesting failed",
-                    "Result JSON could not be imported into sheet documents."
-                )
-                return
-
-            # 4) Refresh grain/perimeter overlays if available
-            try:
-                self.update_grain_layout_and_perimeters()
-            except Exception:
                 App.Console.PrintError(
-                    "Failed to update grain layout after nesting:\n" + traceback.format_exc()
+                    "Deepnest input JSON was not created: %s\n"
+                    % input_path
                 )
 
-            App.Console.PrintMessage("Nesting pipeline completed successfully.\n")
+                QtGui.QMessageBox.critical(
+                    None,
+                    "Input generation failed",
+                    "The input.json file was not created."
+                )
+
+                return
+
+            App.Console.PrintMessage(
+                "Deepnest input JSON generated successfully:\n%s\n"
+                % input_path
+            )
+
+            QtGui.QMessageBox.information(
+                None,
+                "Input generated",
+                "The input.json file was generated successfully."
+            )
 
         except Exception:
-            App.Console.PrintError("execute_nesting failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "execute_nesting failed:\n"
+                + traceback.format_exc()
+            )
+
             try:
                 QtGui.QMessageBox.critical(
                     None,
-                    "Nesting error",
-                    "execute_nesting failed:\n%s" % traceback.format_exc()
+                    "Input generation error",
+                    "Failed to generate input.json:\n%s"
+                    % traceback.format_exc()
                 )
             except Exception:
                 pass
@@ -3141,7 +3070,7 @@ class NestingTaskPanel:
             qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 1, qty_item)
 
-            rot_item = QtGui.QTableWidgetItem("90")
+            rot_item = QtGui.QTableWidgetItem("1")
             rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 2, rot_item)
 
@@ -3289,71 +3218,35 @@ class NestingTaskPanel:
     
     def _clamp_rotation_degrees_text(self, txt):
         """
-        Clamp each comma-separated rotation token to [0.1 .. 359].
-        Keeps formatting as comma-separated numbers.
-        Invalid tokens are ignored.
-        If nothing valid remains -> returns default '90,180,270'
+        Normalize the rotation count field.
+
+        The value represents the number of allowed Deepnest rotation states,
+        not a comma-separated list of angles.
         """
         try:
             if txt is None:
-                return "90"
+                return "1"
 
-            s = str(txt).strip()
+            value = str(txt).strip()
 
-            if not s:
-                return "90"
+            if not value:
+                return "1"
 
-            out = []
+            # Accept decimal-looking input but store an integer.
+            rotations = int(float(value))
 
-            for token in s.replace("°", "").split(","):
-                token = token.strip()
+            # Keep the existing broad range for now.
+            # The Deepnest maximum can be restricted later.
+            rotations = max(1, min(5000, rotations))
 
-                if not token:
-                    continue
-
-                try:
-                    v = float(token)
-                except Exception:
-                    continue
-
-                if v < 0.1:
-                    v = 0.1
-
-                if v > 359.0:
-                    v = 359.0
-
-                if abs(v - round(v)) < 1e-9:
-                    out.append(
-                        str(int(round(v)))
-                    )
-                else:
-                    out.append(
-                        ("{:.3f}".format(v))
-                        .rstrip("0")
-                        .rstrip(".")
-                    )
-
-            if not out:
-                return "90,180,270"
-
-            seen = set()
-            out2 = []
-
-            for value in out:
-                if value in seen:
-                    continue
-
-                seen.add(value)
-                out2.append(value)
-
-            return ",".join(out2)
+            return str(rotations)
 
         except Exception:
-            return "90,180,270"
+            return "1"
 
 
     def _clamp_rotation_cell(self, row):
-        """Clamp Rotation degree cell (column 2) for a given data row."""
+        """Normalize the rotation count cell for a given data row."""
         try:
             if row is None:
                 return
