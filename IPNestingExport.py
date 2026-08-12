@@ -360,23 +360,97 @@ def _read_bool_combo(widget, default=False):
         return bool(default)
 
 
+def _points_to_deepnest_points(points):
+    """
+    Convert [x, y] point pairs to Deepnest point objects.
+    """
+    result = []
+
+    for point in points or []:
+        try:
+            if isinstance(point, dict):
+                x = float(point.get("x", 0.0))
+                y = float(point.get("y", 0.0))
+            else:
+                if len(point) < 2:
+                    continue
+
+                x = float(point[0])
+                y = float(point[1])
+
+            result.append({
+                "x": round(x, 6),
+                "y": round(y, 6)
+            })
+
+        except Exception:
+            continue
+
+    return result
+
+
+def _get_selected_material_holes(material):
+    """
+    Return all user-selected non-outer contours as hole polygons.
+
+    The contours list is the primary source of truth. The legacy
+    'holes' field is used only as a compatibility fallback.
+    """
+    contours = material.get("contours")
+
+    if contours:
+        selected_holes = []
+
+        for contour in contours:
+            try:
+                if contour.get("is_outer", False):
+                    continue
+
+                if not contour.get("selected", False):
+                    continue
+
+                polygon = contour.get("polygon") or []
+
+                if len(polygon) >= 3:
+                    selected_holes.append(polygon)
+
+            except Exception:
+                continue
+
+        return selected_holes
+
+    # Compatibility fallback for older material records.
+    return [
+        hole
+        for hole in (material.get("holes") or [])
+        if isinstance(hole, (list, tuple))
+        and len(hole) >= 3
+    ]
+
 def _material_to_deepnest_sheet(material):
     """
     Convert one IP-Nesting material record to a Deepnest sheet record.
+
+    All materials are exported, including rectangular sheets and DXF
+    offcuts. Selected non-outer contours are exported as holes.
     """
+    material = material or {}
+
     material_type = str(
         material.get("type", "")
     ).strip().lower()
 
-    quantity = max(
-        1,
-        int(
+    try:
+        quantity = int(
             material.get(
                 "quantity",
                 material.get("count", 1)
             )
         )
-    )
+    except Exception:
+        quantity = 1
+
+    quantity = max(1, quantity)
 
     if material_type in (
         "rectangular",
@@ -399,33 +473,18 @@ def _material_to_deepnest_sheet(material):
         if polygons:
             outer = polygons[0]
 
-    holes = material.get("holes") or []
+    holes = _get_selected_material_holes(material)
 
     return {
         "type": "polygon",
-        "outer": [
-            {
-                "x": round(float(point[0]), 6),
-                "y": round(float(point[1]), 6)
-            }
-            for point in outer
-            if len(point) >= 2
-        ],
+        "outer": _points_to_deepnest_points(outer),
         "holes": [
-            [
-                {
-                    "x": round(float(point[0]), 6),
-                    "y": round(float(point[1]), 6)
-                }
-                for point in hole
-                if len(point) >= 2
-            ]
+            _points_to_deepnest_points(hole)
             for hole in holes
         ],
         "quantity": quantity
     }
-
-
+    
 def execute_nesting(panel):
     """
     Export the current FreeCAD nesting state to Deepnest input.json.
@@ -450,42 +509,55 @@ def execute_nesting(panel):
             0.1
         )
 
-        threads = 1
-
         try:
             threads = max(
                 1,
-                int(panel.cpu_cores_combo.currentText())
+                int(
+                    panel.cpu_cores_combo.currentText()
+                )
             )
         except Exception:
-            pass
+            threads = 1
 
-        time_ratio = _read_float_widget(
-            panel.deepnest_time_ratio,
-            0.5
-        )
-
-        population_size = max(
-            1,
-            int(
+        try:
+            time_ratio = max(
+                0.0,
                 float(
                     str(
-                        panel.deepnest_population_size.text()
-                    ).strip()
+                        panel.deepnest_time_ratio.text()
+                    ).strip().replace(",", ".")
                 )
             )
-        )
+        except Exception:
+            time_ratio = 0.5
 
-        mutation_rate = max(
-            0,
-            int(
-                float(
-                    str(
-                        panel.deepnest_mutation_rate.text()
-                    ).strip()
+        try:
+            population_size = max(
+                1,
+                int(
+                    float(
+                        str(
+                            panel.deepnest_population_size.text()
+                        ).strip().replace(",", ".")
+                    )
                 )
             )
-        )
+        except Exception:
+            population_size = 10
+
+        try:
+            mutation_rate = max(
+                0,
+                int(
+                    float(
+                        str(
+                            panel.deepnest_mutation_rate.text()
+                        ).strip().replace(",", ".")
+                    )
+                )
+            )
+        except Exception:
+            mutation_rate = 10
 
         export_with_sheet_boundaries = _read_bool_combo(
             panel.deepnest_export_sheet_boundaries,
@@ -497,19 +569,35 @@ def execute_nesting(panel):
             False
         )
 
+        try:
+            export_with_sheets_space_value = max(
+                0.0,
+                float(
+                    str(
+                        panel.deepnest_export_sheets_space_value.text()
+                    ).strip().replace(",", ".")
+                )
+            )
+        except Exception:
+            export_with_sheets_space_value = 0.13888
+
+        # Export every added sheet and offcut.
         sheets = []
 
         for material in getattr(panel, "offcuts", []) or []:
             try:
-                sheet = _material_to_deepnest_sheet(material)
+                sheet = _material_to_deepnest_sheet(
+                    material
+                )
 
                 if sheet.get("type") == "rect":
                     if (
-                        sheet["width"] > 0.0
-                        and sheet["height"] > 0.0
+                        float(sheet.get("width", 0.0)) > 0.0
+                        and float(sheet.get("height", 0.0)) > 0.0
                     ):
                         sheets.append(sheet)
-                else:
+
+                elif sheet.get("type") == "polygon":
                     if len(sheet.get("outer", [])) >= 3:
                         sheets.append(sheet)
 
@@ -519,6 +607,7 @@ def execute_nesting(panel):
                     + traceback.format_exc()
                 )
 
+        # Get the preview document.
         p_doc = (
             App.getDocument(panel.preview_doc_name)
             if panel.preview_doc_name in App.listDocuments()
@@ -526,16 +615,17 @@ def execute_nesting(panel):
         )
 
         if not p_doc:
-            App.Console.PrintMessage(
-                "No preview document found; nothing to export.\n"
+            App.Console.PrintError(
+                "Preview document not found: %s\n"
+                % str(panel.preview_doc_name)
             )
-            return
+            return False
 
         parts = []
 
-        data_rows = (
-            panel.table.rowCount()
-            - panel.control_rows
+        data_rows = max(
+            0,
+            panel.table.rowCount() - panel.control_rows
         )
 
         for row in range(data_rows):
@@ -547,8 +637,6 @@ def execute_nesting(panel):
                 if not name_item:
                     continue
 
-                quantity = 1
-
                 try:
                     quantity = max(
                         1,
@@ -559,7 +647,7 @@ def execute_nesting(panel):
                         )
                     )
                 except Exception:
-                    pass
+                    quantity = 1
 
                 rotations = _read_rotation_count(
                     rotation_item,
@@ -570,6 +658,7 @@ def execute_nesting(panel):
                     QtCore.Qt.UserRole
                 )
 
+                # Prefer the first object from the full object-name list.
                 try:
                     names_data = name_item.data(
                         QtCore.Qt.UserRole + 1
@@ -587,14 +676,19 @@ def execute_nesting(panel):
                 except Exception:
                     pass
 
-                obj = (
-                    p_doc.getObject(primary_name)
-                    if primary_name
-                    else None
+                if not primary_name:
+                    App.Console.PrintWarning(
+                        "Part row %d has no preview object name.\n"
+                        % row
+                    )
+                    continue
+
+                obj = p_doc.getObject(
+                    primary_name
                 )
 
                 if not obj:
-                    App.Console.PrintMessage(
+                    App.Console.PrintWarning(
                         "Preview object not found: %s\n"
                         % str(primary_name)
                     )
@@ -606,7 +700,7 @@ def execute_nesting(panel):
                 )
 
                 if len(points) < 3:
-                    App.Console.PrintMessage(
+                    App.Console.PrintWarning(
                         "No valid polygon points found for: %s\n"
                         % str(primary_name)
                     )
@@ -642,11 +736,14 @@ def execute_nesting(panel):
                 "endpointTolerance": boundary_resolution,
                 "dxfImportScale": 1.0,
                 "dxfExportScale": 1.0,
-                "exportWithSheetBoundboarders": export_with_sheet_boundaries,
-                "exportWithSheetsSpace": export_with_sheets_space,
-                "exportWithSheetsSpaceValue": _read_float_widget(
-                    panel.deepnest_export_sheets_space_value,
-                    0.13888
+                "exportWithSheetBoundboarders": (
+                    export_with_sheet_boundaries
+                ),
+                "exportWithSheetsSpace": (
+                    export_with_sheets_space
+                ),
+                "exportWithSheetsSpaceValue": (
+                    export_with_sheets_space_value
                 ),
                 "mergeLines": True,
                 "timeRatio": time_ratio,
@@ -684,12 +781,16 @@ def execute_nesting(panel):
             )
 
         App.Console.PrintMessage(
-            "Deepnest input written to: %s\n"
+            "Deepnest input JSON written to: %s\n"
             % output_path
         )
+
+        return True
 
     except Exception:
         App.Console.PrintError(
             "execute_nesting failed:\n"
             + traceback.format_exc()
         )
+
+        return False

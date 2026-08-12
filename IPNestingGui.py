@@ -1902,15 +1902,44 @@ class NestingTaskPanel:
 
     def execute_nesting(self):
         """
-        Generate input.json for the future Deepnest execution pipeline.
+        Generate input.json after validating that sheets and parts exist.
         """
         try:
-            App.Console.PrintMessage(
-                "Starting Deepnest input generation...\n"
+            data_rows = max(
+                0,
+                self.table.rowCount() - self.control_rows
             )
 
-            # Generate input.json only.
-            execute_nesting_impl(self)
+            sheet_count = len(
+                getattr(self, "offcuts", []) or []
+            )
+
+            missing_items = []
+
+            if sheet_count == 0:
+                missing_items.append(
+                    "At least one sheet or offcut must be added."
+                )
+
+            if data_rows == 0:
+                missing_items.append(
+                    "At least one part must be added."
+                )
+
+            if missing_items:
+                message = "\n".join(
+                    "- %s" % item
+                    for item in missing_items
+                )
+
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    "Cannot start nesting",
+                    "Cannot start nesting until:\n\n%s"
+                    % message
+                )
+
+                return
 
             script_dir = os.path.abspath(
                 os.path.dirname(__file__)
@@ -1921,27 +1950,28 @@ class NestingTaskPanel:
                 "input.json"
             )
 
-            if not os.path.exists(input_path):
-                App.Console.PrintError(
-                    "Deepnest input JSON was not created: %s\n"
-                    % input_path
-                )
+            if os.path.exists(input_path):
+                try:
+                    os.remove(input_path)
+                except Exception:
+                    pass
 
+            generation_ok = execute_nesting_impl(self)
+
+            if generation_ok is not True:
+                return
+
+            if not os.path.exists(input_path):
                 QtGui.QMessageBox.critical(
-                    None,
+                    self.form,
                     "Input generation failed",
                     "The input.json file was not created."
                 )
 
                 return
 
-            App.Console.PrintMessage(
-                "Deepnest input JSON generated successfully:\n%s\n"
-                % input_path
-            )
-
             QtGui.QMessageBox.information(
-                None,
+                self.form,
                 "Input generated",
                 "The input.json file was generated successfully."
             )
@@ -1952,15 +1982,11 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
 
-            try:
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Input generation error",
-                    "Failed to generate input.json:\n%s"
-                    % traceback.format_exc()
-                )
-            except Exception:
-                pass
+            QtGui.QMessageBox.critical(
+                self.form,
+                "Input generation error",
+                "Failed to generate input.json."
+            )
 
     def getStandardButtons(self):
         buttons = QtGui.QDialogButtonBox.Cancel
