@@ -667,11 +667,101 @@ class GrainUIController:
                         if delta != 0:
                             self.panel._rotate_preview_parts_about_z(p_doc, [nm], delta)
 
-                        # After normalization, grain is aligned to +X
+                        # After normalization, grain is aligned to +X.
                         try:
                             obj.GrainAngleDeg = 0
                         except Exception:
                             pass
+
+                        # The part has now been rotated so that its grain direction
+                        # is parallel to the global X axis. Keep the table dropdown
+                        # synchronized with the actual displayed orientation.
+                        try:
+                            grain_axis_by_name[nm] = "X"
+
+                            data_rows = (
+                                self.panel.table.rowCount()
+                                - self.panel.control_rows
+                            )
+
+                            for row_index in range(data_rows):
+                                name_item = self.panel.table.item(
+                                    row_index,
+                                    0
+                                )
+
+                                if not name_item:
+                                    continue
+
+                                row_names = []
+
+                                try:
+                                    names_data = name_item.data(
+                                        QtCore.Qt.UserRole + 1
+                                    )
+
+                                    if names_data:
+                                        if isinstance(
+                                            names_data,
+                                            list
+                                        ):
+                                            row_names = list(names_data)
+                                        else:
+                                            row_names = json.loads(
+                                                names_data
+                                            )
+                                except Exception:
+                                    row_names = []
+
+                                if not row_names:
+                                    try:
+                                        primary_name = name_item.data(
+                                            QtCore.Qt.UserRole
+                                        )
+
+                                        if primary_name:
+                                            row_names = [
+                                                primary_name
+                                            ]
+                                    except Exception:
+                                        row_names = []
+
+                                if nm not in row_names:
+                                    continue
+
+                                grain_widget = self.panel.table.cellWidget(
+                                    row_index,
+                                    4
+                                )
+
+                                if not grain_widget:
+                                    break
+
+                                grain_combo = grain_widget.findChild(
+                                    QtGui.QComboBox
+                                )
+
+                                if grain_combo:
+                                    # X is the first item in the dropdown.
+                                    # Block the signal because the part has already
+                                    # been rotated and must not be rotated again.
+                                    grain_combo.blockSignals(True)
+
+                                    try:
+                                        grain_combo.setCurrentIndex(0)
+                                    finally:
+                                        grain_combo.blockSignals(False)
+
+                                break
+                        except Exception:
+                            App.Console.PrintError(
+                                "Failed to synchronize grain dropdown to X "
+                                "for '%s':\n%s\n"
+                                % (
+                                    str(nm),
+                                    traceback.format_exc()
+                                )
+                            )
 
                     except Exception:
                         continue
@@ -796,33 +886,46 @@ class GrainUIController:
                     custom_label="Parts with grain direction"
                 )
                 
-            # 7) Redraw grain arrows AFTER parts have been moved (otherwise arrows stay at old coords)
+            # 7) Redraw grain arrows after the parts have been moved.
+            #
+            # All grain parts were normalized above so that their grain direction
+            # is parallel to the global X axis. Therefore the final displayed arrow
+            # must always be horizontal, regardless of whether the user originally
+            # selected X, Y, or Custom angle.
             try:
                 if grain_parts:
                     for nm in grain_parts:
                         try:
-                            axis = grain_axis_by_name.get(
-                                nm,
-                                "X"
-                            )
-
                             GrainPreparer.update_grain_arrow(
                                 self.panel.preview_doc_name,
                                 nm,
                                 enable=True,
-                                axis=axis
+                                axis="X"
                             )
 
                         except Exception:
-                            pass
+                            App.Console.PrintError(
+                                "Failed to redraw final horizontal grain arrow "
+                                "for '%s':\n%s\n"
+                                % (
+                                    str(nm),
+                                    traceback.format_exc()
+                                )
+                            )
                 else:
-                    # optional: if no grain parts, remove all arrows (keeps scene clean)
+                    # Remove all arrows when there are no grain parts.
                     try:
-                        GrainPreparer.remove_all_grain_arrows(self.panel.preview_doc_name)
+                        GrainPreparer.remove_all_grain_arrows(
+                            self.panel.preview_doc_name
+                        )
                     except Exception:
                         pass
+
             except Exception:
-                pass
+                App.Console.PrintError(
+                    "Final grain arrow redraw failed:\n"
+                    + traceback.format_exc()
+                )
             
             # After successful apply/layout update, record snapshot and stop blinking
             try:

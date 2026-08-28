@@ -2641,9 +2641,19 @@ class NestingTaskPanel:
                             cb = grain_widget.findChild(QtGui.QCheckBox)
                             combo = grain_widget.findChild(QtGui.QComboBox)
                             if cb and cb.isChecked() and combo:
-                                GrainPreparer.update_grain_arrow(self.preview_doc_name, obj_name, enable=True, axis=combo.currentText())
+                                # The final Apply Grain layout normalizes the grain direction
+                                # to global X, therefore the displayed arrow must be horizontal.
+                                GrainPreparer.update_grain_arrow(
+                                    self.preview_doc_name,
+                                    obj_name,
+                                    enable=True,
+                                    axis="X"
+                                )
                             else:
-                                GrainPreparer.remove_grain_arrow(self.preview_doc_name, obj_name)
+                                GrainPreparer.remove_grain_arrow(
+                                    self.preview_doc_name,
+                                    obj_name
+                                )
                         except Exception:
                             pass
             except Exception:
