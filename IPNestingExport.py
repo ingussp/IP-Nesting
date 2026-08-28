@@ -10,6 +10,8 @@ import json
 import os
 import traceback
 import math
+import uuid
+from datetime import datetime
 
 
 def _points_equal_2d(a, b, tol=1e-6):
@@ -675,6 +677,130 @@ def _material_to_deepnest_sheet(material):
         "quantity": quantity
     }
 
+def _safe_json_value(value, default=None):
+    """
+    Return a JSON-safe value.
+    """
+    try:
+        json.dumps(value)
+        return value
+    except Exception:
+        return default
+
+
+def _get_object_property(obj, property_name, default=None):
+    """
+    Safely read an optional FreeCAD object property.
+    """
+    try:
+        if obj is not None and hasattr(obj, property_name):
+            return getattr(obj, property_name)
+    except Exception:
+        pass
+
+    return default
+
+
+def _get_source_type(obj):
+    """
+    Return the IP-Nesting source type for a preview object.
+
+    Expected values:
+        3d
+        dxf
+        svg
+        unknown
+    """
+    source_type = _get_object_property(
+        obj,
+        "IPNestingSourceType",
+        None
+    )
+
+    if source_type:
+        value = str(source_type).strip().lower()
+
+        if value in ("3d", "dxf", "svg"):
+            return value
+
+    label = str(
+        getattr(obj, "Label", "")
+        or ""
+    ).lower()
+
+    if label.startswith("dxf:"):
+        return "dxf"
+
+    if label.startswith("svg:"):
+        return "svg"
+
+    return "3d"
+
+
+def _get_grain_metadata(panel, row):
+    """
+    Read grain and Custom angle state from one table row.
+    """
+    metadata = {
+        "enabled": False,
+        "axis": "X",
+        "custom_angle_enabled": False,
+        "custom_angle_deg": None,
+        "normalized_axis": "X",
+    }
+
+    try:
+        grain_widget = panel.table.cellWidget(
+            row,
+            4
+        )
+
+        if grain_widget:
+            grain_checkbox = grain_widget.findChild(
+                QtGui.QCheckBox
+            )
+
+            grain_combo = grain_widget.findChild(
+                QtGui.QComboBox
+            )
+
+            metadata["enabled"] = bool(
+                grain_checkbox
+                and grain_checkbox.isChecked()
+            )
+
+            if grain_combo:
+                axis = str(
+                    grain_combo.currentText()
+                    or "X"
+                ).strip().upper()
+
+                if axis in ("X", "Y"):
+                    metadata["axis"] = axis
+
+    except Exception:
+        pass
+
+    try:
+        custom_widget = panel.table.cellWidget(
+            row,
+            5
+        )
+
+        if custom_widget:
+            custom_checkbox = custom_widget.findChild(
+                QtGui.QCheckBox
+            )
+
+            metadata["custom_angle_enabled"] = bool(
+                custom_checkbox
+                and custom_checkbox.isChecked()
+            )
+
+    except Exception:
+        pass
+
+    return metadata
 
 def execute_nesting(panel):
     """
@@ -685,6 +811,14 @@ def execute_nesting(panel):
         App.Console.PrintMessage(
             "Starting Deepnest input export...\n"
         )
+        
+        job_id = str(
+            uuid.uuid4()
+        )
+
+        created_at = datetime.utcnow().isoformat(
+            timespec="milliseconds"
+        ) + "Z"
 
         spacing = _read_float_widget(
             panel.spacing,
@@ -785,6 +919,27 @@ def execute_nesting(panel):
                 sheet = _material_to_deepnest_sheet(
                     material
                 )
+                
+                sheet["_ip_nesting"] = {
+                    "source_sheet_index": len(sheets),
+                    "material_id": material.get(
+                        "id"
+                    ),
+                    "material_type": material.get(
+                        "type"
+                    ),
+                    "label": material.get(
+                        "label"
+                    ),
+                    "grain": material.get(
+                        "grain",
+                        "None"
+                    ),
+                    "path": material.get(
+                        "path",
+                        ""
+                    )
+                }
 
                 if sheet.get(
                     "type"
@@ -841,20 +996,7 @@ def execute_nesting(panel):
                 )
             )
             return False
-
-        # FIX:
-        # Ensure that the latest visible state has been
-        # applied before extracting polygons.
-        #
-        # This is especially important after:
-        # - X grain direction;
-        # - Y grain direction;
-        # - Custom angle;
-        # - bulk rotation.
-        
-
-        # FIX:
-        # Recompute after all possible Placement changes.
+            
         try:
             p_doc.recompute()
         except Exception:
@@ -995,10 +1137,98 @@ def execute_nesting(panel):
                     )
                     continue
 
+                grain_metadata = _get_grain_metadata(
+                    panel,
+                    row
+                )
+
+                source_type = _get_source_type(
+                    obj
+                )
+
+                part_id = "part_%d" % len(parts)
+
                 parts.append({
+                    # Fields consumed by Deepnest.
+                    "id": part_id,
                     "points": points,
                     "quantity": quantity,
-                    "rotations": rotations
+                    "rotations": rotations,
+
+                    # Metadata consumed by the modified deepnest.exe
+                    # and by IPNestingResult.py.
+                    "_ip_nesting": {
+                        "job_id": job_id,
+                        "source_part_index": len(parts),
+                        "part_id": part_id,
+                        "label": str(
+                            name_item.text()
+                        ),
+                        "preview_document": str(
+                            panel.preview_doc_name
+                        ),
+                        "preview_object_name": str(
+                            primary_name
+                        ),
+                        "source_type": source_type,
+                        "grain": grain_metadata,
+                        "placement": {
+                            "base": {
+                                "x": float(
+                                    obj.Placement.Base.x
+                                ),
+                                "y": float(
+                                    obj.Placement.Base.y
+                                ),
+                                "z": float(
+                                    obj.Placement.Base.z
+                                )
+                            },
+                            "rotation": {
+                                "axis": {
+                                    "x": float(
+                                        obj.Placement.Rotation.Axis.x
+                                    ),
+                                    "y": float(
+                                        obj.Placement.Rotation.Axis.y
+                                    ),
+                                    "z": float(
+                                        obj.Placement.Rotation.Axis.z
+                                    )
+                                },
+                                "angle_rad": float(
+                                    obj.Placement.Rotation.Angle
+                                ),
+                                "angle_deg": float(
+                                    obj.Placement.Rotation.Angle
+                                ) * 180.0 / math.pi
+                            }
+                        },
+                        "shape_bbox": {
+                            "min_x": float(
+                                obj.Shape.BoundBox.XMin
+                            ),
+                            "max_x": float(
+                                obj.Shape.BoundBox.XMax
+                            ),
+                            "min_y": float(
+                                obj.Shape.BoundBox.YMin
+                            ),
+                            "max_y": float(
+                                obj.Shape.BoundBox.YMax
+                            ),
+                            "min_z": float(
+                                obj.Shape.BoundBox.ZMin
+                            ),
+                            "max_z": float(
+                                obj.Shape.BoundBox.ZMax
+                            )
+                        },
+                        "instance_prefix": (
+                            part_id
+                            + "_instance_"
+                        )
+                    }
                 })
 
             except Exception:
@@ -1012,6 +1242,19 @@ def execute_nesting(panel):
                 )
 
         payload = {
+            "schema_version": 1,
+            "job_id": job_id,
+            "created_at": created_at,
+
+            "_ip_nesting": {
+                "application": "FreeCAD",
+                "workbench": "IP-Nesting",
+                "preview_document": str(
+                    panel.preview_doc_name
+                ),
+                "result_file": "result.json",
+                "units": "mm"
+            },
             "settings": {
                 "units": "mm",
                 "spacing": spacing,
@@ -1057,7 +1300,81 @@ def execute_nesting(panel):
             script_dir,
             "input.json"
         )
+        
+        session_path = os.path.join(
+            script_dir,
+            "nesting_session.json"
+        )
 
+        session_payload = {
+            "schema_version": 1,
+            "job_id": job_id,
+            "created_at": created_at,
+            "input_file": output_path,
+            "result_file": os.path.join(
+                script_dir,
+                "result.json"
+            ),
+            "preview_document": str(
+                panel.preview_doc_name
+            ),
+            "parts": [
+                {
+                    "source_part_index": index,
+                    "part_id": part.get(
+                        "_ip_nesting",
+                        {}
+                    ).get(
+                        "part_id",
+                        "part_%d" % index
+                    ),
+                    "preview_object_name": part.get(
+                        "_ip_nesting",
+                        {}
+                    ).get(
+                        "preview_object_name"
+                    ),
+                    "label": part.get(
+                        "_ip_nesting",
+                        {}
+                    ).get(
+                        "label"
+                    ),
+                    "source_type": part.get(
+                        "_ip_nesting",
+                        {}
+                    ).get(
+                        "source_type",
+                        "unknown"
+                    ),
+                    "quantity": part.get(
+                        "quantity",
+                        1
+                    )
+                }
+                for index, part in enumerate(parts)
+            ],
+            "sheets": [
+                sheet.get(
+                    "_ip_nesting",
+                    {}
+                )
+                for sheet in sheets
+            ]
+        }
+
+        with open(
+            session_path,
+            "w",
+            encoding="utf-8"
+        ) as session_file:
+            json.dump(
+                session_payload,
+                session_file,
+                indent=2,
+                ensure_ascii=False
+            )
+        
         with open(
             output_path,
             "w",

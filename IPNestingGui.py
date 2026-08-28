@@ -21,6 +21,7 @@ from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 from IPNestingOffcutShowDialog import OffcutMaterialsController
+from IPNestingResult import NestingProcessManager
 
 MM_PER_INCH = 25.4
 
@@ -665,6 +666,10 @@ class NestingTaskPanel:
 
         # Initialize preview document manager (handles preview operations)
         self._preview = PreviewDocManager(self)
+        
+        # Manages deepnest.exe execution, result.json waiting,
+        # and Nesting_Result document creation.
+        self._nesting_manager = NestingProcessManager(self)
 
         # Add / Remove buttons (larger, with top/bottom margin 5px)
         self.btn_layout = QtGui.QHBoxLayout()
@@ -3112,7 +3117,9 @@ class NestingTaskPanel:
                 except Exception:
                     pass
 
-            generation_ok = execute_nesting_impl(self)
+            generation_ok = execute_nesting_impl(
+                self
+            )
 
             if generation_ok is not True:
                 return
@@ -3123,14 +3130,40 @@ class NestingTaskPanel:
                     "Input generation failed",
                     "The input.json file was not created."
                 )
-
                 return
 
-            QtGui.QMessageBox.information(
-                self.form,
-                "Input generated",
-                "The input.json file was generated successfully."
-            )
+            # Start deepnest.exe and wait asynchronously for result.json.
+            try:
+                started = self._nesting_manager.start_nesting(
+                    input_path=input_path
+                )
+
+                if not started:
+                    return
+
+            except Exception:
+                App.Console.PrintError(
+                    "Failed to start nesting process:\n"
+                    + traceback.format_exc()
+                )
+
+                QtGui.QMessageBox.critical(
+                    self.form,
+                    "Nesting start error",
+                    "Failed to start the nesting process."
+                )
+
+            except Exception:
+                App.Console.PrintError(
+                    "Failed to start nesting process:\n"
+                    + traceback.format_exc()
+                )
+
+                QtGui.QMessageBox.critical(
+                    self.form,
+                    "Nesting start error",
+                    "Failed to start the nesting process."
+                )
 
         except Exception:
             App.Console.PrintError(
