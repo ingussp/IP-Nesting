@@ -588,9 +588,9 @@ class NestingTaskPanel:
 
         # Table (with control_rows at the bottom)
         self.layout.addWidget(QtGui.QLabel("<b>Selected Parts (Preview Mode)</b>"))
-        self.table = QtGui.QTableWidget(self.control_rows, 5)  # reserve control_rows initially
+        self.table = QtGui.QTableWidget(self.control_rows, 6)  # reserve control_rows initially
         self.table.setHorizontalHeaderLabels([
-            "Body", "Qty", "Rotations", "Select for rotation", "Grain Direction"
+            "Body", "Qty", "Rotations", "Select for rotation", "Grain Direction", "Custom angle"
         ])
         try:
             self.table.horizontalHeaderItem(3).setToolTip(
@@ -601,6 +601,14 @@ class NestingTaskPanel:
                 "Rotating a part by 90 degrees makes a side face become the "
                 "top face. Rotating it by 180 degrees makes the bottom face "
                 "become the top face."
+            )
+        except Exception:
+            pass
+        try:
+            self.table.horizontalHeaderItem(5).setToolTip(
+                "Enable this checkbox to allow the "
+                "'Set custom angle' command to modify this part. "
+                "Grain Direction must also be enabled."
             )
         except Exception:
             pass
@@ -638,6 +646,9 @@ class NestingTaskPanel:
 
             # Grain Direction: same width as Rotation degree.
             self.table.setColumnWidth(4, rotation_width + 40)
+            
+            # Custom angle
+            self.table.setColumnWidth(5, rotation_width + 30)
         except Exception:
             pass
 
@@ -1886,20 +1897,202 @@ class NestingTaskPanel:
             App.Console.PrintError("Failed to create control rows:\n" + traceback.format_exc())
 
     def _on_set_angle_clicked(self):
+        """
+        Open the Custom angle dialog only for rows where both
+        Grain Direction and Custom angle are enabled.
+        """
         try:
-            arrow_names = self._collect_grain_arrow_names_from_table()
-            if not arrow_names:
-                QtGui.QMessageBox.information(
-                    None,
-                    "Set custom angle",
-                    "No grain parts selected.\nCheck 'Grain direction' checkbox in the table first."
+            grain_selected = False
+            custom_angle_selected = False
+            valid_arrow_names = []
+
+            data_rows = (
+                self.table.rowCount()
+                - self.control_rows
+            )
+
+            for row in range(data_rows):
+                try:
+                    grain_widget = self.table.cellWidget(
+                        row,
+                        4
+                    )
+
+                    custom_angle_widget = self.table.cellWidget(
+                        row,
+                        5
+                    )
+
+                    grain_checkbox = None
+                    custom_angle_checkbox = None
+
+                    if grain_widget is not None:
+                        grain_checkbox = grain_widget.findChild(
+                            QtGui.QCheckBox
+                        )
+
+                    if custom_angle_widget is not None:
+                        custom_angle_checkbox = (
+                            custom_angle_widget.findChild(
+                                QtGui.QCheckBox
+                            )
+                        )
+
+                    grain_checked = bool(
+                        grain_checkbox
+                        and grain_checkbox.isChecked()
+                    )
+
+                    custom_angle_checked = bool(
+                        custom_angle_checkbox
+                        and custom_angle_checkbox.isChecked()
+                    )
+
+                    if grain_checked:
+                        grain_selected = True
+
+                    if custom_angle_checked:
+                        custom_angle_selected = True
+
+                    # Custom angle requires both checkboxes.
+                    if not grain_checked or not custom_angle_checked:
+                        continue
+
+                    name_item = self.table.item(
+                        row,
+                        0
+                    )
+
+                    if not name_item:
+                        continue
+
+                    row_names = []
+
+                    try:
+                        names_data = name_item.data(
+                            QtCore.Qt.UserRole + 1
+                        )
+
+                        if names_data:
+                            if isinstance(
+                                names_data,
+                                list
+                            ):
+                                row_names = list(
+                                    names_data
+                                )
+                            else:
+                                row_names = json.loads(
+                                    names_data
+                                )
+
+                            if not isinstance(
+                                row_names,
+                                list
+                            ):
+                                row_names = [
+                                    row_names
+                                ]
+
+                    except Exception:
+                        row_names = []
+
+                    if not row_names:
+                        try:
+                            primary_name = name_item.data(
+                                QtCore.Qt.UserRole
+                            )
+
+                            if primary_name:
+                                row_names = [
+                                    primary_name
+                                ]
+
+                        except Exception:
+                            row_names = []
+
+                    if not row_names:
+                        continue
+
+                    if self.preview_doc_name not in App.listDocuments():
+                        continue
+
+                    p_doc = App.getDocument(
+                        self.preview_doc_name
+                    )
+
+                    if not p_doc:
+                        continue
+
+                    for object_name in row_names:
+                        try:
+                            arrow_name = (
+                                "GrainArrow_"
+                                + str(object_name)
+                            )
+
+                            if (
+                                p_doc.getObject(arrow_name)
+                                and arrow_name
+                                not in valid_arrow_names
+                            ):
+                                valid_arrow_names.append(
+                                    arrow_name
+                                )
+
+                        except Exception:
+                            continue
+
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to inspect Custom angle "
+                        "selection in row %d:\n%s\n"
+                        % (
+                            row,
+                            traceback.format_exc()
+                        )
+                    )
+
+            # No Grain Direction selected at all.
+            if not grain_selected:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    "Custom angle",
+                    "Select at least one part in the "
+                    "'Grain Direction' column first."
                 )
                 return
 
-            self._open_grain_angle_dialog_for_arrows(arrow_names)
+            # Grain Direction is selected, but Custom angle is not.
+            if not custom_angle_selected:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    "Custom angle",
+                    "To set a custom angle, select the "
+                    "'Custom angle' checkbox for the part(s) "
+                    "you want to modify."
+                )
+                return
+
+            # Both checkboxes are selected, but no arrow exists.
+            if not valid_arrow_names:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    "Custom angle",
+                    "No valid grain arrow was found for the "
+                    "selected Custom angle part(s)."
+                )
+                return
+
+            self._open_grain_angle_dialog_for_arrows(
+                valid_arrow_names
+            )
 
         except Exception:
-            App.Console.PrintError("_on_set_angle_clicked failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "_on_set_angle_clicked failed:\n"
+                + traceback.format_exc()
+            )
     
     def _collect_grain_arrow_names_from_table(self):
         """Return list of GrainArrow_<previewObjName> for ALL rows where Grain Direction checkbox is checked."""
@@ -2263,6 +2456,41 @@ class NestingTaskPanel:
                     grain_layout.addWidget(grain_combo)
                     grain_layout.addStretch()
                     self.table.setCellWidget(insert_pos, 4, container_grain)
+
+                    # Column 5: Custom angle checkbox
+                    container_custom_angle = QtGui.QWidget()
+                    custom_angle_layout = QtGui.QHBoxLayout(
+                        container_custom_angle
+                    )
+
+                    custom_angle_layout.setContentsMargins(
+                        0,
+                        0,
+                        0,
+                        0
+                    )
+
+                    custom_angle_layout.setSpacing(0)
+                    custom_angle_layout.addStretch()
+
+                    custom_angle_cb = QtGui.QCheckBox()
+                    custom_angle_cb.setToolTip(
+                        "Enable Custom angle for this part. "
+                        "The Set custom angle command can only modify parts "
+                        "where both Grain Direction and Custom angle are enabled."
+                    )
+
+                    custom_angle_layout.addWidget(
+                        custom_angle_cb
+                    )
+
+                    custom_angle_layout.addStretch()
+
+                    self.table.setCellWidget(
+                        insert_pos,
+                        5,
+                        container_custom_angle
+                    )
 
                     # connect per-row grain widgets so checking /  axis-change draws arrow
                     try:
@@ -2784,6 +3012,13 @@ class NestingTaskPanel:
                     w2 = self.table.cellWidget(r, 4)
                     if w2 is not None:
                         w2.setParent(None)
+                except Exception:
+                    pass
+                    
+                try:
+                    w3 = self.table.cellWidget(r, 5)
+                    if w3 is not None:
+                        w3.setParent(None)
                 except Exception:
                     pass
 
@@ -4058,6 +4293,41 @@ class NestingTaskPanel:
             grain_layout.addStretch()
             self.table.setCellWidget(insert_pos, 4, container_grain)
 
+            # Column 5: Custom angle checkbox
+            container_custom_angle = QtGui.QWidget()
+            custom_angle_layout = QtGui.QHBoxLayout(
+                container_custom_angle
+            )
+
+            custom_angle_layout.setContentsMargins(
+                0,
+                0,
+                0,
+                0
+            )
+
+            custom_angle_layout.setSpacing(0)
+            custom_angle_layout.addStretch()
+
+            custom_angle_cb = QtGui.QCheckBox()
+            custom_angle_cb.setToolTip(
+                "Enable Custom angle for this part. "
+                "The Set custom angle command can only modify parts "
+                "where both Grain Direction and Custom angle are enabled."
+            )
+
+            custom_angle_layout.addWidget(
+                custom_angle_cb
+            )
+
+            custom_angle_layout.addStretch()
+
+            self.table.setCellWidget(
+                insert_pos,
+                5,
+                container_custom_angle
+            )
+            
             try:
                 self._connect_grain_widgets(grain_cb, grain_combo, obj.Name)
             except Exception:
