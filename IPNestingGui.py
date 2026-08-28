@@ -41,14 +41,6 @@ except Exception:
     except Exception:
         App.Console.PrintError("Failed to import IPNestingImportSheets:\n" + traceback.format_exc())
         import_nesting_sheets = None
-try:
-    from IPNestingDebugExport import debug_draw_export_polygons
-except Exception:
-    try:
-        from .IPNestingDebugExport import debug_draw_export_polygons
-    except Exception:
-        App.Console.PrintError("Failed to import IPNestingDebugExport:\n" + traceback.format_exc())
-        debug_draw_export_polygons = None
 
 
 try:
@@ -704,39 +696,938 @@ class NestingTaskPanel:
         self._connect_settings_persistence()
 
     def debug_export_polygons(self):
-        """Draw exported polygons in a separate debug document."""
+        """
+        Show detailed textual debug information about the current
+        Nesting_Preview state.
+
+        This function deliberately does not generate input.json and does not
+        modify object placements. It only reads the current state visible in
+        FreeCAD and displays diagnostic information.
+        """
         try:
-            # First export current JSON using existing export pipeline
-            execute_nesting_impl(self)
+            lines = []
 
-            script_dir = os.path.abspath(os.path.dirname(__file__))
-            export_path = os.path.join(script_dir, "input.json")
+            def add(text=""):
+                lines.append(str(text))
 
-            if debug_draw_export_polygons is None:
-                App.Console.PrintError("debug_draw_export_polygons is not available.\n")
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Debug Export",
-                    "Debug export module is not available."
+            def safe_float(value):
+                try:
+                    return "%.9f" % float(value)
+                except Exception:
+                    return str(value)
+
+            def vector_text(vector):
+                try:
+                    return (
+                        "(x=%s, y=%s, z=%s)"
+                        % (
+                            safe_float(vector.x),
+                            safe_float(vector.y),
+                            safe_float(vector.z),
+                        )
+                    )
+                except Exception:
+                    try:
+                        return (
+                            "(X=%s, Y=%s, Z=%s)"
+                            % (
+                                safe_float(vector.X),
+                                safe_float(vector.Y),
+                                safe_float(vector.Z),
+                            )
+                        )
+                    except Exception:
+                        return str(vector)
+
+            def rotation_text(rotation):
+                try:
+                    axis = rotation.Axis
+                    angle = rotation.Angle
+
+                    try:
+                        angle_deg = float(angle) * 180.0 / math.pi
+                    except Exception:
+                        angle_deg = angle
+
+                    return (
+                        "Axis=%s, Angle(rad)=%s, Angle(deg)=%s"
+                        % (
+                            vector_text(axis),
+                            safe_float(angle),
+                            safe_float(angle_deg),
+                        )
+                    )
+                except Exception:
+                    return str(rotation)
+
+            def placement_text(placement):
+                try:
+                    return (
+                        "Base=%s | Rotation={%s}"
+                        % (
+                            vector_text(placement.Base),
+                            rotation_text(placement.Rotation),
+                        )
+                    )
+                except Exception:
+                    return str(placement)
+
+            def point2d_text(point):
+                try:
+                    return (
+                        "(x=%s, y=%s)"
+                        % (
+                            safe_float(point[0]),
+                            safe_float(point[1]),
+                        )
+                    )
+                except Exception:
+                    return str(point)
+
+            def point3d_text(point):
+                try:
+                    return (
+                        "(x=%s, y=%s, z=%s)"
+                        % (
+                            safe_float(point.x),
+                            safe_float(point.y),
+                            safe_float(point.z),
+                        )
+                    )
+                except Exception:
+                    return str(point)
+
+            def get_transformed_point(obj, point):
+                """
+                Transform a local Shape point using the complete current
+                Placement. This is the exact operation that should be used
+                to inspect the current visible orientation.
+                """
+                try:
+                    return obj.Placement.multVec(point)
+                except Exception:
+                    return None
+
+            def bbox_text(bbox):
+                try:
+                    return (
+                        "XMin=%s, XMax=%s, YMin=%s, YMax=%s, "
+                        "ZMin=%s, ZMax=%s | Width=%s, Height=%s, Depth=%s"
+                        % (
+                            safe_float(bbox.XMin),
+                            safe_float(bbox.XMax),
+                            safe_float(bbox.YMin),
+                            safe_float(bbox.YMax),
+                            safe_float(bbox.ZMin),
+                            safe_float(bbox.ZMax),
+                            safe_float(bbox.XMax - bbox.XMin),
+                            safe_float(bbox.YMax - bbox.YMin),
+                            safe_float(bbox.ZMax - bbox.ZMin),
+                        )
+                    )
+                except Exception:
+                    return str(bbox)
+
+            def property_text(obj):
+                try:
+                    properties = obj.PropertiesList
+                except Exception:
+                    properties = []
+
+                if not properties:
+                    return "  No custom properties."
+
+                result = []
+
+                for property_name in properties:
+                    try:
+                        value = getattr(obj, property_name)
+                        result.append(
+                            "  %s = %s"
+                            % (
+                                property_name,
+                                str(value),
+                            )
+                        )
+                    except Exception:
+                        result.append(
+                            "  %s = <unreadable>"
+                            % property_name
+                        )
+
+                return "\n".join(result)
+
+            def dump_shape(obj):
+                """
+                Dump shape topology and all available vertices in both:
+                - local Shape coordinates;
+                - current Placement-transformed coordinates.
+                """
+                shape = getattr(obj, "Shape", None)
+
+                if shape is None:
+                    add("Shape: None")
+                    return
+
+                add("Shape object: %s" % str(shape))
+
+                try:
+                    add("Shape.isNull(): %s" % str(shape.isNull()))
+                except Exception:
+                    add("Shape.isNull(): <unavailable>")
+
+                try:
+                    add("Shape.Volume: %s" % safe_float(shape.Volume))
+                except Exception:
+                    add("Shape.Volume: <unavailable>")
+
+                try:
+                    add("Shape.Area: %s" % safe_float(shape.Area))
+                except Exception:
+                    add("Shape.Area: <unavailable>")
+
+                try:
+                    add(
+                        "Topology counts: Solids=%d, Shells=%d, "
+                        "Faces=%d, Wires=%d, Edges=%d, Vertices=%d"
+                        % (
+                            len(getattr(shape, "Solids", []) or []),
+                            len(getattr(shape, "Shells", []) or []),
+                            len(getattr(shape, "Faces", []) or []),
+                            len(getattr(shape, "Wires", []) or []),
+                            len(getattr(shape, "Edges", []) or []),
+                            len(getattr(shape, "Vertexes", []) or []),
+                        )
+                    )
+                except Exception:
+                    add("Topology counts: <unavailable>")
+
+                try:
+                    local_bbox = shape.BoundBox
+                    add("Shape local BoundBox:")
+                    add("  " + bbox_text(local_bbox))
+                except Exception:
+                    add("Shape local BoundBox: <unavailable>")
+
+                try:
+                    vertices = list(
+                        getattr(shape, "Vertexes", []) or []
+                    )
+
+                    add(
+                        "Vertices (%d):"
+                        % len(vertices)
+                    )
+
+                    if not vertices:
+                        add("  <none>")
+
+                    for index, vertex in enumerate(vertices):
+                        try:
+                            local_point = vertex.Point
+                        except Exception:
+                            add(
+                                "  Vertex %d: <point unavailable>"
+                                % index
+                            )
+                            continue
+
+                        transformed_point = get_transformed_point(
+                            obj,
+                            local_point
+                        )
+
+                        add(
+                            "  Vertex %d local=%s transformed=%s"
+                            % (
+                                index,
+                                point3d_text(local_point),
+                                (
+                                    point3d_text(transformed_point)
+                                    if transformed_point is not None
+                                    else "<transformation failed>"
+                                ),
+                            )
+                        )
+
+                except Exception:
+                    add("Vertices: <unavailable>")
+
+                try:
+                    wires = list(
+                        getattr(shape, "Wires", []) or []
+                    )
+
+                    add(
+                        "Wires (%d):"
+                        % len(wires)
+                    )
+
+                    for wire_index, wire in enumerate(wires):
+                        try:
+                            is_closed = wire.isClosed()
+                        except Exception:
+                            is_closed = "<unavailable>"
+
+                        try:
+                            wire_edges = list(
+                                getattr(wire, "Edges", []) or []
+                            )
+                        except Exception:
+                            wire_edges = []
+
+                        add(
+                            "  Wire %d: closed=%s, edges=%d"
+                            % (
+                                wire_index,
+                                str(is_closed),
+                                len(wire_edges),
+                            )
+                        )
+
+                        for edge_index, edge in enumerate(wire_edges):
+                            try:
+                                edge_vertices = list(
+                                    getattr(edge, "Vertexes", []) or []
+                                )
+                            except Exception:
+                                edge_vertices = []
+
+                            add(
+                                "    Edge %d: vertices=%d"
+                                % (
+                                    edge_index,
+                                    len(edge_vertices),
+                                )
+                            )
+
+                            for vertex_index, vertex in enumerate(
+                                edge_vertices
+                            ):
+                                try:
+                                    local_point = vertex.Point
+                                except Exception:
+                                    continue
+
+                                transformed_point = (
+                                    get_transformed_point(
+                                        obj,
+                                        local_point
+                                    )
+                                )
+
+                                add(
+                                    "      V%d local=%s transformed=%s"
+                                    % (
+                                        vertex_index,
+                                        point3d_text(local_point),
+                                        (
+                                            point3d_text(
+                                                transformed_point
+                                            )
+                                            if transformed_point is not None
+                                            else "<failed>"
+                                        ),
+                                    )
+                                )
+
+                except Exception:
+                    add("Wires: <unavailable>")
+
+            def get_row_object_names(item):
+                names = []
+
+                if item is None:
+                    return names
+
+                try:
+                    list_data = item.data(
+                        QtCore.Qt.UserRole + 1
+                    )
+
+                    if list_data:
+                        if isinstance(
+                            list_data,
+                            list
+                        ):
+                            names = list(list_data)
+                        else:
+                            names = json.loads(
+                                list_data
+                            )
+
+                        if not isinstance(
+                            names,
+                            list
+                        ):
+                            names = [names]
+
+                except Exception:
+                    names = []
+
+                if not names:
+                    try:
+                        primary = item.data(
+                            QtCore.Qt.UserRole
+                        )
+
+                        if primary:
+                            names = [primary]
+
+                    except Exception:
+                        names = []
+
+                return [
+                    str(name)
+                    for name in names
+                    if name
+                ]
+
+            # ---------------------------------------------------------
+            # General information
+            # ---------------------------------------------------------
+
+            add("=" * 100)
+            add("IP-NESTING CURRENT STATE DEBUG")
+            add("=" * 100)
+            add("This report only reads the current FreeCAD state.")
+            add("No input.json was generated by this debug function.")
+            add("No object Placement was modified.")
+            add("")
+
+            add("Python file:")
+            add("  %s" % os.path.abspath(__file__))
+            add("")
+
+            add("FreeCAD:")
+            try:
+                add("  Version: %s" % str(App.Version()))
+            except Exception:
+                add("  Version: <unavailable>")
+
+            add("  Documents: %s" % str(App.listDocuments()))
+            add("  Preview document name: %s" % self.preview_doc_name)
+            add("  Display units: %s" % str(self.display_units))
+            add("")
+
+            # ---------------------------------------------------------
+            # Preview document
+            # ---------------------------------------------------------
+
+            if self.preview_doc_name not in App.listDocuments():
+                add("ERROR: Preview document does not exist.")
+            else:
+                p_doc = App.getDocument(
+                    self.preview_doc_name
                 )
-                return
 
-            ok = debug_draw_export_polygons(export_path)
-            if not ok:
-                QtGui.QMessageBox.critical(
-                    None,
-                    "Debug Export",
-                    "Failed to draw export polygons."
+                if p_doc is None:
+                    add("ERROR: Could not get preview document.")
+                else:
+                    try:
+                        p_doc.recompute()
+                        add(
+                            "Preview document recompute: completed"
+                        )
+                    except Exception:
+                        add(
+                            "Preview document recompute: FAILED"
+                        )
+
+                    add(
+                        "Preview document objects: %d"
+                        % len(p_doc.Objects)
+                    )
+                    add("")
+
+                    for object_index, obj in enumerate(
+                        p_doc.Objects
+                    ):
+                        try:
+                            name = getattr(
+                                obj,
+                                "Name",
+                                "<unknown>"
+                            )
+
+                            label = getattr(
+                                obj,
+                                "Label",
+                                "<no label>"
+                            )
+
+                            type_id = getattr(
+                                obj,
+                                "TypeId",
+                                "<unknown>"
+                            )
+
+                            add("-" * 100)
+                            add(
+                                "PREVIEW OBJECT %d"
+                                % object_index
+                            )
+                            add("-" * 100)
+                            add("Name: %s" % str(name))
+                            add("Label: %s" % str(label))
+                            add("TypeId: %s" % str(type_id))
+
+                            try:
+                                add(
+                                    "Visibility: %s"
+                                    % str(
+                                        obj.ViewObject.Visibility
+                                    )
+                                )
+                            except Exception:
+                                add(
+                                    "Visibility: <unavailable>"
+                                )
+
+                            try:
+                                add(
+                                    "Placement:"
+                                )
+                                add(
+                                    "  %s"
+                                    % placement_text(
+                                        obj.Placement
+                                    )
+                                )
+                            except Exception:
+                                add(
+                                    "Placement: <unavailable>"
+                                )
+
+                            try:
+                                add(
+                                    "Properties:"
+                                )
+                                add(
+                                    property_text(obj)
+                                )
+                            except Exception:
+                                add(
+                                    "Properties: <unavailable>"
+                                )
+
+                            dump_shape(obj)
+
+                            # Special information for grain arrows.
+                            if (
+                                str(name).startswith(
+                                    "GrainArrow_"
+                                )
+                                or str(label).startswith(
+                                    "GrainArrow_"
+                                )
+                            ):
+                                add("")
+                                add(
+                                    "This object is recognized as "
+                                    "a grain arrow."
+                                )
+
+                        except Exception:
+                            add(
+                                "Failed to dump preview object %d:\n%s"
+                                % (
+                                    object_index,
+                                    traceback.format_exc()
+                                )
+                            )
+
+            # ---------------------------------------------------------
+            # Table rows and their object associations
+            # ---------------------------------------------------------
+
+            add("")
+            add("=" * 100)
+            add("TABLE STATE")
+            add("=" * 100)
+
+            try:
+                total_rows = self.table.rowCount()
+                data_rows = max(
+                    0,
+                    total_rows - self.control_rows
                 )
-                return
+
+                add("Total table rows: %d" % total_rows)
+                add("Control rows: %d" % self.control_rows)
+                add("Data rows: %d" % data_rows)
+                add("")
+
+                for row in range(data_rows):
+                    add("-" * 100)
+                    add("TABLE DATA ROW %d" % row)
+                    add("-" * 100)
+
+                    name_item = self.table.item(row, 0)
+                    qty_item = self.table.item(row, 1)
+                    rotation_item = self.table.item(row, 2)
+
+                    if name_item is None:
+                        add("Name item: None")
+                        continue
+
+                    try:
+                        row_label = name_item.text()
+                    except Exception:
+                        row_label = "<unavailable>"
+
+                    try:
+                        quantity = qty_item.text()
+                    except Exception:
+                        quantity = "<unavailable>"
+
+                    try:
+                        rotations = rotation_item.text()
+                    except Exception:
+                        rotations = "<unavailable>"
+
+                    names = get_row_object_names(
+                        name_item
+                    )
+
+                    add("Label: %s" % str(row_label))
+                    add("Quantity: %s" % str(quantity))
+                    add("Allowed rotations: %s" % str(rotations))
+                    add(
+                        "Associated preview names: %s"
+                        % str(names)
+                    )
+
+                    try:
+                        grain_widget = self.table.cellWidget(
+                            row,
+                            4
+                        )
+
+                        if grain_widget is not None:
+                            grain_checkbox = (
+                                grain_widget.findChild(
+                                    QtGui.QCheckBox
+                                )
+                            )
+
+                            grain_combo = (
+                                grain_widget.findChild(
+                                    QtGui.QComboBox
+                                )
+                            )
+
+                            add(
+                                "Grain checkbox checked: %s"
+                                % str(
+                                    bool(
+                                        grain_checkbox
+                                        and grain_checkbox.isChecked()
+                                    )
+                                )
+                            )
+
+                            add(
+                                "Grain axis: %s"
+                                % str(
+                                    grain_combo.currentText()
+                                    if grain_combo
+                                    else "<unavailable>"
+                                )
+                            )
+
+                    except Exception:
+                        add(
+                            "Grain widget state: <unavailable>"
+                        )
+
+                    try:
+                        rotation_widget = self.table.cellWidget(
+                            row,
+                            3
+                        )
+
+                        if rotation_widget is not None:
+                            rotation_checkbox = (
+                                rotation_widget.findChild(
+                                    QtGui.QCheckBox
+                                )
+                            )
+
+                            add(
+                                "Rotation checkbox checked: %s"
+                                % str(
+                                    bool(
+                                        rotation_checkbox
+                                        and rotation_checkbox.isChecked()
+                                    )
+                                )
+                            )
+
+                    except Exception:
+                        add(
+                            "Rotation widget state: <unavailable>"
+                        )
+
+            except Exception:
+                add(
+                    "Failed to dump table state:\n%s"
+                    % traceback.format_exc()
+                )
+
+            # ---------------------------------------------------------
+            # Current grain state
+            # ---------------------------------------------------------
+
+            add("")
+            add("=" * 100)
+            add("PANEL GRAIN STATE")
+            add("=" * 100)
+
+            try:
+                grain_controller = getattr(
+                    self,
+                    "_grain",
+                    None
+                )
+
+                if grain_controller is None:
+                    add("Grain controller: None")
+                else:
+                    add(
+                        "Last applied grain state: %s"
+                        % str(
+                            getattr(
+                                grain_controller,
+                                "_last_applied_grain_state",
+                                None
+                            )
+                        )
+                    )
+
+                    try:
+                        current_state = (
+                            grain_controller
+                            ._get_current_grain_state()
+                        )
+
+                        add(
+                            "Current grain checkbox state: %s"
+                            % str(current_state)
+                        )
+
+                    except Exception:
+                        add(
+                            "Current grain checkbox state: "
+                            "<unavailable>"
+                        )
+
+            except Exception:
+                add(
+                    "Panel grain state: <unavailable>"
+                )
+
+            # ---------------------------------------------------------
+            # Current FreeCAD selection
+            # ---------------------------------------------------------
+
+            add("")
+            add("=" * 100)
+            add("FREECAD SELECTION")
+            add("=" * 100)
+
+            try:
+                selection = Gui.Selection.getSelection()
+
+                add(
+                    "Selected objects: %d"
+                    % len(selection)
+                )
+
+                for index, selected_obj in enumerate(
+                    selection
+                ):
+                    add(
+                        "  %d: Name=%s, Label=%s, Document=%s"
+                        % (
+                            index,
+                            str(
+                                getattr(
+                                    selected_obj,
+                                    "Name",
+                                    "<unknown>"
+                                )
+                            ),
+                            str(
+                                getattr(
+                                    selected_obj,
+                                    "Label",
+                                    "<unknown>"
+                                )
+                            ),
+                            str(
+                                getattr(
+                                    getattr(
+                                        selected_obj,
+                                        "Document",
+                                        None
+                                    ),
+                                    "Name",
+                                    "<unknown>"
+                                )
+                            ),
+                        )
+                    )
+
+            except Exception:
+                add(
+                    "Selection: <unavailable>"
+                )
+
+            # ---------------------------------------------------------
+            # Create popup dialog
+            # ---------------------------------------------------------
+
+            dialog = QtGui.QDialog(
+                QtGui.QApplication.activeWindow()
+            )
+
+            dialog.setWindowTitle(
+                "IP-Nesting Debug Export - Current State"
+            )
+
+            dialog.resize(
+                1200,
+                800
+            )
+
+            layout = QtGui.QVBoxLayout(
+                dialog
+            )
+
+            info_label = QtGui.QLabel(
+                "Detailed current-state debug. "
+                "The report includes local and Placement-transformed "
+                "geometry coordinates."
+            )
+
+            info_label.setWordWrap(True)
+            layout.addWidget(info_label)
+
+            text_edit = QtGui.QTextEdit()
+            text_edit.setReadOnly(True)
+            text_edit.setLineWrapMode(
+                QtGui.QTextEdit.NoWrap
+            )
+            text_edit.setPlainText(
+                "\n".join(lines)
+            )
+
+            layout.addWidget(
+                text_edit
+            )
+
+            buttons_layout = QtGui.QHBoxLayout()
+
+            copy_button = QtGui.QPushButton(
+                "Copy"
+            )
+
+            save_button = QtGui.QPushButton(
+                "Save debug text..."
+            )
+
+            close_button = QtGui.QPushButton(
+                "Close"
+            )
+
+            buttons_layout.addWidget(
+                copy_button
+            )
+
+            buttons_layout.addWidget(
+                save_button
+            )
+
+            buttons_layout.addStretch()
+
+            buttons_layout.addWidget(
+                close_button
+            )
+
+            layout.addLayout(
+                buttons_layout
+            )
+
+            def copy_debug_text():
+                try:
+                    QtGui.QApplication.clipboard().setText(
+                        text_edit.toPlainText()
+                    )
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to copy debug text:\n"
+                        + traceback.format_exc()
+                    )
+
+            def save_debug_text():
+                try:
+                    path, _ = QtGui.QFileDialog.getSaveFileName(
+                        dialog,
+                        "Save IP-Nesting debug text",
+                        "",
+                        "Text files (*.txt);;All files (*.*)"
+                    )
+
+                    if not path:
+                        return
+
+                    with open(
+                        path,
+                        "w",
+                        encoding="utf-8"
+                    ) as debug_file:
+                        debug_file.write(
+                            text_edit.toPlainText()
+                        )
+
+                    App.Console.PrintMessage(
+                        "IP-Nesting debug text saved to: %s\n"
+                        % path
+                    )
+
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to save debug text:\n"
+                        + traceback.format_exc()
+                    )
+
+            copy_button.clicked.connect(
+                copy_debug_text
+            )
+
+            save_button.clicked.connect(
+                save_debug_text
+            )
+
+            close_button.clicked.connect(
+                dialog.accept
+            )
+
+            dialog.exec_()
 
         except Exception:
-            App.Console.PrintError("debug_export_polygons failed:\n" + traceback.format_exc())
+            App.Console.PrintError(
+                "debug_export_polygons failed:\n"
+                + traceback.format_exc()
+            )
+
             try:
                 QtGui.QMessageBox.critical(
                     None,
-                    "Debug Export",
-                    "debug_export_polygons failed:\n%s" % traceback.format_exc()
+                    "IP-Nesting Debug",
+                    "Failed to create debug window:\n%s"
+                    % traceback.format_exc()
                 )
             except Exception:
                 pass
