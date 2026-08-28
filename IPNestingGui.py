@@ -592,6 +592,18 @@ class NestingTaskPanel:
         self.table.setHorizontalHeaderLabels([
             "Body", "Qty", "Rotations", "Select for rotation", "Grain Direction"
         ])
+        try:
+            self.table.horizontalHeaderItem(3).setToolTip(
+                "Select which parts will be rotated in the XY plane.\n\n"
+                "When parts are added, the alignment algorithm selects the "
+                "largest face and turns it upward. For some parts, the intended "
+                "top face may be smaller than a side or bottom face.\n\n"
+                "Rotating a part by 90 degrees makes a side face become the "
+                "top face. Rotating it by 180 degrees makes the bottom face "
+                "become the top face."
+            )
+        except Exception:
+            pass
         self.table.setMinimumHeight(400)
         self.table.horizontalHeader().setStretchLastSection(False)
         self.table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -2223,7 +2235,15 @@ class NestingTaskPanel:
                     # center: add stretch both sides
                     cell_layout_sel.addStretch()
                     checkbox = QtGui.QCheckBox()
-                    checkbox.setToolTip("Select this part for bulk Rotate")
+                    checkbox.setToolTip(
+                        "Select which parts will be rotated in the XY plane.\n\n"
+                        "When parts are added, the alignment algorithm selects the "
+                        "largest face and turns it upward. For some parts, the intended "
+                        "top face may be smaller than a side or bottom face.\n\n"
+                        "Rotating a part by 90 degrees makes a side face become the "
+                        "top face. Rotating it by 180 degrees makes the bottom face "
+                        "become the top face."
+                    )
                     cell_layout_sel.addWidget(checkbox)
                     cell_layout_sel.addStretch()
                     self.table.setCellWidget(insert_pos, 3, container_sel)
@@ -4008,7 +4028,15 @@ class NestingTaskPanel:
             cell_layout_sel.setSpacing(0)
             cell_layout_sel.addStretch()
             checkbox = QtGui.QCheckBox()
-            checkbox.setToolTip("Select this part for bulk Rotate")
+            checkbox.setToolTip(
+                "Select which parts will be rotated in the XY plane.\n\n"
+                "When parts are added, the alignment algorithm selects the "
+                "largest face and turns it upward. For some parts, the intended "
+                "top face may be smaller than a side or bottom face.\n\n"
+                "Rotating a part by 90 degrees makes a side face become the "
+                "top face. Rotating it by 180 degrees makes the bottom face "
+                "become the top face."
+            )
             cell_layout_sel.addWidget(checkbox)
             cell_layout_sel.addStretch()
             self.table.setCellWidget(insert_pos, 3, container_sel)
