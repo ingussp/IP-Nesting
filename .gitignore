@@ -1,4 +1,5 @@
 __pycache__/
 deepnest/
 input.json
+nesting_session.json
 todo.txt
