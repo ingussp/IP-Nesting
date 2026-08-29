@@ -722,6 +722,14 @@ class NestingTaskPanel:
 
         self._load_settings_from_prefs()
         self._connect_settings_persistence()
+        
+        # Initialize preview document manager
+        self._preview = PreviewDocManager(self)
+
+        # Initialize deepnest process/result manager
+        self._nesting_manager = NestingProcessManager(
+            self
+        )
 
     def debug_export_polygons(self):
         """
