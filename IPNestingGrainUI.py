@@ -324,15 +324,21 @@ class GrainUIController:
 
                         Gui.updateGui()
 
+                        # The unchecked part was moved during the layout update;
+                        # fit after arrows and perimeters have also been rebuilt.
+                        if not checked:
+                            try:
+                                self.panel._fit_all_views()
+                            except Exception:
+                                pass
+
                     except Exception:
                         pass
                     break
                 except Exception:
                     continue
 
-            # NOTE: We do NOT trigger layout update here.
-            # Layout updates happen only when "Apply Grain" is clicked.
-            # self.panel.update_grain_layout_and_perimeters()
+            # The unchecked path already updates layout and fits the view above.
 
             # update blinking button state
             try:
