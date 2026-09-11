@@ -2578,6 +2578,9 @@ class NestingTaskPanel:
         # TRIGGER LAYOUT UPDATE
         self.update_grain_layout_and_perimeters()
 
+        # Include perimeters and arrows in the final centered view.
+        self._fit_all_views()
+
         # update Apply Grain blink state (in case added rows have checked boxes programmatically)
         try:
             self._update_apply_blink_state()
@@ -2588,6 +2591,27 @@ class NestingTaskPanel:
     def update_grain_layout_and_perimeters(self):
         """Update grain layout and perimeters - delegates to grain controller."""
         self._grain.update_grain_layout_and_perimeters()
+
+    # Fit every visible object in the active FreeCAD view after preview geometry changes.
+    def _fit_all_views(self):
+        """Run FreeCAD's Std_ViewFitAll command for the preview document."""
+        try:
+            if self.preview_doc_name in App.listDocuments():
+                Gui.setActiveDocument(self.preview_doc_name)
+            Gui.runCommand("Std_ViewFitAll", 0)
+        except Exception:
+            try:
+                active = Gui.activeDocument()
+                if active is not None:
+                    active.activeView().fitAll()
+            except Exception:
+                try:
+                    Gui.SendMsgToActiveView("ViewFit")
+                except Exception:
+                    App.Console.PrintError(
+                        "Failed to fit all visible nesting objects:\n"
+                        + traceback.format_exc()
+                    )
 
 
     # Select preview objects for row - delegates to preview manager.
@@ -2852,6 +2876,9 @@ class NestingTaskPanel:
             
             # TRIGGER LAYOUT UPDATE
             self.update_grain_layout_and_perimeters()
+
+            # Recenter the scene after the selected parts were rotated.
+            self._fit_all_views()
             
         except Exception:
             App.Console.PrintError("apply_bulk_rotate wrapper failed:\n" + traceback.format_exc())
@@ -2979,6 +3006,9 @@ class NestingTaskPanel:
             
             # TRIGGER LAYOUT UPDATE
             self.update_grain_layout_and_perimeters()
+
+            # Recenter the scene after the grain direction and arrows changed.
+            self._fit_all_views()
 
             # update blinking state (checkboxes may be unchanged, but keep consistent)
             try:
@@ -3123,6 +3153,9 @@ class NestingTaskPanel:
         
         # TRIGGER LAYOUT UPDATE
         self.update_grain_layout_and_perimeters()
+
+        # The grain perimeters and arrows may extend the scene after relayout.
+        self._fit_all_views()
 
         # update Apply Grain blink state
         try:
@@ -3450,6 +3483,9 @@ class NestingTaskPanel:
                 # Run the same pipeline as "Apply Grain"
                 try:
                     self.update_grain_layout_and_perimeters()
+
+                    # Recenter all remaining parts after rotation and grain layout changes.
+                    self._fit_all_views()
                 except Exception:
                     pass
             
@@ -4525,6 +4561,9 @@ class NestingTaskPanel:
             # update perimeters/layout
             try:
                 self.update_grain_layout_and_perimeters()
+
+                # Recenter the imported part together with its perimeters and arrows.
+                self._fit_all_views()
             except Exception:
                 pass
             try:
@@ -4572,6 +4611,9 @@ class NestingTaskPanel:
 
             try:
                 self.update_grain_layout_and_perimeters()
+
+                # Recenter the imported part together with its perimeters and arrows.
+                self._fit_all_views()
             except Exception:
                 pass
             try:

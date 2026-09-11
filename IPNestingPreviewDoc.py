@@ -179,6 +179,12 @@ class PreviewDocManager:
                 # TRIGGER LAYOUT UPDATE AFTER DELETE
                 self.panel.update_grain_layout_and_perimeters()
 
+                # Include all remaining geometry and annotations in the visible frame.
+                try:
+                    self.panel._fit_all_views()
+                except Exception:
+                    pass
+
                 # update Apply Grain blink state after deletions
                 try:
                     self.panel._update_apply_blink_state()
