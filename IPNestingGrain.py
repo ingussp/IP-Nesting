@@ -199,109 +199,34 @@ class GrainPreparer:
 
         return found, min_x, min_y, max_x, max_y, subset_part_count
 
-    # Compute (world_font_size, final_margin, scale_multiplier) using the same logic perimeter
-    # drawing needs. Centralizing this allows UI to use identical margin (so expanded perimeters
-    # never overlap).
+    # Size each group's caption and margin from its own bounds, independent of camera or spacing.
     @staticmethod
     def _compute_font_and_margin(preview_doc_name, p_doc, min_x, min_y, max_x, max_y, subset_part_count):
-        """
-        Compute (world_font_size, final_margin, scale_multiplier) using the same logic
-        perimeter drawing needs. Centralizing this allows UI to use identical margin
-        (so expanded perimeters never overlap).
-        """
-        # Use GLOBAL document metrics so font stays consistent between subsets.
-        global_diag, global_count = GrainPreparer._get_global_bbox_diag(p_doc)
-
-        # View / screen metrics
-        view = None
-        try:
-            view = Gui.getDocument(preview_doc_name).ActiveView
-        except Exception:
-            pass
-
-        screen_diag = None
-        try:
-            if view:
-                size = view.getSize()
-                if isinstance(size, (tuple, list)) and len(size) >= 2:
-                    screen_diag = math.hypot(size[0], size[1])
-        except Exception:
-            screen_diag = None
-
-        pixels_per_unit = None
-        if screen_diag and global_diag > 1e-9:
-            pixels_per_unit = screen_diag / global_diag
-
-        # Calculate based on GLOBAL count so font stays consistent
-        desired_text_px = int(max(10, min(120, 40 + 4 * math.log(max(1, global_count)))))
-        desired_margin_px = int(max(8, min(200, 25 + 3 * math.sqrt(max(1, global_count)))))
-
-        world_font_size = None
-        final_margin = None
-
-        try:
-            if pixels_per_unit and pixels_per_unit > 0:
-                world_per_pixel = 1.0 / pixels_per_unit
-                world_font_size = desired_text_px * world_per_pixel
-                final_margin = desired_margin_px * world_per_pixel
-
-                # Clamp based on global diag
-                max_font = max(1.0, global_diag * 0.05)
-                world_font_size = max(1.0, min(world_font_size, max_font))
-
-                # Margin
-                final_margin = max(1.0, min(final_margin, global_diag * 0.05))
-            else:
-                # Fallback if no view
-                world_font_size = max(1.0, min(global_diag * 0.03, 12.0))
-                final_margin = max(1.0, min(global_diag * 0.05, 10.0))
-        except Exception:
-            world_font_size = 12.0
-            final_margin = 10.0
-
-        # (1) Apply "scale method" for both labels (with/without grain)
+        """Return proportional font size, perimeter margin and neutral text scaling."""
+        width = max(0.0, float(max_x - min_x))
+        height = max(0.0, float(max_y - min_y))
+        diagonal = max(1e-6, math.hypot(width, height))
         label_scale, margin_scale = GrainPreparer._safe_get_scale_factors()
-        try:
-            world_font_size = max(1.0, float(world_font_size) * float(label_scale))
-        except Exception:
-            pass
-        try:
-            final_margin = max(1.0, float(final_margin) * float(margin_scale))
-        except Exception:
-            pass
 
-        # --- NEW: scale font by perimeter square side (sqrt(area)) ---
-        # Variant 2: scale by "side length" = sqrt(area)
-        # We normalize against global_diag to keep it stable across docs.
-        side_scale = 1.0
-        try:
-            subset_w = max(0.0, float(max_x - min_x))
-            subset_h = max(0.0, float(max_y - min_y))
-            square_side = math.sqrt(max(1e-9, subset_w * subset_h))  # sqrt(area)
-            if global_diag and global_diag > 1e-9:
-                side_scale = square_side / float(global_diag)
-            else:
-                side_scale = 1.0
-            # clamp: prevent extreme values
-            side_scale = max(0.6, min(side_scale, 3.0))
-        except Exception:
-            side_scale = 1.0
+        # A single part gets the same proportions as a group with the same bounds.
+        # Keep world-space sizing stable when the groups move or the view is fitted.
+        font_size = diagonal * 0.05 * label_scale
+        margin = diagonal * 0.05 * margin_scale
+        return float(font_size), float(margin), 1.0
 
-        try:
-            world_font_size = max(1.0, float(world_font_size) * float(side_scale))
-        except Exception:
-            pass
-
-        # --- NEW: FreeCAD 1.0.2 specific: ScaleMultiplier support ---
-        scale_multiplier = None
-        try:
-            # side_scale in [0.6..3.0] -> multiplier in about [2.0..12.0]
-            scale_multiplier = 1.0 - 2 * float(side_scale)
-            scale_multiplier = max(1.0, min(scale_multiplier, 10.0))
-        except Exception:
-            scale_multiplier = None
-
-        return float(world_font_size), float(final_margin), scale_multiplier
+    # Reserve proportional space above the lower perimeter for its caption and a clear gap.
+    @staticmethod
+    def _compute_group_gap(preview_doc_name, p_doc, subset_info):
+        """Return border-to-border clearance including the lower group's caption."""
+        _, min_x, min_y, max_x, max_y, count, margin = subset_info
+        font_size, _, _ = GrainPreparer._compute_font_and_margin(
+            preview_doc_name, p_doc, min_x, min_y, max_x, max_y, count
+        )
+        perimeter_height = max_y - min_y + 2.0 * margin
+        # Caption baseline is margin + half a font above the perimeter.
+        # Allow extra font height for ascenders/descenders and visible whitespace.
+        caption_clearance = margin + 3.0 * font_size
+        return max(0.30 * perimeter_height, caption_clearance)
 
     # Return subset XY bounds, part count and the margin used to draw its perimeter.
     @staticmethod
@@ -337,7 +262,7 @@ class GrainPreparer:
     @staticmethod
     def draw_perimeter_and_label(
         preview_doc_name,
-        base_label_offset=20.0,
+        base_label_offset=None,
         subset_names=None,
         custom_label="Parts without grain direction",
         line_color=None,
@@ -468,7 +393,9 @@ class GrainPreparer:
                     pass
 
             # Create Label
-            label_pos = App.Vector(min_x, max_y + float(base_label_offset) + final_margin, 0)
+            # Default caption offset scales with the font; explicit caller offsets remain supported.
+            label_offset = 0.5 * world_font_size if base_label_offset is None else float(base_label_offset)
+            label_pos = App.Vector(min_x, max_y + label_offset + final_margin, 0)
             text_obj = None
 
             if Draft is not None:
@@ -624,8 +551,9 @@ class GrainPreparer:
                     w = it["w"]
                     h = it["h"]
 
-                    # If wider than side, wrap
-                    if cur_x + w > side:
+                    # Wrap only a populated row; an oversized first part stays at the anchor.
+                    # Otherwise every repack adds a blank row and shifts the whole group down.
+                    if cur_x > 0.0 and cur_x + w > side:
                         cur_x = 0.0
                         cur_y += row_h + pad
                         row_h = 0.0
@@ -981,4 +909,3 @@ class GrainPreparer:
             App.Console.PrintError("update_grain_arrow failed:\n" + traceback.format_exc())
             return False
             
-
