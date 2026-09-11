@@ -2,6 +2,7 @@
 Material preview cards with grain, contour exclusion and shared-clearance controls.
 Supports rectangular sheets and DXF offcuts with resizable, zoomable previews.
 """
+from IPNestingLanguages import tr, translate_buttons
 
 import traceback
 import math
@@ -52,7 +53,7 @@ def _sync_compatibility_holes(offcut):
 
     except Exception:
         App.Console.PrintError(
-            "_sync_compatibility_holes failed:\n"
+            tr('sync_compatibility_holes_failed')
             + traceback.format_exc()
         )
 
@@ -434,7 +435,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                     else "mm"
                 )
 
-                text = "%s %s" % (
+                text = tr('s_s_265fc5') % (
                     display_value,
                     unit_text
                 )
@@ -516,7 +517,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         except Exception:
             App.Console.PrintError(
-                "_add_outer_dimension_labels failed:\n"
+                tr('add_outer_dimension_labels_failed')
                 + traceback.format_exc()
             )
     
@@ -653,7 +654,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         except Exception:
             App.Console.PrintError(
-                "_add_grain_arrow_to_scene failed:\n"
+                tr('add_grain_arrow_to_scene_failed')
                 + traceback.format_exc()
             )
 
@@ -684,7 +685,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         except Exception:
             App.Console.PrintError(
-                "_OffcutPreview.set_display_units failed:\n"
+                tr('offcutpreview_set_display_units_failed')
                 + traceback.format_exc()
             )
     
@@ -862,7 +863,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         except Exception:
             App.Console.PrintError(
-                "OffcutPreview.wheelEvent failed:\n"
+                tr('offcutpreview_wheelevent_failed')
                 + traceback.format_exc()
             )
             event.ignore()
@@ -1011,7 +1012,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 height = height_mm
                 suffix = "mm"
 
-            return "Sheet %.3f x %.3f %s" % (
+            return tr('sheet_3f_x_3f_s') % (
                 width,
                 height,
                 suffix
@@ -1028,7 +1029,7 @@ class OffcutShowDialog(QtGui.QDialog):
     # Build material preview cards and connect grain, contour and shared-clearance controls.
     def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
-        self.setWindowTitle("Offcuts")
+        self.setWindowTitle(tr('offcuts'))
         self.setModal(True)
         
         self.setSizeGripEnabled(True)
@@ -1088,8 +1089,7 @@ class OffcutShowDialog(QtGui.QDialog):
         root = QtGui.QVBoxLayout(self)
 
         info = QtGui.QLabel(
-            "Added sheets and offcuts. "
-            "Grain direction is relative to the material local axes."
+            tr('added_sheets_and_offcuts_grain_direction_is_relative_to_the_material_local_axes')
         )
         root.addWidget(info)
 
@@ -1141,7 +1141,7 @@ class OffcutShowDialog(QtGui.QDialog):
             header_lay.setSpacing(12)
 
             title = QtGui.QLabel(
-                "<b>%s</b>  |  Count: %d"
+                tr('b_s_b_count_d')
                 % (label, count)
             )
             header_lay.addWidget(title)
@@ -1151,14 +1151,14 @@ class OffcutShowDialog(QtGui.QDialog):
 
             clearance_lay.addWidget(
                 QtGui.QLabel(
-                    "Hole-to-part clearance:"
+                    tr('hole_to_part_clearance')
                 )
             )
 
             clearance_combo = QtGui.QComboBox()
             clearance_combo.addItems([
-                "same as part spacing",
-                "custom",
+                tr('same_as_part_spacing'),
+                tr('custom'),
             ])
             clearance_combo.setMinimumWidth(180)
 
@@ -1166,7 +1166,7 @@ class OffcutShowDialog(QtGui.QDialog):
             clearance_edit.setMinimumWidth(90)
             clearance_edit.setMaximumWidth(120)
             clearance_edit.setToolTip(
-                "Custom distance from hole edge to part edge."
+                tr('custom_distance_from_hole_edge_to_part_edge')
             )
             
             clearance_unit_label = QtGui.QLabel(
@@ -1216,11 +1216,11 @@ class OffcutShowDialog(QtGui.QDialog):
             header_lay.addStretch(1)
 
             header_lay.addWidget(
-                QtGui.QLabel("Grain direction:")
+                QtGui.QLabel(tr('grain_direction_4f9262'))
             )
 
             combo = QtGui.QComboBox()
-            combo.addItems(["None", "X", "Y"])
+            combo.addItems([tr('none_6eef66'), "X", "Y"])
             combo.setMinimumWidth(75)
 
             grain = str(
@@ -1355,7 +1355,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to update contour state:\n"
+                        tr('failed_to_update_contour_state')
                         + traceback.format_exc()
                     )
             
@@ -1409,6 +1409,7 @@ class OffcutShowDialog(QtGui.QDialog):
         scroll.setWidget(container)
 
         buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        translate_buttons(buttons)
         buttons.rejected.connect(self.reject)
         buttons.accepted.connect(self.accept)
         root.addWidget(buttons)
@@ -1445,7 +1446,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "OffcutShowDialog.set_display_units failed:\n"
+                tr('offcutshowdialog_set_display_units_failed')
                 + traceback.format_exc()
             )
     
@@ -1485,7 +1486,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "_resize_cards_to_viewport failed:\n"
+                tr('resize_cards_to_viewport_failed')
                 + traceback.format_exc()
             )
             
@@ -1510,7 +1511,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "_store_shared_clearance_state failed:\n"
+                tr('store_shared_clearance_state_failed')
                 + traceback.format_exc()
             )
 
@@ -1561,7 +1562,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "_apply_shared_clearance_to_widgets failed:\n"
+                tr('apply_shared_clearance_to_widgets_failed')
                 + traceback.format_exc()
             )
 
@@ -1581,7 +1582,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "_on_shared_clearance_mode_changed failed:\n"
+                tr('on_shared_clearance_mode_changed_failed')
                 + traceback.format_exc()
             )
 
@@ -1615,7 +1616,7 @@ class OffcutShowDialog(QtGui.QDialog):
 
         except Exception:
             App.Console.PrintError(
-                "_on_shared_clearance_value_changed failed:\n"
+                tr('on_shared_clearance_value_changed_failed')
                 + traceback.format_exc()
             )
     
@@ -1673,7 +1674,7 @@ class OffcutMaterialsController(object):
 
             if dialog.result_type == "rectangular":
                 App.Console.PrintMessage(
-                    "[Offcuts][DIALOG] processing rectangular sheet\n"
+                    tr('offcuts_dialog_processing_rectangular_sheet')
                 )
 
                 self._process_rectangular_sheet_result(
@@ -1682,7 +1683,7 @@ class OffcutMaterialsController(object):
 
             elif dialog.result_type == "dxf":
                 App.Console.PrintMessage(
-                    "[Offcuts][DIALOG] processing DXF offcut\n"
+                    tr('offcuts_dialog_processing_dxf_offcut')
                 )
 
                 self._process_dxf_offcut_result(
@@ -1690,12 +1691,12 @@ class OffcutMaterialsController(object):
                 )
 
             App.Console.PrintMessage(
-                "[Offcuts][DIALOG] result processing finished\n"
+                tr('offcuts_dialog_result_processing_finished')
             )
 
         except Exception:
             App.Console.PrintError(
-                "add_offcut_dxf failed:\n"
+                tr('add_offcut_dxf_failed')
                 + traceback.format_exc()
             )
             
@@ -1724,8 +1725,8 @@ class OffcutMaterialsController(object):
             if not path or not os.path.exists(path):
                 QtGui.QMessageBox.warning(
                     self.panel.form,
-                    "DXF offcut",
-                    "The selected DXF file does not exist."
+                    tr('dxf_offcut'),
+                    tr('the_selected_dxf_file_does_not_exist')
                 )
                 return
 
@@ -1742,7 +1743,7 @@ class OffcutMaterialsController(object):
             )
 
             App.Console.PrintMessage(
-                "[Offcuts] DXF deflection: %.4f\n"
+                tr('offcuts_dxf_deflection_4f')
                 % boundary_resolution
             )
 
@@ -1755,7 +1756,7 @@ class OffcutMaterialsController(object):
             )
             
             App.Console.PrintMessage(
-                "[Offcuts] Outer points: %d, contours: %d\n"
+                tr('offcuts_outer_points_d_contours_d')
                 % (
                     len(outer or []),
                     len(contour_info or [])
@@ -1765,8 +1766,8 @@ class OffcutMaterialsController(object):
             if not outer:
                 QtGui.QMessageBox.warning(
                     self.panel.form,
-                    "DXF offcut",
-                    "No closed outer contour was found in the DXF file."
+                    tr('dxf_offcut'),
+                    tr('no_closed_outer_contour_was_found_in_the_dxf_file')
                 )
                 return
 
@@ -1831,7 +1832,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_process_dxf_offcut_result failed:\n"
+                tr('process_dxf_offcut_result_failed')
                 + traceback.format_exc()
             )
             
@@ -1862,8 +1863,8 @@ class OffcutMaterialsController(object):
             if width <= 0.0 or height <= 0.0:
                 QtGui.QMessageBox.warning(
                     self.panel.form,
-                    "Sheet",
-                    "Sheet width and height must be greater than zero."
+                    tr('sheet'),
+                    tr('sheet_width_and_height_must_be_greater_than_zero')
                 )
                 return
 
@@ -1880,7 +1881,7 @@ class OffcutMaterialsController(object):
                 ),
                 "type": "rectangular",
                 "path": "",
-                "label": "Sheet %.0f x %.0f mm"
+                "label": tr('sheet_0f_x_0f_mm')
                 % (width, height),
                 "grain": "None",
 
@@ -1937,7 +1938,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_process_rectangular_sheet_result failed:\n"
+                tr('process_rectangular_sheet_result_failed')
                 + traceback.format_exc()
             )
             
@@ -2014,7 +2015,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "on_offcut_count_changed failed:\n"
+                tr('on_offcut_count_changed_failed')
                 + traceback.format_exc()
             )
 
@@ -2045,7 +2046,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "remove_offcuts failed:\n"
+                tr('remove_offcuts_failed')
                 + traceback.format_exc()
             )
             
@@ -2080,7 +2081,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_move_offcut_row failed:\n"
+                tr('move_offcut_row_failed')
                 + traceback.format_exc()
             )
             
@@ -2115,7 +2116,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_rebuild_offcuts_table failed:\n"
+                tr('rebuild_offcuts_table_failed')
                 + traceback.format_exc()
             )
 
@@ -2138,7 +2139,7 @@ class OffcutMaterialsController(object):
                 return str(
                     material.get(
                         "label",
-                        "Sheet or Offcut"
+                        tr('sheet_or_offcut')
                     )
                 )
 
@@ -2168,7 +2169,7 @@ class OffcutMaterialsController(object):
                 height = height_mm
                 suffix = "mm"
 
-            return "Sheet %.3f x %.3f %s" % (
+            return tr('sheet_3f_x_3f_s') % (
                 width,
                 height,
                 suffix
@@ -2178,7 +2179,7 @@ class OffcutMaterialsController(object):
             return str(
                 material.get(
                     "label",
-                    "Sheet or Offcut"
+                    tr('sheet_or_offcut')
                 )
             )
     
@@ -2236,7 +2237,7 @@ class OffcutMaterialsController(object):
                 | QtCore.Qt.ItemIsEditable
             )
             count_item.setTextAlignment(QtCore.Qt.AlignCenter)
-            count_item.setToolTip("Enter the number of sheets or offcuts.")
+            count_item.setToolTip(tr('enter_the_number_of_sheets_or_offcuts'))
             self.offcuts_table.setItem(row, 1, count_item)
 
             # Column 2: Grain
@@ -2247,7 +2248,7 @@ class OffcutMaterialsController(object):
             if grain not in ("X", "Y"):
                 grain = "None"
 
-            grain_item = QtGui.QTableWidgetItem(grain)
+            grain_item = QtGui.QTableWidgetItem(tr('none_6eef66') if grain == "None" else grain)
             grain_item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
@@ -2263,13 +2264,13 @@ class OffcutMaterialsController(object):
 
             up_button = QtGui.QToolButton()
             up_button.setText("↑")
-            up_button.setToolTip("Move material up")
+            up_button.setToolTip(tr('move_material_up'))
             up_button.setAutoRaise(True)
             up_button.setFixedWidth(28)
 
             down_button = QtGui.QToolButton()
             down_button.setText("↓")
-            down_button.setToolTip("Move material down")
+            down_button.setToolTip(tr('move_material_down'))
             down_button.setAutoRaise(True)
             down_button.setFixedWidth(28)
 
@@ -2292,7 +2293,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_append_offcut_table_row failed:\n"
+                tr('append_offcut_table_row_failed')
                 + traceback.format_exc()
             )
             
@@ -2321,7 +2322,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_refresh_offcut_material_labels failed:\n"
+                tr('refresh_offcut_material_labels_failed')
                 + traceback.format_exc()
             )
     
@@ -2362,11 +2363,11 @@ class OffcutMaterialsController(object):
                     grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.offcuts_table.setItem(row, 2, grain_item)
 
-                grain_item.setText(grain_value)
+                grain_item.setText(tr('none_6eef66') if grain_value == "None" else grain_value)
 
         except Exception:
             App.Console.PrintError(
-                "_refresh_offcut_grain_column failed:\n"
+                tr('refresh_offcut_grain_column_failed')
                 + traceback.format_exc()
             )
             
@@ -2392,7 +2393,7 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "_get_selected_offcuts failed:\n"
+                tr('get_selected_offcuts_failed')
                 + traceback.format_exc()
             )
 
@@ -2409,8 +2410,8 @@ class OffcutMaterialsController(object):
             if not selected_offcuts:
                 QtGui.QMessageBox.information(
                     self.panel.form,
-                    "Sheets and Offcuts",
-                    "Select at least one sheet or offcut first."
+                    tr('sheets_and_offcuts'),
+                    tr('select_at_least_one_sheet_or_offcut_first')
                 )
                 return
 
@@ -2439,6 +2440,6 @@ class OffcutMaterialsController(object):
 
         except Exception:
             App.Console.PrintError(
-                "show_offcuts_popup failed:\n"
+                tr('show_offcuts_popup_failed')
                 + traceback.format_exc()
             )

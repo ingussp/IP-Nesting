@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtGui, QtCore
@@ -26,16 +27,16 @@ def apply_nesting_result(panel, result_path):
     """
     try:
         if not result_path or not os.path.exists(result_path):
-            App.Console.PrintError("Nesting import file not found: %s\n" % str(result_path))
+            App.Console.PrintError(tr('nesting_import_file_not_found_s') % str(result_path))
             return False
 
         if panel.preview_doc_name not in App.listDocuments():
-            App.Console.PrintError("Preview document not found: %s\n" % str(panel.preview_doc_name))
+            App.Console.PrintError(tr('preview_document_not_found_s') % str(panel.preview_doc_name))
             return False
 
         p_doc = App.getDocument(panel.preview_doc_name)
         if not p_doc:
-            App.Console.PrintError("Failed to get preview document.\n")
+            App.Console.PrintError(tr('failed_to_get_preview_document'))
             return False
 
         with open(result_path, "r") as f:
@@ -43,7 +44,7 @@ def apply_nesting_result(panel, result_path):
 
         placements = data.get("placements", [])
         if not isinstance(placements, list):
-            App.Console.PrintError("Invalid placements in result JSON.\n")
+            App.Console.PrintError(tr('invalid_placements_in_result_json'))
             return False
 
         by_id = {}
@@ -138,13 +139,13 @@ def apply_nesting_result(panel, result_path):
 
                     except Exception:
                         App.Console.PrintError(
-                            "Failed applying placement for '%s':\n%s\n"
+                            tr('failed_applying_placement_for_s_s')
                             % (str(obj_name), traceback.format_exc())
                         )
 
             except Exception:
                 App.Console.PrintError(
-                    "apply_nesting_result row error:\n%s\n" % traceback.format_exc()
+                    tr('apply_nesting_result_row_error_s') % traceback.format_exc()
                 )
 
         try:
@@ -159,10 +160,10 @@ def apply_nesting_result(panel, result_path):
             pass
 
         App.Console.PrintMessage(
-            "Nesting import applied. Placed: %d, hidden/unplaced: %d\n" % (applied, hidden)
+            tr('nesting_import_applied_placed_d_hidden_unplaced_d') % (applied, hidden)
         )
         return True
 
     except Exception:
-        App.Console.PrintError("apply_nesting_result failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('apply_nesting_result_failed') + traceback.format_exc())
         return False

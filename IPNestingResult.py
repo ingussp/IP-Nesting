@@ -21,6 +21,7 @@ Expected result.json structure:
         "unplaced": [...]
     }
 """
+from IPNestingLanguages import tr
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -297,7 +298,7 @@ class NestingResultImporter(object):
                 dict
             ):
                 App.Console.PrintError(
-                    "result.json root must be an object.\n"
+                    tr('result_json_root_must_be_an_object')
                 )
                 return False
 
@@ -316,7 +317,7 @@ class NestingResultImporter(object):
 
             if self.preview_doc is None:
                 App.Console.PrintError(
-                    "Nesting preview document was not found.\n"
+                    tr('nesting_preview_document_was_not_found')
                 )
                 return False
 
@@ -354,7 +355,7 @@ class NestingResultImporter(object):
 
         except Exception:
             App.Console.PrintError(
-                "NestingResultImporter.import_result failed:\n"
+                tr('nestingresultimporter_import_result_failed')
                 + traceback.format_exc()
             )
             return False
@@ -565,7 +566,7 @@ class NestingResultImporter(object):
 
         except Exception:
             App.Console.PrintError(
-                "Could not create Nesting_Result:\n"
+                tr('could_not_create_nesting_result')
                 + traceback.format_exc()
             )
             return None
@@ -598,7 +599,7 @@ class NestingResultImporter(object):
 
                 if sheet_object:
                     sheet_object.Label = (
-                        "Sheet %d"
+                        tr('sheet_d')
                         % (
                             index + 1
                         )
@@ -606,7 +607,7 @@ class NestingResultImporter(object):
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to import sheet %d:\n"
+                    tr('failed_to_import_sheet_d')
                     % index
                     + traceback.format_exc()
                 )
@@ -756,7 +757,7 @@ class NestingResultImporter(object):
 
         except Exception:
             App.Console.PrintError(
-                "Failed to create polygon sheet:\n"
+                tr('failed_to_create_polygon_sheet')
                 + traceback.format_exc()
             )
             return None
@@ -798,7 +799,7 @@ class NestingResultImporter(object):
 
                 if not source_part:
                     App.Console.PrintWarning(
-                        "No source part metadata for index %s.\n"
+                        tr('no_source_part_metadata_for_index_s')
                         % str(source_index)
                     )
                     continue
@@ -823,12 +824,12 @@ class NestingResultImporter(object):
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to import placement:\n"
+                    tr('failed_to_import_placement')
                     + traceback.format_exc()
                 )
 
         App.Console.PrintMessage(
-            "Imported %d placed part(s).\n"
+            tr('imported_d_placed_part_s')
             % imported_count
         )
 
@@ -910,7 +911,7 @@ class NestingResultImporter(object):
 
             if source_object is None:
                 App.Console.PrintWarning(
-                    "Preview object '%s' was not found.\n"
+                    tr('preview_object_s_was_not_found')
                     % preview_object_name
                 )
                 return False
@@ -1011,8 +1012,7 @@ class NestingResultImporter(object):
                     )
                 except Exception:
                     App.Console.PrintWarning(
-                        "Could not apply source-shape offset "
-                        "for '%s'.\n"
+                        tr('could_not_apply_source_shape_offset_for_s')
                         % preview_object_name
                     )
 
@@ -1127,7 +1127,7 @@ class NestingResultImporter(object):
 
         except Exception:
             App.Console.PrintError(
-                "_import_3d_instance failed:\n"
+                tr('import_3d_instance_failed')
                 + traceback.format_exc()
             )
             return False
@@ -1216,7 +1216,7 @@ class NestingResultImporter(object):
 
         except Exception:
             App.Console.PrintError(
-                "_import_2d_instance failed:\n"
+                tr('import_2d_instance_failed')
                 + traceback.format_exc()
             )
             return False
@@ -1263,12 +1263,9 @@ class NestingResultImporter(object):
             if status == "partial" or unplaced_count > 0:
                 QtGui.QMessageBox.warning(
                     self.panel.form,
-                    "Nesting completed partially",
+                    tr('nesting_completed_partially'),
                     (
-                        "Nesting completed partially.\n\n"
-                        "Placed parts: %d\n"
-                        "Unplaced parts: %d\n"
-                        "Utilisation: %.2f %%"
+                        tr('nesting_completed_partially_placed_parts_d_unplaced_parts_d_utilisation_2f')
                     )
                     % (
                         placed_count,
@@ -1280,11 +1277,9 @@ class NestingResultImporter(object):
             elif status == "failed":
                 QtGui.QMessageBox.warning(
                     self.panel.form,
-                    "Nesting failed",
+                    tr('nesting_failed'),
                     (
-                        "Nesting failed.\n\n"
-                        "Placed parts: %d\n"
-                        "Unplaced parts: %d"
+                        tr('nesting_failed_placed_parts_d_unplaced_parts_d')
                     )
                     % (
                         placed_count,
@@ -1295,11 +1290,9 @@ class NestingResultImporter(object):
             else:
                 QtGui.QMessageBox.information(
                     self.panel.form,
-                    "Nesting completed",
+                    tr('nesting_completed'),
                     (
-                        "Nesting completed successfully.\n\n"
-                        "Placed parts: %d\n"
-                        "Utilisation: %.2f %%"
+                        tr('nesting_completed_successfully_placed_parts_d_utilisation_2f')
                     )
                     % (
                         placed_count,
@@ -1383,8 +1376,8 @@ class NestingProcessManager(object):
                 if self.process.poll() is None:
                     QtGui.QMessageBox.warning(
                         self.panel.form,
-                        "Nesting already running",
-                        "A nesting process is already running."
+                        tr('nesting_already_running'),
+                        tr('a_nesting_process_is_already_running')
                     )
                     return False
 
@@ -1409,10 +1402,9 @@ class NestingProcessManager(object):
             if not self.deepnest_path:
                 QtGui.QMessageBox.critical(
                     self.panel.form,
-                    "Nesting error",
+                    tr('nesting_error'),
                     (
-                        "Nesting CLI executable was not found.\n\n"
-                        "Expected location:\n%s"
+                        tr('nesting_cli_executable_was_not_found_expected_location_s')
                     )
                     % os.path.join(
                         self._module_directory(),
@@ -1435,10 +1427,9 @@ class NestingProcessManager(object):
             if not self.deepnest_path:
                 QtGui.QMessageBox.critical(
                     self.panel.form,
-                    "Nesting error",
+                    tr('nesting_error'),
                     (
-                        "Nesting CLI executable was not found.\n\n"
-                        "Expected location:\n%s"
+                        tr('nesting_cli_executable_was_not_found_expected_location_s')
                     )
                     % os.path.join(
                         self._module_directory(),
@@ -1469,7 +1460,7 @@ class NestingProcessManager(object):
                     )
             except Exception:
                 App.Console.PrintWarning(
-                    "Could not remove old result.json.\n"
+                    tr('could_not_remove_old_result_json')
                 )
 
             self.process_started_at = (
@@ -1513,23 +1504,23 @@ class NestingProcessManager(object):
             self.result_timer.start()
 
             App.Console.PrintMessage(
-                "Nesting CLI started.\n"
+                tr('nesting_cli_started')
             )
 
             App.Console.PrintMessage(
-                "Waiting for result.json...\n"
+                tr('waiting_for_result_json')
             )
 
             return True
 
         except Exception:
             App.Console.PrintError(
-                "NestingProcessManager.start_nesting failed:\n"
+                tr('nestingprocessmanager_start_nesting_failed')
                 + traceback.format_exc()
             )
 
             self._finish_failure(
-                "Could not start the nesting CLI."
+                tr('could_not_start_the_nesting_cli')
             )
 
             return False
@@ -1547,7 +1538,7 @@ class NestingProcessManager(object):
 
             if not self.result_path:
                 self._finish_failure(
-                    "Result path is not configured."
+                    tr('result_path_is_not_configured')
                 )
                 return
 
@@ -1562,9 +1553,7 @@ class NestingProcessManager(object):
 
                     self._finish_failure(
                         (
-                            "Nesting CLI finished without "
-                            "creating result.json.\n\n"
-                            "Exit code: %s"
+                            tr('nesting_cli_finished_without_creating_result_json_exit_code_s')
                         )
                         % str(return_code)
                     )
@@ -1628,8 +1617,7 @@ class NestingProcessManager(object):
             ):
                 self._finish_failure(
                     (
-                        "The job_id in result.json does not "
-                        "match nesting_session.json."
+                        tr('the_job_id_in_result_json_does_not_match_nesting_session_json')
                     )
                 )
                 return
@@ -1651,12 +1639,12 @@ class NestingProcessManager(object):
                 self._finish_success()
             else:
                 self._finish_failure(
-                    "Could not import result.json."
+                    tr('could_not_import_result_json')
                 )
 
         except Exception:
             self._finish_failure(
-                "Result processing failed:\n%s"
+                tr('result_processing_failed_s')
                 % traceback.format_exc()
             )
 
@@ -1692,7 +1680,7 @@ class NestingProcessManager(object):
         self._restore_ui()
 
         App.Console.PrintMessage(
-            "Nesting result imported successfully.\n"
+            tr('nesting_result_imported_successfully')
         )
 
     # Mark the job finished once, restore the UI and display the failure message.
@@ -1704,14 +1692,14 @@ class NestingProcessManager(object):
         self._restore_ui()
 
         App.Console.PrintError(
-            "Nesting failed: %s\n"
+            tr('nesting_failed_s')
             % str(message)
         )
 
         try:
             QtGui.QMessageBox.critical(
                 self.panel.form,
-                "Nesting failed",
+                tr('nesting_failed'),
                 str(message)
             )
         except Exception:

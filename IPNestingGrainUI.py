@@ -2,6 +2,7 @@
 IPNestingGrainUI - Grain UI controller extracted from IPNestingGui.
 Manages grain checkbox/combobox state, blinking Apply Grain button, and grain arrows.
 """
+from IPNestingLanguages import tr
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -75,7 +76,7 @@ class GrainUIController:
             except Exception:
                 pass
         except Exception:
-            App.Console.PrintError("Apply blink tick error:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('apply_blink_tick_error') + traceback.format_exc())
 
     # Start the Apply Grain highlight timer if it is available and inactive.
     def _start_apply_blink(self):
@@ -94,7 +95,7 @@ class GrainUIController:
                         pass
                     self._apply_blink_timer.start()
         except Exception:
-            App.Console.PrintError("Failed to start apply blink:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_start_apply_blink') + traceback.format_exc())
 
     # Stop blinking timer and restore button style.
     def _stop_apply_blink(self):
@@ -109,7 +110,7 @@ class GrainUIController:
             except Exception:
                 pass
         except Exception:
-            App.Console.PrintError("Failed to stop apply blink:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_stop_apply_blink') + traceback.format_exc())
 
     # Return a stable snapshot of grain checkbox states for all data rows. Use tuple of
     # (row_index, is_checked) so we can compare later.
@@ -164,7 +165,7 @@ class GrainUIController:
                 self._stop_apply_blink()
 
         except Exception:
-            App.Console.PrintError("Failed to update apply blink state:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_update_apply_blink_state') + traceback.format_exc())
 
     # --- Grain arrow helpers (connect widgets + callbacks) ---
     # Update row arrows and grain angles; save or restore standard rotation as grain is toggled.
@@ -300,7 +301,7 @@ class GrainUIController:
                             else:
                                 GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
                         except Exception:
-                            App.Console.PrintError("grain checkbox per-object update failed for '%s':\n" % (str(n),) + traceback.format_exc())
+                            App.Console.PrintError(tr('grain_checkbox_per_object_update_failed_for_s') % (str(n),) + traceback.format_exc())
                             
                         # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
                         try:
@@ -308,7 +309,7 @@ class GrainUIController:
                             if part_obj:
                                 if not hasattr(part_obj, "GrainAngleDeg"):
                                     try:
-                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", "Absolute grain angle in degrees vs +X")
+                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", tr('absolute_grain_angle_in_degrees_vs_x'))
                                     except Exception:
                                         pass
                                 part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
@@ -346,7 +347,7 @@ class GrainUIController:
             except Exception:
                 pass
         except Exception:
-            App.Console.PrintError("grain checkbox callback failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('grain_checkbox_callback_failed') + traceback.format_exc())
 
     # Update stored X/Y grain angles and redraw or remove the row arrows.
     def _on_grain_axis_changed(self, preview_obj_name, grain_cb, grain_combo, index):
@@ -411,14 +412,14 @@ class GrainUIController:
                             else:
                                 GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
                         except Exception:
-                            App.Console.PrintError("grain axis per-object update failed for '%s':\n" % (str(n),) + traceback.format_exc())
+                            App.Console.PrintError(tr('grain_axis_per_object_update_failed_for_s') % (str(n),) + traceback.format_exc())
                         # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
                         try:
                             part_obj = App.getDocument(self.panel.preview_doc_name).getObject(n)
                             if part_obj:
                                 if not hasattr(part_obj, "GrainAngleDeg"):
                                     try:
-                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", "Absolute grain angle in degrees vs +X")
+                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", tr('absolute_grain_angle_in_degrees_vs_x'))
                                     except Exception:
                                         pass
                                 part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
@@ -428,7 +429,7 @@ class GrainUIController:
                 except Exception:
                     continue
         except Exception:
-            App.Console.PrintError("grain axis callback failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('grain_axis_callback_failed') + traceback.format_exc())
 
     # Wire per-row grain checkbox and combobox to callbacks (safe using partial).
     def _connect_grain_widgets(self, grain_cb, grain_combo, preview_obj_name):
@@ -439,7 +440,7 @@ class GrainUIController:
             grain_combo.currentIndexChanged.connect(partial(self._on_grain_axis_changed,
                                                            preview_obj_name, grain_cb, grain_combo))
         except Exception:
-            App.Console.PrintError("Failed to connect grain widgets:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_connect_grain_widgets') + traceback.format_exc())
 
     # When bottom bulk combobox is changed, set per-row combobox only for checked rows and
     # update arrows.
@@ -489,11 +490,11 @@ class GrainUIController:
                                 if GrainPreparer is not None:
                                     GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, n, enable=True, axis=axis)
                             except Exception:
-                                App.Console.PrintError("bulk change: failed to update arrow for '%s':\n" % (str(n),) + traceback.format_exc())
+                                App.Console.PrintError(tr('bulk_change_failed_to_update_arrow_for_s') % (str(n),) + traceback.format_exc())
                 except Exception:
                     continue
         except Exception:
-            App.Console.PrintError("bulk grain changed callback failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('bulk_grain_changed_callback_failed') + traceback.format_exc())
 
     # Compute delta degrees (range [-180..180]) so that after rotation the grain angle becomes 0
     # (arrow parallel to +X).
@@ -680,7 +681,7 @@ class GrainUIController:
                                     "App::PropertyInteger",
                                     "GrainAngleDeg",
                                     "IPNesting",
-                                    "Absolute grain angle in degrees vs +X"
+                                    tr('absolute_grain_angle_in_degrees_vs_x')
                                 )
                             except Exception:
                                 pass
@@ -781,8 +782,7 @@ class GrainUIController:
                                 break
                         except Exception:
                             App.Console.PrintError(
-                                "Failed to synchronize grain dropdown to X "
-                                "for '%s':\n%s\n"
+                                tr('failed_to_synchronize_grain_dropdown_to_x_for_s_s')
                                 % (
                                     str(nm),
                                     traceback.format_exc()
@@ -933,8 +933,7 @@ class GrainUIController:
 
                         except Exception:
                             App.Console.PrintError(
-                                "Failed to redraw final horizontal grain arrow "
-                                "for '%s':\n%s\n"
+                                tr('failed_to_redraw_final_horizontal_grain_arrow_for_s_s')
                                 % (
                                     str(nm),
                                     traceback.format_exc()
@@ -951,7 +950,7 @@ class GrainUIController:
 
             except Exception:
                 App.Console.PrintError(
-                    "Final grain arrow redraw failed:\n"
+                    tr('final_grain_arrow_redraw_failed')
                     + traceback.format_exc()
                 )
             
@@ -963,7 +962,7 @@ class GrainUIController:
                 pass
 
         except Exception:
-            App.Console.PrintError("update_grain_layout_and_perimeters failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('update_grain_layout_and_perimeters_failed') + traceback.format_exc())
             
     # inside class GrainUIController:
 
@@ -987,10 +986,10 @@ class GrainUIController:
                 angle_deg = 0.0
 
             try:
-                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisX", "IPNesting", "Saved standard rotation axis X")
-                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisY", "IPNesting", "Saved standard rotation axis Y")
-                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisZ", "IPNesting", "Saved standard rotation axis Z")
-                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAngleDeg", "IPNesting", "Saved standard rotation angle (deg)")
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisX", "IPNesting", tr('saved_standard_rotation_axis_x'))
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisY", "IPNesting", tr('saved_standard_rotation_axis_y'))
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAxisZ", "IPNesting", tr('saved_standard_rotation_axis_z'))
+                obj.addProperty("App::PropertyFloat", "IPNestingStdRotAngleDeg", "IPNesting", tr('saved_standard_rotation_angle_deg'))
             except Exception:
                 # properties might already exist or addProperty can fail in some contexts
                 pass

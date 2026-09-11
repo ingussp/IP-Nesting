@@ -11,6 +11,7 @@ Notes:
 - FreeCAD import module names may vary between installs. We try multiple fallbacks.
 - We don't require Faces for nesting; BoundBox + Placement must work.
 """
+from IPNestingLanguages import tr
 
 import os
 import traceback
@@ -185,7 +186,7 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
     created_names = []
     try:
         if not path or not os.path.exists(path):
-            App.Console.PrintError("IPNestingImport2D: file not found: %s\n" % str(path))
+            App.Console.PrintError(tr('ipnestingimport2d_file_not_found_s') % str(path))
             return created_names
 
         ext = os.path.splitext(path)[1].lower().lstrip(".")
@@ -193,7 +194,7 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
 
         p_doc = _ensure_preview_doc(panel)
         if not p_doc:
-            App.Console.PrintError("IPNestingImport2D: could not ensure preview document.\n")
+            App.Console.PrintError(tr('ipnestingimport2d_could_not_ensure_preview_document'))
             return created_names
 
         before = set([o.Name for o in p_doc.Objects])
@@ -204,11 +205,11 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
         elif fmt == "svg":
             ok = _import_svg(path, p_doc.Name)
         else:
-            App.Console.PrintError("IPNestingImport2D: unsupported format: %s\n" % fmt)
+            App.Console.PrintError(tr('ipnestingimport2d_unsupported_format_s') % fmt)
             return created_names
 
         if not ok:
-            App.Console.PrintError("IPNestingImport2D: import failed for %s\n" % path)
+            App.Console.PrintError(tr('ipnestingimport2d_import_failed_for_s') % path)
             return created_names
 
         try:
@@ -218,7 +219,7 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
 
         after_objs = [o for o in p_doc.Objects if o.Name not in before]
         if not after_objs:
-            App.Console.PrintMessage("IPNestingImport2D: import created no new objects.\n")
+            App.Console.PrintMessage(tr('ipnestingimport2d_import_created_no_new_objects'))
             return created_names
 
         # Collect shapes
@@ -232,7 +233,7 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
             per_obj_shapes.append((o, shp))
 
         if not imported_shapes:
-            App.Console.PrintError("IPNestingImport2D: imported objects had no usable Shape.\n")
+            App.Console.PrintError(tr('ipnestingimport2d_imported_objects_had_no_usable_shape'))
             return created_names
 
         # Create stable Part::Feature(s)
@@ -248,11 +249,11 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
                     final_shape = face_shape
 
             if final_shape is None:
-                App.Console.PrintError("IPNestingImport2D: failed to build compound shape.\n")
+                App.Console.PrintError(tr('ipnestingimport2d_failed_to_build_compound_shape'))
                 return created_names
 
             feat = p_doc.addObject("Part::Feature", "Preview2D")
-            feat.Label = "%s: %s" % (label_prefix, os.path.basename(path))
+            feat.Label = tr('s_s_d9cd37') % (label_prefix, os.path.basename(path))
             feat.Shape = final_shape
             created_names.append(feat.Name)
         else:
@@ -264,7 +265,7 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
                         final_shape = face_shape
 
                 feat = p_doc.addObject("Part::Feature", "Preview2D")
-                feat.Label = "%s: %s" % (label_prefix, getattr(src_obj, "Label", src_obj.Name))
+                feat.Label = tr('s_s_d9cd37') % (label_prefix, getattr(src_obj, "Label", src_obj.Name))
                 feat.Shape = final_shape
                 created_names.append(feat.Name)
 
@@ -284,12 +285,12 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
         except Exception:
             pass
 
-        App.Console.PrintMessage("IPNestingImport2D: created %d Part::Feature(s) from %s\n" %
+        App.Console.PrintMessage(tr('ipnestingimport2d_created_d_part_feature_s_from_s') %
                                  (len(created_names), os.path.basename(path)))
         return created_names
 
     except Exception:
-        App.Console.PrintError("IPNestingImport2D.import_2d_file_to_preview failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('ipnestingimport2d_import_2d_file_to_preview_failed') + traceback.format_exc())
         return created_names
 
 

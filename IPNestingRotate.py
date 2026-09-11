@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 
 # Rotation helper for IP - Nesting
 # Provides NestingRotator to perform bulk rotations of preview objects
@@ -50,7 +51,7 @@ class NestingRotator:
             except Exception:
                 pass
         except Exception:
-            App.Console.PrintError("_find_checkbox_in_widget error:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('find_checkbox_in_widget_error') + traceback.format_exc())
         return None
 
     # Return list of preview object names for all checked rows.
@@ -142,7 +143,7 @@ class NestingRotator:
                     # per-row exceptions shouldn't break entire loop
                     continue
         except Exception:
-            App.Console.PrintError("_get_checked_object_names_from_table failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('get_checked_object_names_from_table_failed') + traceback.format_exc())
         return names
 
     # Return the X or Y unit axis, defaulting to Z for other values.
@@ -185,12 +186,12 @@ class NestingRotator:
         """
         try:
             if not p_doc:
-                App.Console.PrintMessage("NestingRotator.apply_bulk_rotate: no preview document provided.\n")
+                App.Console.PrintMessage(tr('nestingrotator_apply_bulk_rotate_no_preview_document_provided'))
                 return
 
             names = self._get_checked_object_names_from_table(table)
             if not names:
-                App.Console.PrintMessage("NestingRotator.apply_bulk_rotate: no rows selected (checkbox).\n")
+                App.Console.PrintMessage(tr('nestingrotator_apply_bulk_rotate_no_rows_selected_checkbox'))
                 return
 
             axis_vec = self._axis_vector(axis_char)
@@ -234,14 +235,14 @@ class NestingRotator:
                     new_placement = P_back.multiply(P_rot.multiply(P_move.multiply(o.Placement)))
                     o.Placement = new_placement
                 except Exception:
-                    App.Console.PrintError("apply_bulk_rotate: error applying rotation for %s:\n%s\n" % (name, traceback.format_exc()))
+                    App.Console.PrintError(tr('apply_bulk_rotate_error_applying_rotation_for_s_s') % (name, traceback.format_exc()))
                     continue
 
             # Recompute once after rotations (update shapes)
             try:
                 p_doc.recompute()
             except Exception:
-                App.Console.PrintError("apply_bulk_rotate: recompute failed after rotations:\n%s\n" % (traceback.format_exc(),))
+                App.Console.PrintError(tr('apply_bulk_rotate_recompute_failed_after_rotations_s') % (traceback.format_exc(),))
 
             # Containment correction: ensure XY footprint fits within original XY bbox and align Z tops
             try:
@@ -304,23 +305,23 @@ class NestingRotator:
                                 rot = o.Placement.Rotation
                                 o.Placement = App.Placement(new_base, rot)
                             except Exception:
-                                App.Console.PrintError("apply_bulk_rotate: containment translation failed for %s:\n%s\n" % (name, traceback.format_exc()))
+                                App.Console.PrintError(tr('apply_bulk_rotate_containment_translation_failed_for_s_s') % (name, traceback.format_exc()))
                                 continue
 
                     except Exception:
-                        App.Console.PrintError("apply_bulk_rotate: per-object containment correction error for %s:\n%s\n" % (name, traceback.format_exc()))
+                        App.Console.PrintError(tr('apply_bulk_rotate_per_object_containment_correction_error_for_s_s') % (name, traceback.format_exc()))
                         continue
 
                 # Recompute after corrections
                 try:
                     p_doc.recompute()
                 except Exception:
-                    App.Console.PrintError("apply_bulk_rotate: recompute failed after containment corrections:\n%s\n" % (traceback.format_exc(),))
+                    App.Console.PrintError(tr('apply_bulk_rotate_recompute_failed_after_containment_corrections_s') % (traceback.format_exc(),))
 
             except Exception:
-                App.Console.PrintError("apply_bulk_rotate: containment correction phase failed:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('apply_bulk_rotate_containment_correction_phase_failed') + traceback.format_exc())
 
-            App.Console.PrintMessage("apply_bulk_rotate: completed for %d object(s).\n" % len(names))
+            App.Console.PrintMessage(tr('apply_bulk_rotate_completed_for_d_object_s') % len(names))
 
         except Exception:
-            App.Console.PrintError("NestingRotator.apply_bulk_rotate failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('nestingrotator_apply_bulk_rotate_failed') + traceback.format_exc())

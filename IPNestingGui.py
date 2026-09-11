@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 # UI Definition for IP - Nesting Task Panel (final)
 # Uses NestingRotator in IPNestingRotate.py for rotate/flip operations
 # Integrates GrainPreparer from IPNestingGrain.py for grain perimeter and arrows.
@@ -32,7 +33,7 @@ except Exception:
     try:
         from .IPNestingImport import apply_nesting_result
     except Exception:
-        App.Console.PrintError("Failed to import IPNestingImport:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('failed_to_import_ipnestingimport') + traceback.format_exc())
         apply_nesting_result = None
 try:
     from IPNestingImportSheets import import_nesting_sheets
@@ -40,7 +41,7 @@ except Exception:
     try:
         from .IPNestingImportSheets import import_nesting_sheets
     except Exception:
-        App.Console.PrintError("Failed to import IPNestingImportSheets:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('failed_to_import_ipnestingimportsheets') + traceback.format_exc())
         import_nesting_sheets = None
 
 
@@ -50,7 +51,7 @@ except Exception:
     try:
         from .IPNestingRotate import NestingRotator
     except Exception:
-        App.Console.PrintError("Failed to import NestingRotator (IPNestingRotate.py):\n" + traceback.format_exc())
+        App.Console.PrintError(tr('failed_to_import_nestingrotator_ipnestingrotate_py') + traceback.format_exc())
         NestingRotator = None
 
 # Grain preparer integration (attempt import; fallback to None)
@@ -122,9 +123,9 @@ class NestingTaskPanel:
                             self._unregister()
                             return
                         except Exception:
-                            App.Console.PrintError("SelectionObserver.addSelection per-row error:\n" + traceback.format_exc())
+                            App.Console.PrintError(tr('selectionobserver_addselection_per_row_error') + traceback.format_exc())
             except Exception:
-                App.Console.PrintError("SelectionObserver.addSelection error:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('selectionobserver_addselection_error') + traceback.format_exc())
 
         # Attempt to clear table selection when no preview objects remain selected.
         def removeSelection(self, doc, obj, sub):
@@ -146,7 +147,7 @@ class NestingTaskPanel:
                 except Exception:
                     pass
             except Exception:
-                App.Console.PrintError("SelectionObserver.removeSelection error:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('selectionobserver_removeselection_error') + traceback.format_exc())
 
         # Clear table selection when FreeCAD clears selection in the preview document.
         def clearSelection(self, doc):
@@ -161,7 +162,7 @@ class NestingTaskPanel:
                     except RuntimeError:
                         self._unregister()
             except Exception:
-                App.Console.PrintError("SelectionObserver.clearSelection error:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('selectionobserver_clearselection_error') + traceback.format_exc())
 
     # Build the task panel, create its controllers and restore saved settings.
     def __init__(self):
@@ -215,43 +216,43 @@ class NestingTaskPanel:
         # -------------------------
 
         # Sheet Settings (LEFT, row 0)
-        sheet_box = QtGui.QGroupBox("Sheet Settings")
+        sheet_box = QtGui.QGroupBox(tr('sheet_settings'))
         sheet_lay = QtGui.QVBoxLayout(sheet_box)
 
         self.sheet_margin, self.sheet_margin_label = (
             self.create_input_in_layout(
                 sheet_lay,
-                "Sheet Margin (mm):",
+                tr('sheet_margin_mm'),
                 "5.00",
-                "Distance from the sheet edge."
+                tr('distance_from_the_sheet_edge')
             )
         )
 
         self.spacing, self.spacing_label = (
             self.create_input_in_layout(
                 sheet_lay,
-                "Part Spacing (mm):",
+                tr('part_spacing_mm'),
                 "6.00",
-                "Minimum distance between parts."
+                tr('minimum_distance_between_parts')
             )
         )
 
         # NEW: Offcuts (DXF) (LEFT, row 1)
-        offcut_box = QtGui.QGroupBox("Sheet && Offcut Materials")
+        offcut_box = QtGui.QGroupBox(tr('sheet_offcut_materials'))
         offcut_lay = QtGui.QVBoxLayout(offcut_box)
 
         self.offcuts_table = QtGui.QTableWidget(0, 4)
         self.offcuts_table.setHorizontalHeaderLabels([
-            "Material",
-            "Count",
-            "Grain",
-            "Move",
+            tr('material'),
+            tr('count'),
+            tr('grain'),
+            tr('move'),
         ])
-        self.offcuts_table.horizontalHeaderItem(1).setToolTip("Number of sheets or offcuts.")
+        self.offcuts_table.horizontalHeaderItem(1).setToolTip(tr('number_of_sheets_or_offcuts'))
         
         self.offcuts_table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.offcuts_table.setEditTriggers( QtGui.QAbstractItemView.DoubleClicked | QtGui.QAbstractItemView.EditKeyPressed)
-        self.offcuts_table.setToolTip("Add rectangular sheets or DXF offcuts for nesting.")
+        self.offcuts_table.setToolTip(tr('add_rectangular_sheets_or_dxf_offcuts_for_nesting'))
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
         self.offcuts_table.setMinimumHeight(200)
@@ -280,12 +281,12 @@ class NestingTaskPanel:
         offcut_lay.addWidget(self.offcuts_table)
 
         off_btns = QtGui.QHBoxLayout()
-        self.offcut_add_btn = QtGui.QPushButton("Add")
-        self.offcut_show_btn = QtGui.QPushButton("Show")
-        self.offcut_remove_btn = QtGui.QPushButton("Remove")
-        self.offcut_add_btn.setToolTip("Add a rectangular sheet or a DXF offcut.")
-        self.offcut_show_btn.setToolTip("Show all added offcuts and adjust grain X/Y per offcut.")
-        self.offcut_remove_btn.setToolTip("Remove the selected material from the list.")
+        self.offcut_add_btn = QtGui.QPushButton(tr('add'))
+        self.offcut_show_btn = QtGui.QPushButton(tr('show'))
+        self.offcut_remove_btn = QtGui.QPushButton(tr('remove'))
+        self.offcut_add_btn.setToolTip(tr('add_a_rectangular_sheet_or_a_dxf_offcut'))
+        self.offcut_show_btn.setToolTip(tr('show_all_added_offcuts_and_adjust_grain_x_y_per_offcut'))
+        self.offcut_remove_btn.setToolTip(tr('remove_the_selected_material_from_the_list'))
         self.offcut_add_btn.clicked.connect(self.offcut_controller.add_offcut_dxf)
         self.offcut_show_btn.clicked.connect(self.offcut_controller.show_offcuts_popup)
         self.offcut_remove_btn.clicked.connect(self.offcut_controller.remove_offcuts)
@@ -296,19 +297,19 @@ class NestingTaskPanel:
         offcut_lay.addLayout(off_btns)
 
         # General Parameters (LEFT, row 2)  (shifted down by 1)
-        general_box = QtGui.QGroupBox("General Parameters")
+        general_box = QtGui.QGroupBox(tr('general_parameters'))
         general_lay = QtGui.QVBoxLayout(general_box)
         self.res, self.res_label = (
             self.create_input_in_layout(
                 general_lay,
-                "Boundary Resolution (mm):",
+                tr('boundary_resolution_mm'),
                 "0.1",
-                "Maximum deviation used when curved geometry is converted to line segments. Smaller values create more accurate but heavier geometry."
+                tr('maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c')
             )
         )
 
         # Display Units (RIGHT, row 0)
-        units_box = QtGui.QGroupBox("Units")
+        units_box = QtGui.QGroupBox(tr('units'))
         units_lay = QtGui.QVBoxLayout(units_box)
 
         self.units_combo = QtGui.QComboBox()
@@ -318,8 +319,7 @@ class NestingTaskPanel:
         ])
         self.units_combo.setCurrentIndex(0)
         self.units_combo.setToolTip(
-            "Display and input units for dimensions. "
-            "Internal geometry remains in millimetres."
+            tr('display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres')
         )
 
         units_lay.addWidget(self.units_combo)
@@ -330,7 +330,7 @@ class NestingTaskPanel:
 
         # Nesting CLI settings (RIGHT, row 1)
         deepnest_box = QtGui.QGroupBox(
-            "Nesting CLI settings"
+            tr('nesting_cli_settings')
         )
         deepnest_lay = QtGui.QVBoxLayout(
             deepnest_box
@@ -339,13 +339,10 @@ class NestingTaskPanel:
         self.deepnest_time_ratio = (
             self.create_input_in_layout(
                 deepnest_lay,
-                "Time ratio:",
+                tr('time_ratio'),
                 "0.5",
                 (
-                    "Controls how much of the available nesting "
-                    "time is used for optimization. Higher values "
-                    "allow more optimization time and may improve "
-                    "the result, but can make nesting slower."
+                    tr('controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all')
                 )
             )[0]
         )
@@ -353,13 +350,10 @@ class NestingTaskPanel:
         self.deepnest_population_size = (
             self.create_input_in_layout(
                 deepnest_lay,
-                "Population size:",
+                tr('population_size'),
                 "10",
                 (
-                    "Number of candidate nesting solutions kept "
-                    "during genetic optimization. Higher values "
-                    "can improve the result, but require more "
-                    "calculation time."
+                    tr('number_of_candidate_nesting_solutions_kept_during_genetic_optimization_higher_values_can_i')
                 )
             )[0]
         )
@@ -367,13 +361,10 @@ class NestingTaskPanel:
         self.deepnest_mutation_rate = (
             self.create_input_in_layout(
                 deepnest_lay,
-                "Mutation rate:",
+                tr('mutation_rate'),
                 "10",
                 (
-                    "Percentage controlling how often candidate "
-                    "solutions are randomly changed during "
-                    "optimization. Higher values increase variation "
-                    "but can make the result less stable."
+                    tr('percentage_controlling_how_often_candidate_solutions_are_randomly_changed_during_optimizat')
                 )
             )[0]
         )
@@ -381,13 +372,10 @@ class NestingTaskPanel:
         self.deepnest_export_sheet_boundaries = (
             self._create_boolean_setting(
                 deepnest_lay,
-                "Export sheet boundaries:",
+                tr('export_sheet_boundaries'),
                 False,
                 (
-                    "If enabled, the outer boundaries of sheets "
-                    "are included in the exported nesting data. "
-                    "Enable this only when the nesting engine "
-                    "needs explicit sheet boundary geometry."
+                    tr('if_enabled_the_outer_boundaries_of_sheets_are_included_in_the_exported_nesting_data_enable')
                 )
             )
         )
@@ -395,13 +383,10 @@ class NestingTaskPanel:
         self.deepnest_export_sheets_space = (
             self._create_boolean_setting(
                 deepnest_lay,
-                "Export sheet spacing:",
+                tr('export_sheet_spacing'),
                 False,
                 (
-                    "If enabled, an additional spacing value is "
-                    "applied between exported sheets. This is "
-                    "useful when several sheets are exported "
-                    "together."
+                    tr('if_enabled_an_additional_spacing_value_is_applied_between_exported_sheets_this_is_useful_w')
                 )
             )
         )
@@ -409,13 +394,10 @@ class NestingTaskPanel:
         self.deepnest_export_sheets_space_value = (
             self.create_input_in_layout(
                 deepnest_lay,
-                "Sheet spacing value:",
+                tr('sheet_spacing_value'),
                 "0.13888",
                 (
-                    "Distance between exported sheets when "
-                    "'Export sheet spacing' is enabled. "
-                    "The value is interpreted in the internal "
-                    "geometry units, normally millimetres."
+                    tr('distance_between_exported_sheets_when_export_sheet_spacing_is_enabled_the_value_is_interpr')
                 )
             )[0]
         )
@@ -428,7 +410,7 @@ class NestingTaskPanel:
 
         # Placement Strategy (RIGHT, row 2)
         placement_box = QtGui.QGroupBox(
-            "Placement strategy"
+            tr('placement_strategy')
         )
         placement_lay = QtGui.QVBoxLayout(
             placement_box
@@ -436,18 +418,16 @@ class NestingTaskPanel:
 
         self.placement_strategy = QtGui.QComboBox()
         self.placement_strategy.addItems([
-            "Gravity",
-            "Bounding box",
-            "Squeeze",
+            tr('gravity'),
+            tr('bounding_box'),
+            tr('squeeze'),
         ])
         self.placement_strategy.setCurrentIndex(0)
 
         self.placement_strategy.setItemData(
             0,
             (
-                "Minimize the width of the nest. "
-                "Good when using a rectangular sheet and "
-                "the leftover material can be used for another cut."
+                tr('minimize_the_width_of_the_nest_good_when_using_a_rectangular_sheet_and_the_leftover_materi')
             ),
             QtCore.Qt.ToolTipRole
         )
@@ -455,9 +435,7 @@ class NestingTaskPanel:
         self.placement_strategy.setItemData(
             1,
             (
-                "Reduce the overall rectangular bounds. "
-                "Best for conserving material when only a small "
-                "portion of the sheet is used."
+                tr('reduce_the_overall_rectangular_bounds_best_for_conserving_material_when_only_a_small_porti')
             ),
             QtCore.Qt.ToolTipRole
         )
@@ -465,18 +443,13 @@ class NestingTaskPanel:
         self.placement_strategy.setItemData(
             2,
             (
-                "Reduce the overall area. This may produce nests "
-                "that are not rectangular. Best for irregularly "
-                "shaped sheets or when unused space is not important."
+                tr('reduce_the_overall_area_this_may_produce_nests_that_are_not_rectangular_best_for_irregular')
             ),
             QtCore.Qt.ToolTipRole
         )
 
         self.placement_strategy.setToolTip(
-            "Controls how placed parts are packed together. "
-            "Gravity minimizes nest width, Bounding box minimizes "
-            "the rectangular bounds, and Squeeze minimizes the "
-            "overall occupied area."
+            tr('controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi')
         )
 
         placement_lay.addWidget(
@@ -485,7 +458,7 @@ class NestingTaskPanel:
 
         # CPU Cores (RIGHT, row 3)
         cpu_box = QtGui.QGroupBox(
-            "CPU cores"
+            tr('cpu_cores')
         )
         cpu_lay = QtGui.QVBoxLayout(
             cpu_box
@@ -525,26 +498,7 @@ class NestingTaskPanel:
         )
 
         self.cpu_cores_combo.setToolTip(
-            "Number of CPU worker cores available to the "
-            "nesting calculation.\n\n"
-            "The list is based on the logical CPU cores detected "
-            "on this computer and is limited to 16 choices. "
-            "This limit is intentional: nesting performance is "
-            "not guaranteed to improve when more than 16 workers "
-            "are used, especially when the calculation contains "
-            "serial operations, memory traffic, synchronization, "
-            "or a single-threaded geometry step.\n\n"
-            "Recommended values:\n"
-            "• 1–4 cores: safer for older or low-power computers.\n"
-            "• 4–8 cores: good general-purpose setting.\n"
-            "• 8–16 cores: useful for complex nesting or large "
-            "part collections, if the nesting engine supports "
-            "parallel workers.\n"
-            "• More than 16 cores: not offered by this UI because "
-            "the expected benefit is uncertain and CPU, RAM, and "
-            "synchronization overhead may increase.\n\n"
-            "This setting only affects the calculation if the "
-            "external nesting engine receives and uses the value."
+            tr('number_of_cpu_worker_cores_available_to_the_nesting_calculation_the_list_is_based_on_the_l')
         )
 
         cpu_lay.addWidget(
@@ -598,28 +552,20 @@ class NestingTaskPanel:
             pass
 
         # Table (with control_rows at the bottom)
-        self.layout.addWidget(QtGui.QLabel("<b>Selected Parts (Preview Mode)</b>"))
+        self.layout.addWidget(QtGui.QLabel(tr('b_selected_parts_preview_mode_b')))
         self.table = QtGui.QTableWidget(self.control_rows, 6)  # reserve control_rows initially
         self.table.setHorizontalHeaderLabels([
-            "Body", "Qty", "Rotations", "Select for rotation", "Grain Direction", "Custom angle"
+            tr('body'), tr('qty'), tr('rotations'), tr('select_for_rotation'), tr('grain_direction'), tr('custom_angle')
         ])
         try:
             self.table.horizontalHeaderItem(3).setToolTip(
-                "Select which parts will be rotated in the XY plane.\n\n"
-                "When parts are added, the alignment algorithm selects the "
-                "largest face and turns it upward. For some parts, the intended "
-                "top face may be smaller than a side or bottom face.\n\n"
-                "Rotating a part by 90 degrees makes a side face become the "
-                "top face. Rotating it by 180 degrees makes the bottom face "
-                "become the top face."
+                tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
             )
         except Exception:
             pass
         try:
             self.table.horizontalHeaderItem(5).setToolTip(
-                "Enable this checkbox to allow the "
-                "'Set custom angle' command to modify this part. "
-                "Grain Direction must also be enabled."
+                tr('enable_this_checkbox_to_allow_the_set_custom_angle_command_to_modify_this_part_grain_direc')
             )
         except Exception:
             pass
@@ -684,19 +630,19 @@ class NestingTaskPanel:
         # Add / Remove buttons (larger, with top/bottom margin 5px)
         self.btn_layout = QtGui.QHBoxLayout()
         self.btn_layout.setContentsMargins(0, 5, 0, 5)
-        self.add_btn = QtGui.QPushButton("Add Selected")
-        self.rem_btn = QtGui.QPushButton("Remove Selected")
+        self.add_btn = QtGui.QPushButton(tr('add_selected'))
+        self.rem_btn = QtGui.QPushButton(tr('remove_selected'))
         self.add_btn.setFixedHeight(32)
         self.rem_btn.setFixedHeight(32)
-        self.add_btn.setFixedWidth(140)
-        self.rem_btn.setFixedWidth(140)
+        self.add_btn.setMinimumWidth(140)
+        self.rem_btn.setMinimumWidth(140)
         self.add_btn.clicked.connect(self.add_selected_objects)
         # Remove Selected behaves like Qty -> 0 for selected rows
         self.rem_btn.clicked.connect(self.remove_selected_rows)
 
         # Import 2D buttons (DXF/SVG)
-        self.import_dxf_btn = QtGui.QPushButton("Import DXF…")
-        self.import_svg_btn = QtGui.QPushButton("Import SVG…")
+        self.import_dxf_btn = QtGui.QPushButton(tr('import_dxf'))
+        self.import_svg_btn = QtGui.QPushButton(tr('import_svg'))
         self.import_dxf_btn.setFixedHeight(32)
         self.import_svg_btn.setFixedHeight(32)
         self.import_dxf_btn.setFixedWidth(140)
@@ -712,13 +658,13 @@ class NestingTaskPanel:
         self.layout.addLayout(self.btn_layout)
 
         # Run button
-        self.run_btn = QtGui.QPushButton("Run Nesting")
+        self.run_btn = QtGui.QPushButton(tr('run_nesting'))
         self.run_btn.setStyleSheet("background-color: #CF3519; color: white; font-weight: bold; height: 35px;")
         self.run_btn.clicked.connect(self.execute_nesting)
         self.layout.addWidget(self.run_btn)
         
-        self.debug_export_btn = QtGui.QPushButton("Debug Export Polygons")
-        self.debug_export_btn.setToolTip("Draw exported polygons in a separate document to inspect what is sent to the exe")
+        self.debug_export_btn = QtGui.QPushButton(tr('debug_export_polygons'))
+        self.debug_export_btn.setToolTip(tr('draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe'))
         self.debug_export_btn.clicked.connect(self.debug_export_polygons)
         self.layout.addWidget(self.debug_export_btn)
         
@@ -728,7 +674,7 @@ class NestingTaskPanel:
             self._selection_observer = NestingTaskPanel._SelectionObserver(self)
             Gui.Selection.addObserver(self._selection_observer)
         except Exception:
-            App.Console.PrintError("Failed to add selection observer:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_add_selection_observer') + traceback.format_exc())
 
         self._load_settings_from_prefs()
         self._connect_settings_persistence()
@@ -768,7 +714,7 @@ class NestingTaskPanel:
             def vector_text(vector):
                 try:
                     return (
-                        "(x=%s, y=%s, z=%s)"
+                        tr('x_s_y_s_z_s')
                         % (
                             safe_float(vector.x),
                             safe_float(vector.y),
@@ -778,7 +724,7 @@ class NestingTaskPanel:
                 except Exception:
                     try:
                         return (
-                            "(X=%s, Y=%s, Z=%s)"
+                            tr('x_s_y_s_z_s_b630f9')
                             % (
                                 safe_float(vector.X),
                                 safe_float(vector.Y),
@@ -800,7 +746,7 @@ class NestingTaskPanel:
                         angle_deg = angle
 
                     return (
-                        "Axis=%s, Angle(rad)=%s, Angle(deg)=%s"
+                        tr('axis_s_angle_rad_s_angle_deg_s')
                         % (
                             vector_text(axis),
                             safe_float(angle),
@@ -814,7 +760,7 @@ class NestingTaskPanel:
             def placement_text(placement):
                 try:
                     return (
-                        "Base=%s | Rotation={%s}"
+                        tr('base_s_rotation_s')
                         % (
                             vector_text(placement.Base),
                             rotation_text(placement.Rotation),
@@ -827,7 +773,7 @@ class NestingTaskPanel:
             def point2d_text(point):
                 try:
                     return (
-                        "(x=%s, y=%s)"
+                        tr('x_s_y_s')
                         % (
                             safe_float(point[0]),
                             safe_float(point[1]),
@@ -840,7 +786,7 @@ class NestingTaskPanel:
             def point3d_text(point):
                 try:
                     return (
-                        "(x=%s, y=%s, z=%s)"
+                        tr('x_s_y_s_z_s')
                         % (
                             safe_float(point.x),
                             safe_float(point.y),
@@ -867,8 +813,7 @@ class NestingTaskPanel:
             def bbox_text(bbox):
                 try:
                     return (
-                        "XMin=%s, XMax=%s, YMin=%s, YMax=%s, "
-                        "ZMin=%s, ZMax=%s | Width=%s, Height=%s, Depth=%s"
+                        tr('xmin_s_xmax_s_ymin_s_ymax_s_zmin_s_zmax_s_width_s_height_s_depth_s')
                         % (
                             safe_float(bbox.XMin),
                             safe_float(bbox.XMax),
@@ -892,7 +837,7 @@ class NestingTaskPanel:
                     properties = []
 
                 if not properties:
-                    return "  No custom properties."
+                    return tr('no_custom_properties')
 
                 result = []
 
@@ -900,7 +845,7 @@ class NestingTaskPanel:
                     try:
                         value = getattr(obj, property_name)
                         result.append(
-                            "  %s = %s"
+                            tr('s_s')
                             % (
                                 property_name,
                                 str(value),
@@ -908,7 +853,7 @@ class NestingTaskPanel:
                         )
                     except Exception:
                         result.append(
-                            "  %s = <unreadable>"
+                            tr('s_unreadable')
                             % property_name
                         )
 
@@ -924,30 +869,29 @@ class NestingTaskPanel:
                 shape = getattr(obj, "Shape", None)
 
                 if shape is None:
-                    add("Shape: None")
+                    add(tr('shape_none'))
                     return
 
-                add("Shape object: %s" % str(shape))
+                add(tr('shape_object_s') % str(shape))
 
                 try:
-                    add("Shape.isNull(): %s" % str(shape.isNull()))
+                    add(tr('shape_isnull_s') % str(shape.isNull()))
                 except Exception:
-                    add("Shape.isNull(): <unavailable>")
+                    add(tr('shape_isnull_unavailable'))
 
                 try:
-                    add("Shape.Volume: %s" % safe_float(shape.Volume))
+                    add(tr('shape_volume_s') % safe_float(shape.Volume))
                 except Exception:
-                    add("Shape.Volume: <unavailable>")
+                    add(tr('shape_volume_unavailable'))
 
                 try:
-                    add("Shape.Area: %s" % safe_float(shape.Area))
+                    add(tr('shape_area_s') % safe_float(shape.Area))
                 except Exception:
-                    add("Shape.Area: <unavailable>")
+                    add(tr('shape_area_unavailable'))
 
                 try:
                     add(
-                        "Topology counts: Solids=%d, Shells=%d, "
-                        "Faces=%d, Wires=%d, Edges=%d, Vertices=%d"
+                        tr('topology_counts_solids_d_shells_d_faces_d_wires_d_edges_d_vertices_d')
                         % (
                             len(getattr(shape, "Solids", []) or []),
                             len(getattr(shape, "Shells", []) or []),
@@ -958,14 +902,14 @@ class NestingTaskPanel:
                         )
                     )
                 except Exception:
-                    add("Topology counts: <unavailable>")
+                    add(tr('topology_counts_unavailable'))
 
                 try:
                     local_bbox = shape.BoundBox
-                    add("Shape local BoundBox:")
+                    add(tr('shape_local_boundbox'))
                     add("  " + bbox_text(local_bbox))
                 except Exception:
-                    add("Shape local BoundBox: <unavailable>")
+                    add(tr('shape_local_boundbox_unavailable'))
 
                 try:
                     vertices = list(
@@ -973,19 +917,19 @@ class NestingTaskPanel:
                     )
 
                     add(
-                        "Vertices (%d):"
+                        tr('vertices_d')
                         % len(vertices)
                     )
 
                     if not vertices:
-                        add("  <none>")
+                        add(tr('none'))
 
                     for index, vertex in enumerate(vertices):
                         try:
                             local_point = vertex.Point
                         except Exception:
                             add(
-                                "  Vertex %d: <point unavailable>"
+                                tr('vertex_d_point_unavailable')
                                 % index
                             )
                             continue
@@ -996,20 +940,20 @@ class NestingTaskPanel:
                         )
 
                         add(
-                            "  Vertex %d local=%s transformed=%s"
+                            tr('vertex_d_local_s_transformed_s')
                             % (
                                 index,
                                 point3d_text(local_point),
                                 (
                                     point3d_text(transformed_point)
                                     if transformed_point is not None
-                                    else "<transformation failed>"
+                                    else tr('transformation_failed')
                                 ),
                             )
                         )
 
                 except Exception:
-                    add("Vertices: <unavailable>")
+                    add(tr('vertices_unavailable'))
 
                 try:
                     wires = list(
@@ -1017,7 +961,7 @@ class NestingTaskPanel:
                     )
 
                     add(
-                        "Wires (%d):"
+                        tr('wires_d')
                         % len(wires)
                     )
 
@@ -1035,7 +979,7 @@ class NestingTaskPanel:
                             wire_edges = []
 
                         add(
-                            "  Wire %d: closed=%s, edges=%d"
+                            tr('wire_d_closed_s_edges_d')
                             % (
                                 wire_index,
                                 str(is_closed),
@@ -1052,7 +996,7 @@ class NestingTaskPanel:
                                 edge_vertices = []
 
                             add(
-                                "    Edge %d: vertices=%d"
+                                tr('edge_d_vertices_d')
                                 % (
                                     edge_index,
                                     len(edge_vertices),
@@ -1075,7 +1019,7 @@ class NestingTaskPanel:
                                 )
 
                                 add(
-                                    "      V%d local=%s transformed=%s"
+                                    tr('v_d_local_s_transformed_s')
                                     % (
                                         vertex_index,
                                         point3d_text(local_point),
@@ -1090,7 +1034,7 @@ class NestingTaskPanel:
                                 )
 
                 except Exception:
-                    add("Wires: <unavailable>")
+                    add(tr('wires_unavailable'))
 
             # Read the row object-name list, falling back to its primary name.
             def get_row_object_names(item):
@@ -1147,26 +1091,26 @@ class NestingTaskPanel:
             # ---------------------------------------------------------
 
             add("=" * 100)
-            add("IP-NESTING CURRENT STATE DEBUG")
+            add(tr('ip_nesting_current_state_debug'))
             add("=" * 100)
-            add("This report only reads the current FreeCAD state.")
-            add("No input.json was generated by this debug function.")
-            add("No object Placement was modified.")
+            add(tr('this_report_only_reads_the_current_freecad_state'))
+            add(tr('no_input_json_was_generated_by_this_debug_function'))
+            add(tr('no_object_placement_was_modified'))
             add("")
 
-            add("Python file:")
-            add("  %s" % os.path.abspath(__file__))
+            add(tr('python_file'))
+            add(tr('s') % os.path.abspath(__file__))
             add("")
 
             add("FreeCAD:")
             try:
-                add("  Version: %s" % str(App.Version()))
+                add(tr('version_s') % str(App.Version()))
             except Exception:
-                add("  Version: <unavailable>")
+                add(tr('version_unavailable'))
 
-            add("  Documents: %s" % str(App.listDocuments()))
-            add("  Preview document name: %s" % self.preview_doc_name)
-            add("  Display units: %s" % str(self.display_units))
+            add(tr('documents_s') % str(App.listDocuments()))
+            add(tr('preview_document_name_s') % self.preview_doc_name)
+            add(tr('display_units_s') % str(self.display_units))
             add("")
 
             # ---------------------------------------------------------
@@ -1174,27 +1118,27 @@ class NestingTaskPanel:
             # ---------------------------------------------------------
 
             if self.preview_doc_name not in App.listDocuments():
-                add("ERROR: Preview document does not exist.")
+                add(tr('error_preview_document_does_not_exist'))
             else:
                 p_doc = App.getDocument(
                     self.preview_doc_name
                 )
 
                 if p_doc is None:
-                    add("ERROR: Could not get preview document.")
+                    add(tr('error_could_not_get_preview_document'))
                 else:
                     try:
                         p_doc.recompute()
                         add(
-                            "Preview document recompute: completed"
+                            tr('preview_document_recompute_completed')
                         )
                     except Exception:
                         add(
-                            "Preview document recompute: FAILED"
+                            tr('preview_document_recompute_failed')
                         )
 
                     add(
-                        "Preview document objects: %d"
+                        tr('preview_document_objects_d')
                         % len(p_doc.Objects)
                     )
                     add("")
@@ -1223,24 +1167,24 @@ class NestingTaskPanel:
 
                             add("-" * 100)
                             add(
-                                "PREVIEW OBJECT %d"
+                                tr('preview_object_d')
                                 % object_index
                             )
                             add("-" * 100)
-                            add("Name: %s" % str(name))
-                            add("Label: %s" % str(label))
-                            add("TypeId: %s" % str(type_id))
+                            add(tr('name_s') % str(name))
+                            add(tr('label_s') % str(label))
+                            add(tr('typeid_s') % str(type_id))
 
                             try:
                                 add(
-                                    "Visibility: %s"
+                                    tr('visibility_s')
                                     % str(
                                         obj.ViewObject.Visibility
                                     )
                                 )
                             except Exception:
                                 add(
-                                    "Visibility: <unavailable>"
+                                    tr('visibility_unavailable')
                                 )
 
                             try:
@@ -1248,14 +1192,14 @@ class NestingTaskPanel:
                                     "Placement:"
                                 )
                                 add(
-                                    "  %s"
+                                    tr('s')
                                     % placement_text(
                                         obj.Placement
                                     )
                                 )
                             except Exception:
                                 add(
-                                    "Placement: <unavailable>"
+                                    tr('placement_unavailable')
                                 )
 
                             try:
@@ -1267,7 +1211,7 @@ class NestingTaskPanel:
                                 )
                             except Exception:
                                 add(
-                                    "Properties: <unavailable>"
+                                    tr('properties_unavailable')
                                 )
 
                             dump_shape(obj)
@@ -1283,13 +1227,12 @@ class NestingTaskPanel:
                             ):
                                 add("")
                                 add(
-                                    "This object is recognized as "
-                                    "a grain arrow."
+                                    tr('this_object_is_recognized_as_a_grain_arrow')
                                 )
 
                         except Exception:
                             add(
-                                "Failed to dump preview object %d:\n%s"
+                                tr('failed_to_dump_preview_object_d_s')
                                 % (
                                     object_index,
                                     traceback.format_exc()
@@ -1302,7 +1245,7 @@ class NestingTaskPanel:
 
             add("")
             add("=" * 100)
-            add("TABLE STATE")
+            add(tr('table_state'))
             add("=" * 100)
 
             try:
@@ -1312,14 +1255,14 @@ class NestingTaskPanel:
                     total_rows - self.control_rows
                 )
 
-                add("Total table rows: %d" % total_rows)
-                add("Control rows: %d" % self.control_rows)
-                add("Data rows: %d" % data_rows)
+                add(tr('total_table_rows_d') % total_rows)
+                add(tr('control_rows_d') % self.control_rows)
+                add(tr('data_rows_d') % data_rows)
                 add("")
 
                 for row in range(data_rows):
                     add("-" * 100)
-                    add("TABLE DATA ROW %d" % row)
+                    add(tr('table_data_row_d') % row)
                     add("-" * 100)
 
                     name_item = self.table.item(row, 0)
@@ -1327,7 +1270,7 @@ class NestingTaskPanel:
                     rotation_item = self.table.item(row, 2)
 
                     if name_item is None:
-                        add("Name item: None")
+                        add(tr('name_item_none'))
                         continue
 
                     try:
@@ -1349,11 +1292,11 @@ class NestingTaskPanel:
                         name_item
                     )
 
-                    add("Label: %s" % str(row_label))
-                    add("Quantity: %s" % str(quantity))
-                    add("Allowed rotations: %s" % str(rotations))
+                    add(tr('label_s') % str(row_label))
+                    add(tr('quantity_s') % str(quantity))
+                    add(tr('allowed_rotations_s') % str(rotations))
                     add(
-                        "Associated preview names: %s"
+                        tr('associated_preview_names_s')
                         % str(names)
                     )
 
@@ -1377,7 +1320,7 @@ class NestingTaskPanel:
                             )
 
                             add(
-                                "Grain checkbox checked: %s"
+                                tr('grain_checkbox_checked_s')
                                 % str(
                                     bool(
                                         grain_checkbox
@@ -1387,7 +1330,7 @@ class NestingTaskPanel:
                             )
 
                             add(
-                                "Grain axis: %s"
+                                tr('grain_axis_s')
                                 % str(
                                     grain_combo.currentText()
                                     if grain_combo
@@ -1397,7 +1340,7 @@ class NestingTaskPanel:
 
                     except Exception:
                         add(
-                            "Grain widget state: <unavailable>"
+                            tr('grain_widget_state_unavailable')
                         )
 
                     try:
@@ -1414,7 +1357,7 @@ class NestingTaskPanel:
                             )
 
                             add(
-                                "Rotation checkbox checked: %s"
+                                tr('rotation_checkbox_checked_s')
                                 % str(
                                     bool(
                                         rotation_checkbox
@@ -1425,12 +1368,12 @@ class NestingTaskPanel:
 
                     except Exception:
                         add(
-                            "Rotation widget state: <unavailable>"
+                            tr('rotation_widget_state_unavailable')
                         )
 
             except Exception:
                 add(
-                    "Failed to dump table state:\n%s"
+                    tr('failed_to_dump_table_state_s')
                     % traceback.format_exc()
                 )
 
@@ -1440,7 +1383,7 @@ class NestingTaskPanel:
 
             add("")
             add("=" * 100)
-            add("PANEL GRAIN STATE")
+            add(tr('panel_grain_state'))
             add("=" * 100)
 
             try:
@@ -1451,10 +1394,10 @@ class NestingTaskPanel:
                 )
 
                 if grain_controller is None:
-                    add("Grain controller: None")
+                    add(tr('grain_controller_none'))
                 else:
                     add(
-                        "Last applied grain state: %s"
+                        tr('last_applied_grain_state_s')
                         % str(
                             getattr(
                                 grain_controller,
@@ -1471,19 +1414,18 @@ class NestingTaskPanel:
                         )
 
                         add(
-                            "Current grain checkbox state: %s"
+                            tr('current_grain_checkbox_state_s')
                             % str(current_state)
                         )
 
                     except Exception:
                         add(
-                            "Current grain checkbox state: "
-                            "<unavailable>"
+                            tr('current_grain_checkbox_state_unavailable')
                         )
 
             except Exception:
                 add(
-                    "Panel grain state: <unavailable>"
+                    tr('panel_grain_state_unavailable')
                 )
 
             # ---------------------------------------------------------
@@ -1492,14 +1434,14 @@ class NestingTaskPanel:
 
             add("")
             add("=" * 100)
-            add("FREECAD SELECTION")
+            add(tr('freecad_selection'))
             add("=" * 100)
 
             try:
                 selection = Gui.Selection.getSelection()
 
                 add(
-                    "Selected objects: %d"
+                    tr('selected_objects_d')
                     % len(selection)
                 )
 
@@ -1507,7 +1449,7 @@ class NestingTaskPanel:
                     selection
                 ):
                     add(
-                        "  %d: Name=%s, Label=%s, Document=%s"
+                        tr('d_name_s_label_s_document_s')
                         % (
                             index,
                             str(
@@ -1540,7 +1482,7 @@ class NestingTaskPanel:
 
             except Exception:
                 add(
-                    "Selection: <unavailable>"
+                    tr('selection_unavailable')
                 )
 
             # ---------------------------------------------------------
@@ -1552,7 +1494,7 @@ class NestingTaskPanel:
             )
 
             dialog.setWindowTitle(
-                "IP-Nesting Debug Export - Current State"
+                tr('ip_nesting_debug_export_current_state')
             )
 
             dialog.resize(
@@ -1565,9 +1507,7 @@ class NestingTaskPanel:
             )
 
             info_label = QtGui.QLabel(
-                "Detailed current-state debug. "
-                "The report includes local and Placement-transformed "
-                "geometry coordinates."
+                tr('detailed_current_state_debug_the_report_includes_local_and_placement_transformed_geometry_')
             )
 
             info_label.setWordWrap(True)
@@ -1589,15 +1529,15 @@ class NestingTaskPanel:
             buttons_layout = QtGui.QHBoxLayout()
 
             copy_button = QtGui.QPushButton(
-                "Copy"
+                tr('copy')
             )
 
             save_button = QtGui.QPushButton(
-                "Save debug text..."
+                tr('save_debug_text')
             )
 
             close_button = QtGui.QPushButton(
-                "Close"
+                tr('close')
             )
 
             buttons_layout.addWidget(
@@ -1626,7 +1566,7 @@ class NestingTaskPanel:
                     )
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to copy debug text:\n"
+                        tr('failed_to_copy_debug_text')
                         + traceback.format_exc()
                     )
 
@@ -1635,9 +1575,9 @@ class NestingTaskPanel:
                 try:
                     path, _ = QtGui.QFileDialog.getSaveFileName(
                         dialog,
-                        "Save IP-Nesting debug text",
+                        tr('save_ip_nesting_debug_text'),
                         "",
-                        "Text files (*.txt);;All files (*.*)"
+                        tr('text_files_txt_all_files')
                     )
 
                     if not path:
@@ -1653,13 +1593,13 @@ class NestingTaskPanel:
                         )
 
                     App.Console.PrintMessage(
-                        "IP-Nesting debug text saved to: %s\n"
+                        tr('ip_nesting_debug_text_saved_to_s')
                         % path
                     )
 
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to save debug text:\n"
+                        tr('failed_to_save_debug_text')
                         + traceback.format_exc()
                     )
 
@@ -1679,15 +1619,15 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "debug_export_polygons failed:\n"
+                tr('debug_export_polygons_failed')
                 + traceback.format_exc()
             )
 
             try:
                 QtGui.QMessageBox.critical(
                     None,
-                    "IP-Nesting Debug",
-                    "Failed to create debug window:\n%s"
+                    tr('ip_nesting_debug'),
+                    tr('failed_to_create_debug_window_s')
                     % traceback.format_exc()
                 )
             except Exception:
@@ -1724,8 +1664,8 @@ class NestingTaskPanel:
 
         combo = QtGui.QComboBox()
         combo.addItems([
-            "False",
-            "True",
+            tr('false'),
+            tr('true'),
         ])
 
         combo.setCurrentIndex(
@@ -1862,7 +1802,7 @@ class NestingTaskPanel:
             htop.setContentsMargins(5, 2, 5, 2)
             htop.setSpacing(6)
 
-            htop.addWidget(QtGui.QLabel("Rotate:"))
+            htop.addWidget(QtGui.QLabel(tr('rotate_7b41f1')))
 
             self.bulk_angle_combo = QtGui.QComboBox()
             self.bulk_angle_combo.addItems(["90°", "180°"])
@@ -1876,13 +1816,13 @@ class NestingTaskPanel:
             self.bulk_axis_combo.setFixedWidth(85)
             htop.addWidget(self.bulk_axis_combo)
 
-            self.bulk_rotate_btn = QtGui.QPushButton("Rotate")
-            self.bulk_rotate_btn.setFixedWidth(80)
+            self.bulk_rotate_btn = QtGui.QPushButton(tr('rotate'))
+            self.bulk_rotate_btn.setMinimumWidth(80)
             self.bulk_rotate_btn.clicked.connect(self.apply_bulk_rotate)
             htop.addWidget(self.bulk_rotate_btn)
 
-            self.clear_all_btn = QtGui.QPushButton("Clear All")
-            self.clear_all_btn.setToolTip("Uncheck all selection checkboxes in the table")
+            self.clear_all_btn = QtGui.QPushButton(tr('clear_all'))
+            self.clear_all_btn.setToolTip(tr('uncheck_all_selection_checkboxes_in_the_table'))
             self.clear_all_btn.clicked.connect(self.clear_all_checks)
             htop.addWidget(self.clear_all_btn)
 
@@ -1908,7 +1848,7 @@ class NestingTaskPanel:
             hbot.setContentsMargins(5, 2, 5, 2)
             hbot.setSpacing(6)
 
-            hbot.addWidget(QtGui.QLabel("Change grain direction:"))
+            hbot.addWidget(QtGui.QLabel(tr('change_grain_direction')))
 
             self.bulk_grain_combo = QtGui.QComboBox()
             self.bulk_grain_combo.addItems(["X", "Y"])
@@ -1922,12 +1862,12 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
-            self.bulk_grain_apply_btn = QtGui.QPushButton("Apply Grain")
-            self.bulk_grain_apply_btn.setFixedWidth(100)
+            self.bulk_grain_apply_btn = QtGui.QPushButton(tr('apply_grain'))
+            self.bulk_grain_apply_btn.setMinimumWidth(100)
             self.bulk_grain_apply_btn.clicked.connect(self.apply_change_grain)
-            self.set_angle_btn = QtGui.QPushButton("Set custom angle")
+            self.set_angle_btn = QtGui.QPushButton(tr('set_custom_angle'))
             self.set_angle_btn.setMinimumWidth(160)
-            self.set_angle_btn.setToolTip("Set grain angle for selected GrainArrow objects")
+            self.set_angle_btn.setToolTip(tr('set_grain_angle_for_selected_grainarrow_objects'))
             hbot.addWidget(self.bulk_grain_apply_btn)
             hbot.addWidget(self.set_angle_btn)
             
@@ -1945,7 +1885,7 @@ class NestingTaskPanel:
             self.table.setItem(bottom_idx, 0, control_item2)
 
         except Exception:
-            App.Console.PrintError("Failed to create control rows:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_create_control_rows') + traceback.format_exc())
 
     # Open the Custom angle dialog only for rows where both Grain Direction and Custom angle are
     # enabled.
@@ -2098,8 +2038,7 @@ class NestingTaskPanel:
 
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to inspect Custom angle "
-                        "selection in row %d:\n%s\n"
+                        tr('failed_to_inspect_custom_angle_selection_in_row_d_s')
                         % (
                             row,
                             traceback.format_exc()
@@ -2110,9 +2049,8 @@ class NestingTaskPanel:
             if not grain_selected:
                 QtGui.QMessageBox.warning(
                     self.form,
-                    "Custom angle",
-                    "Select at least one part in the "
-                    "'Grain Direction' column first."
+                    tr('custom_angle'),
+                    tr('select_at_least_one_part_in_the_grain_direction_column_first')
                 )
                 return
 
@@ -2120,10 +2058,8 @@ class NestingTaskPanel:
             if not custom_angle_selected:
                 QtGui.QMessageBox.warning(
                     self.form,
-                    "Custom angle",
-                    "To set a custom angle, select the "
-                    "'Custom angle' checkbox for the part(s) "
-                    "you want to modify."
+                    tr('custom_angle'),
+                    tr('to_set_a_custom_angle_select_the_custom_angle_checkbox_for_the_part_s_you_want_to_modify')
                 )
                 return
 
@@ -2131,9 +2067,8 @@ class NestingTaskPanel:
             if not valid_arrow_names:
                 QtGui.QMessageBox.warning(
                     self.form,
-                    "Custom angle",
-                    "No valid grain arrow was found for the "
-                    "selected Custom angle part(s)."
+                    tr('custom_angle'),
+                    tr('no_valid_grain_arrow_was_found_for_the_selected_custom_angle_part_s')
                 )
                 return
 
@@ -2143,7 +2078,7 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "_on_set_angle_clicked failed:\n"
+                tr('on_set_angle_clicked_failed')
                 + traceback.format_exc()
             )
     
@@ -2246,18 +2181,18 @@ class NestingTaskPanel:
             temp_step_file.close()
             
             # Export shape to STEP
-            App.Console.PrintMessage(f"Serializing shape via STEP to avoid hash issues: {temp_step_path}\n")
+            App.Console.PrintMessage(tr("debug.serialize_shape") % temp_step_path)
             shape.exportStep(temp_step_path)
             
             # Re-import from STEP to get clean, independent shape
             imported_shape = Part.Shape()
             imported_shape.read(temp_step_path)
             
-            App.Console.PrintMessage("Shape successfully serialized and re-imported\n")
+            App.Console.PrintMessage(tr('shape_successfully_serialized_and_re_imported'))
             return imported_shape
             
         except Exception as e:
-            App.Console.PrintWarning(f"Shape serialization failed, using direct copy: {e}\n")
+            App.Console.PrintWarning(tr("debug.serialize_failed") % e)
             # Fallback to direct copy if serialization fails
             return shape.copy()
             
@@ -2267,14 +2202,14 @@ class NestingTaskPanel:
                 try:
                     os.unlink(temp_step_path)
                 except Exception as e:
-                    App.Console.PrintWarning(f"Failed to clean up temporary STEP file {temp_step_path}: {e}\n")
+                    App.Console.PrintWarning(tr("debug.cleanup_step") % (temp_step_path, e))
 
     # Copy selected geometry into the preview, align it and add part rows before arranging
     # groups.
     def add_selected_objects(self):
         selection = Gui.Selection.getSelection()
         if not selection:
-            App.Console.PrintMessage("No selection to add.\n")
+            App.Console.PrintMessage(tr('no_selection_to_add'))
             return
 
         p_doc = self.ensure_preview_doc()
@@ -2327,7 +2262,7 @@ class NestingTaskPanel:
                             new_obj = None
 
                     if new_obj is None:
-                        App.Console.PrintError("Failed to create preview object for '%s'\n" % getattr(target, "Label", "<unknown>"))
+                        App.Console.PrintError(tr('failed_to_create_preview_object_for_s') % getattr(target, "Label", "<unknown>"))
                         continue
                     
                     # --- FIX: PartDesign::Body in preview may have invalid Shape/BoundBox; use Tip.Shape as fallback ---
@@ -2387,7 +2322,7 @@ class NestingTaskPanel:
                         _ = new_obj.Shape.BoundBox
                         _ = new_obj.Shape.Volume
                     except Exception as e:
-                        App.Console.PrintWarning(f"Failed to access shape properties for hash validation: {e}\n")
+                        App.Console.PrintWarning(tr("debug.shape_hash") % e)
 
                     bbox = new_obj.Shape.BoundBox
 
@@ -2396,7 +2331,7 @@ class NestingTaskPanel:
                         if not (bbox.XMax > bbox.XMin and bbox.YMax > bbox.YMin):
                             # only try fallback for PartDesign::Body
                             if getattr(new_obj, "TypeId", "") == "PartDesign::Body":
-                                App.Console.PrintMessage("add_selected_objects: invalid bbox for %s; trying Tip.Shape fallback\n" % new_obj.Name)
+                                App.Console.PrintMessage(tr('add_selected_objects_invalid_bbox_for_s_trying_tip_shape_fallback') % new_obj.Name)
 
                                 tip = getattr(new_obj, "Tip", None)
                                 tip_shape = getattr(tip, "Shape", None) if tip else None
@@ -2427,7 +2362,7 @@ class NestingTaskPanel:
                             # If still invalid after fallback -> skip placement safely
                             if not (bbox.XMax > bbox.XMin and bbox.YMax > bbox.YMin):
                                 App.Console.PrintMessage(
-                                    "add_selected_objects: still invalid bbox for %s (%s); skipping grid placement\n" %
+                                    tr('add_selected_objects_still_invalid_bbox_for_s_s_skipping_grid_placement') %
                                     (getattr(new_obj, "Name", "<unknown>"), getattr(new_obj, "TypeId", ""))
                                 )
                                 continue
@@ -2486,13 +2421,7 @@ class NestingTaskPanel:
                     cell_layout_sel.addStretch()
                     checkbox = QtGui.QCheckBox()
                     checkbox.setToolTip(
-                        "Select which parts will be rotated in the XY plane.\n\n"
-                        "When parts are added, the alignment algorithm selects the "
-                        "largest face and turns it upward. For some parts, the intended "
-                        "top face may be smaller than a side or bottom face.\n\n"
-                        "Rotating a part by 90 degrees makes a side face become the "
-                        "top face. Rotating it by 180 degrees makes the bottom face "
-                        "become the top face."
+                        tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
                     )
                     cell_layout_sel.addWidget(checkbox)
                     cell_layout_sel.addStretch()
@@ -2504,7 +2433,7 @@ class NestingTaskPanel:
                     grain_layout.setSpacing(4)
                     grain_layout.addStretch()
                     grain_cb = QtGui.QCheckBox()
-                    grain_cb.setToolTip("Enable custom grain direction for this part")
+                    grain_cb.setToolTip(tr('enable_custom_grain_direction_for_this_part'))
                     grain_layout.addWidget(grain_cb)
                     grain_combo = QtGui.QComboBox()
                     grain_combo.addItems(["X", "Y"])
@@ -2532,9 +2461,7 @@ class NestingTaskPanel:
 
                     custom_angle_cb = QtGui.QCheckBox()
                     custom_angle_cb.setToolTip(
-                        "Enable Custom angle for this part. "
-                        "The Set custom angle command can only modify parts "
-                        "where both Grain Direction and Custom angle are enabled."
+                        tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
                     )
 
                     custom_angle_layout.addWidget(
@@ -2554,7 +2481,7 @@ class NestingTaskPanel:
                         # use preview object name stored in new_obj.Name
                         self._connect_grain_widgets(grain_cb, grain_combo, new_obj.Name)
                     except Exception:
-                        App.Console.PrintError("Failed to connect grain widget signals for '%s':\n" % (new_obj.Name,) + traceback.format_exc())
+                        App.Console.PrintError(tr('failed_to_connect_grain_widget_signals_for_s') % (new_obj.Name,) + traceback.format_exc())
 
                     # ensure column width remains (in case header auto-resize changed it)
                     try:
@@ -2563,7 +2490,7 @@ class NestingTaskPanel:
                         pass
 
                 except Exception:
-                    App.Console.PrintError("Failed to add object to preview:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('failed_to_add_object_to_preview') + traceback.format_exc())
 
         finally:
             self._suppress_qty_update = False
@@ -2573,7 +2500,7 @@ class NestingTaskPanel:
             Gui.setActiveDocument(p_doc)
             Gui.SendMsgToActiveView("ViewFit")
         except Exception:
-            App.Console.PrintError("Error during final recompute/view update:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('error_during_final_recompute_view_update') + traceback.format_exc())
             
         # TRIGGER LAYOUT UPDATE
         self.update_grain_layout_and_perimeters()
@@ -2609,7 +2536,7 @@ class NestingTaskPanel:
                     Gui.SendMsgToActiveView("ViewFit")
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to fit all visible nesting objects:\n"
+                        tr('failed_to_fit_all_visible_nesting_objects')
                         + traceback.format_exc()
                     )
 
@@ -2629,7 +2556,7 @@ class NestingTaskPanel:
             # select all preview objects associated with this row
             self.select_preview_objects_for_row(row)
         except Exception:
-            App.Console.PrintError("on_cell_clicked failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('on_cell_clicked_failed') + traceback.format_exc())
 
     # Handle Qty and Rotation edits.
     def on_item_changed(self, item):
@@ -2739,8 +2666,7 @@ class NestingTaskPanel:
                         )
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to delete preview object "
-                        "when Qty was set to zero:\n"
+                        tr('failed_to_delete_preview_object_when_qty_was_set_to_zero')
                         + traceback.format_exc()
                     )
 
@@ -2748,7 +2674,7 @@ class NestingTaskPanel:
                     self.table.removeRow(row)
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to remove table row:\n"
+                        tr('failed_to_remove_table_row')
                         + traceback.format_exc()
                     )
 
@@ -2842,7 +2768,7 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "on_item_changed failed:\n"
+                tr('on_item_changed_failed')
                 + traceback.format_exc()
             )
 
@@ -2859,7 +2785,7 @@ class NestingTaskPanel:
             axis = self.bulk_axis_combo.currentText() if hasattr(self, "bulk_axis_combo") else "X"
             p_doc = App.getDocument(self.preview_doc_name) if self.preview_doc_name in App.listDocuments() else None
             if self._rotator is None:
-                App.Console.PrintMessage("Rotation module not available.\n")
+                App.Console.PrintMessage(tr('rotation_module_not_available'))
                 return
             # pass sheet grain and algorithm if needed later (algorithm available in UI)
             self._rotator.apply_bulk_rotate(self.table, p_doc, angle, axis_char=axis)
@@ -2870,9 +2796,9 @@ class NestingTaskPanel:
                     try:
                         self.update_grain_layout_and_perimeters()
                     except Exception:
-                        App.Console.PrintError("Failed to update grain layout/perimeters after apply_change_grain:\n" + traceback.format_exc())
+                        App.Console.PrintError(tr('failed_to_update_grain_layout_perimeters_after_apply_change_grain') + traceback.format_exc())
             except Exception:
-                App.Console.PrintError("Failed to draw grain perimeter after apply_bulk_rotate:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('failed_to_draw_grain_perimeter_after_apply_bulk_rotate') + traceback.format_exc())
             
             # TRIGGER LAYOUT UPDATE
             self.update_grain_layout_and_perimeters()
@@ -2881,7 +2807,7 @@ class NestingTaskPanel:
             self._fit_all_views()
             
         except Exception:
-            App.Console.PrintError("apply_bulk_rotate wrapper failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('apply_bulk_rotate_wrapper_failed') + traceback.format_exc())
 
     # Apply checked grain rows using their current axes/angles, then fit the rebuilt preview.
     def apply_change_grain(self):
@@ -2904,10 +2830,10 @@ class NestingTaskPanel:
             self._fit_all_views()
             self._update_apply_blink_state()
             App.Console.PrintMessage(
-                "apply_change_grain: applied grain to %d rows.\n" % changed
+                tr('apply_change_grain_applied_grain_to_d_rows') % changed
             )
         except Exception:
-            App.Console.PrintError("apply_change_grain failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('apply_change_grain_failed') + traceback.format_exc())
 
     # Uncheck every per-row 'Select for rotation' checkbox (column 3) - does not modify grain
     # states.
@@ -2938,15 +2864,15 @@ class NestingTaskPanel:
                 except RuntimeError:
                     continue
                 except Exception:
-                    App.Console.PrintError("clear_all_checks per-row error:\n" + traceback.format_exc())
-            App.Console.PrintMessage("clear_all_checks: all 'Select for rotation' checkboxes cleared.\n")
+                    App.Console.PrintError(tr('clear_all_checks_per_row_error') + traceback.format_exc())
+            App.Console.PrintMessage(tr('clear_all_checks_all_select_for_rotation_checkboxes_cleared'))
             # update blinking state
             try:
                 self._update_apply_blink_state()
             except Exception:
                 pass
         except Exception:
-            App.Console.PrintError("clear_all_checks failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('clear_all_checks_failed') + traceback.format_exc())
             
     # Remove selected table rows and delete their preview objects. Behavior matches entering Qty
     # = 0 for the selected rows.
@@ -2956,13 +2882,13 @@ class NestingTaskPanel:
         """
         indices = self.table.selectionModel().selectedRows()
         if not indices:
-            App.Console.PrintMessage("No rows selected for removal.\n")
+            App.Console.PrintMessage(tr('no_rows_selected_for_removal'))
             return
 
         control_start = self.table.rowCount() - self.control_rows
         rows = sorted([index.row() for index in indices if index.row() < control_start], reverse=True)
         if not rows:
-            App.Console.PrintMessage("No data rows selected for removal.\n")
+            App.Console.PrintMessage(tr('no_data_rows_selected_for_removal'))
             return
 
         p_doc = App.getDocument(self.preview_doc_name) if self.preview_doc_name in App.listDocuments() else None
@@ -2992,7 +2918,7 @@ class NestingTaskPanel:
                     try:
                         removed = self.delete_preview_objects(names)
                     except Exception:
-                        App.Console.PrintError("remove_selected_rows: delete_preview_objects failed for row %d:\n%s\n" % (r, traceback.format_exc()))
+                        App.Console.PrintError(tr('remove_selected_rows_delete_preview_objects_failed_for_row_d_s') % (r, traceback.format_exc()))
                         removed = []
 
                 # Remove widgets in both select and grain columns
@@ -3023,13 +2949,13 @@ class NestingTaskPanel:
                     self.added_count = 0
 
             except Exception:
-                App.Console.PrintError("Error removing row %d:\n%s\n" % (r, traceback.format_exc()))
+                App.Console.PrintError(tr('error_removing_row_d_s') % (r, traceback.format_exc()))
 
         try:
             if p_doc:
                 p_doc.recompute()
         except Exception:
-            App.Console.PrintError("Error recomputing preview doc after removals:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('error_recomputing_preview_doc_after_removals') + traceback.format_exc())
 
         # update grain perimeter after row removals
         try:
@@ -3037,9 +2963,9 @@ class NestingTaskPanel:
                 try:
                     self.update_grain_layout_and_perimeters()
                 except Exception:
-                    App.Console.PrintError("Failed to update grain layout/perimeters after apply_change_grain:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('failed_to_update_grain_layout_perimeters_after_apply_change_grain') + traceback.format_exc())
         except Exception:
-            App.Console.PrintError("Failed to draw grain perimeter after remove_selected_rows:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('failed_to_draw_grain_perimeter_after_remove_selected_rows') + traceback.format_exc())
         
         # TRIGGER LAYOUT UPDATE
         self.update_grain_layout_and_perimeters()
@@ -3075,24 +3001,24 @@ class NestingTaskPanel:
 
             if sheet_count == 0:
                 missing_items.append(
-                    "At least one sheet or offcut must be added."
+                    tr('at_least_one_sheet_or_offcut_must_be_added')
                 )
 
             if data_rows == 0:
                 missing_items.append(
-                    "At least one part must be added."
+                    tr('at_least_one_part_must_be_added')
                 )
 
             if missing_items:
                 message = "\n".join(
-                    "- %s" % item
+                    tr('s_344808') % item
                     for item in missing_items
                 )
 
                 QtGui.QMessageBox.warning(
                     self.form,
-                    "Cannot start nesting",
-                    "Cannot start nesting until:\n\n%s"
+                    tr('cannot_start_nesting'),
+                    tr('cannot_start_nesting_until_s')
                     % message
                 )
 
@@ -3123,8 +3049,8 @@ class NestingTaskPanel:
             if not os.path.exists(input_path):
                 QtGui.QMessageBox.critical(
                     self.form,
-                    "Input generation failed",
-                    "The input.json file was not created."
+                    tr('input_generation_failed'),
+                    tr('the_input_json_file_was_not_created')
                 )
                 return
 
@@ -3139,38 +3065,38 @@ class NestingTaskPanel:
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to start nesting process:\n"
+                    tr('failed_to_start_nesting_process')
                     + traceback.format_exc()
                 )
 
                 QtGui.QMessageBox.critical(
                     self.form,
-                    "Nesting start error",
-                    "Failed to start the nesting process."
+                    tr('nesting_start_error'),
+                    tr('failed_to_start_the_nesting_process')
                 )
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to start nesting process:\n"
+                    tr('failed_to_start_nesting_process')
                     + traceback.format_exc()
                 )
 
                 QtGui.QMessageBox.critical(
                     self.form,
-                    "Nesting start error",
-                    "Failed to start the nesting process."
+                    tr('nesting_start_error'),
+                    tr('failed_to_start_the_nesting_process')
                 )
 
         except Exception:
             App.Console.PrintError(
-                "execute_nesting failed:\n"
+                tr('execute_nesting_failed')
                 + traceback.format_exc()
             )
 
             QtGui.QMessageBox.critical(
                 self.form,
-                "Input generation error",
-                "Failed to generate input.json."
+                tr('input_generation_error'),
+                tr('failed_to_generate_input_json')
             )
 
     # Return the Cancel button flag expected by the FreeCAD task-panel API.
@@ -3248,14 +3174,14 @@ class NestingTaskPanel:
                     arrow_name = getattr(ao, "Name", "") or ""
                     arrow_label = getattr(ao, "Label", "") or ""
 
-                    part_label = "<unknown part>"
+                    part_label = tr('unknown_part')
                     if arrow_name.startswith("GrainArrow_"):
                         part_name = arrow_name[len("GrainArrow_"):]
                         part_obj = p_doc.getObject(part_name) if p_doc else None
                         if part_obj:
                             part_label = getattr(part_obj, "Label", "") or getattr(part_obj, "Name", part_name)
 
-                    part_labels.append("%s " % (part_label))
+                    part_labels.append(tr('s_cd3af8') % (part_label))
                 except Exception:
                     part_labels.append(str(ao))
 
@@ -3359,7 +3285,7 @@ class NestingTaskPanel:
                                             "App::PropertyInteger",
                                             "GrainAngleDeg",
                                             "IPNesting",
-                                            "Absolute grain angle in degrees vs +X"
+                                            tr('absolute_grain_angle_in_degrees_vs_x')
                                         )
                                     except Exception:
                                         pass
@@ -3399,11 +3325,11 @@ class NestingTaskPanel:
             # NOTE: for now do nothing else
 
         except Exception:
-            App.Console.PrintError("[IPNesting][DEBUG] _open_grain_angle_dialog_for_selected_arrows FAILED:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('ipnesting_debug_open_grain_angle_dialog_for_selected_arrows_failed') + traceback.format_exc())
         finally:
             try:
                 self._grain_angle_dialog_open = False
-                App.Console.PrintMessage("[IPNesting][DEBUG] Set _grain_angle_dialog_open=False (finally)\n")
+                App.Console.PrintMessage(tr('ipnesting_debug_set_grain_angle_dialog_open_false_finally'))
             except Exception:
                 pass
             
@@ -3442,7 +3368,7 @@ class NestingTaskPanel:
             # pēc rotācijas pārkārtošanu var gribēt:
             # self.update_grain_layout_and_perimeters()
         except Exception:
-            App.Console.PrintError("_rotate_preview_parts_about_z failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('rotate_preview_parts_about_z_failed') + traceback.format_exc())
             
     # Recreate X-axis grain arrows for the named preview parts.
     def _redraw_grain_arrows_for_parts(self, part_names):
@@ -3467,7 +3393,7 @@ class NestingTaskPanel:
                 except Exception:
                     continue
         except Exception:
-            App.Console.PrintError("_redraw_grain_arrows_for_parts failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('redraw_grain_arrows_for_parts_failed') + traceback.format_exc())
             
     # Return the IP-Nesting FreeCAD preference group, or None when unavailable.
     def _prefs(self):
@@ -3645,15 +3571,15 @@ class NestingTaskPanel:
         )
 
         self.sheet_margin_label.setText(
-            "Sheet Margin (%s):" % suffix
+            tr('sheet_margin_s') % suffix
         )
 
         self.spacing_label.setText(
-            "Part Spacing (%s):" % suffix
+            tr('part_spacing_s') % suffix
         )
 
         self.res_label.setText(
-            "Boundary Resolution (%s):" % suffix
+            tr('boundary_resolution_s') % suffix
         )
     
     # Change display units using canonical mm values.
@@ -3734,7 +3660,7 @@ class NestingTaskPanel:
             self._units_change_guard = False
 
             App.Console.PrintError(
-                "_on_units_changed failed:\n"
+                tr('on_units_changed_failed')
                 + traceback.format_exc()
             )
     
@@ -4123,7 +4049,7 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "_save_settings_to_prefs failed:\n"
+                tr('save_settings_to_prefs_failed')
                 + traceback.format_exc()
             )
 
@@ -4164,7 +4090,7 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "_update_dimension_value_from_field failed:\n"
+                tr('update_dimension_value_from_field_failed')
                 + traceback.format_exc()
             )
 
@@ -4219,7 +4145,7 @@ class NestingTaskPanel:
 
         except Exception:
             App.Console.PrintError(
-                "_normalize_decimal_field failed:\n"
+                tr('normalize_decimal_field_failed')
                 + traceback.format_exc()
             )
     
@@ -4329,13 +4255,7 @@ class NestingTaskPanel:
             cell_layout_sel.addStretch()
             checkbox = QtGui.QCheckBox()
             checkbox.setToolTip(
-                "Select which parts will be rotated in the XY plane.\n\n"
-                "When parts are added, the alignment algorithm selects the "
-                "largest face and turns it upward. For some parts, the intended "
-                "top face may be smaller than a side or bottom face.\n\n"
-                "Rotating a part by 90 degrees makes a side face become the "
-                "top face. Rotating it by 180 degrees makes the bottom face "
-                "become the top face."
+                tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
             )
             cell_layout_sel.addWidget(checkbox)
             cell_layout_sel.addStretch()
@@ -4348,7 +4268,7 @@ class NestingTaskPanel:
             grain_layout.setSpacing(4)
             grain_layout.addStretch()
             grain_cb = QtGui.QCheckBox()
-            grain_cb.setToolTip("Enable custom grain direction for this part")
+            grain_cb.setToolTip(tr('enable_custom_grain_direction_for_this_part'))
             grain_layout.addWidget(grain_cb)
             grain_combo = QtGui.QComboBox()
             grain_combo.addItems(["X", "Y"])
@@ -4376,9 +4296,7 @@ class NestingTaskPanel:
 
             custom_angle_cb = QtGui.QCheckBox()
             custom_angle_cb.setToolTip(
-                "Enable Custom angle for this part. "
-                "The Set custom angle command can only modify parts "
-                "where both Grain Direction and Custom angle are enabled."
+                tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
             )
 
             custom_angle_layout.addWidget(
@@ -4409,18 +4327,18 @@ class NestingTaskPanel:
             return True
 
         except Exception:
-            App.Console.PrintError("_add_preview_object_to_table failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('add_preview_object_to_table_failed') + traceback.format_exc())
             return False
 
     # Choose a DXF, import wire geometry into the preview and add the resulting part row.
     def import_dxf_2d(self):
         try:
             if import_dxf_to_preview is None:
-                QtGui.QMessageBox.warning(None, "Import DXF", "DXF import module not available.")
+                QtGui.QMessageBox.warning(None, tr('import_dxf_8bce56'), tr('dxf_import_module_not_available'))
                 return
 
             path, _ = QtGui.QFileDialog.getOpenFileName(
-                None, "Import DXF", "", "DXF files (*.dxf *.DXF);;All files (*.*)"
+                None, tr('import_dxf_8bce56'), "", tr('dxf_files_dxf_dxf_all_files')
             )
             if not path:
                 return
@@ -4434,7 +4352,7 @@ class NestingTaskPanel:
             )
 
             if not created:
-                QtGui.QMessageBox.warning(None, "Import DXF", "No usable geometry imported.")
+                QtGui.QMessageBox.warning(None, tr('import_dxf_8bce56'), tr('no_usable_geometry_imported'))
                 return
 
             # Add created objects to the table (so they can be rotated like others)
@@ -4462,17 +4380,17 @@ class NestingTaskPanel:
                 pass
 
         except Exception:
-            App.Console.PrintError("import_dxf_2d failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('import_dxf_2d_failed') + traceback.format_exc())
 
     # Choose an SVG, import wire geometry into the preview and add the resulting part row.
     def import_svg_2d(self):
         try:
             if import_svg_to_preview is None:
-                QtGui.QMessageBox.warning(None, "Import SVG", "SVG import module not available.")
+                QtGui.QMessageBox.warning(None, tr('import_svg_084c0a'), tr('svg_import_module_not_available'))
                 return
 
             path, _ = QtGui.QFileDialog.getOpenFileName(
-                None, "Import SVG", "", "SVG files (*.svg *.SVG);;All files (*.*)"
+                None, tr('import_svg_084c0a'), "", tr('svg_files_svg_svg_all_files')
             )
             if not path:
                 return
@@ -4486,7 +4404,7 @@ class NestingTaskPanel:
             )
 
             if not created:
-                QtGui.QMessageBox.warning(None, "Import SVG", "No usable geometry imported.")
+                QtGui.QMessageBox.warning(None, tr('import_svg_084c0a'), tr('no_usable_geometry_imported'))
                 return
 
             for nm in created:
@@ -4512,7 +4430,7 @@ class NestingTaskPanel:
                 pass
 
         except Exception:
-            App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('import_svg_2d_failed') + traceback.format_exc())
     
     # Normalize the rotation count field.
     def _clamp_rotation_degrees_text(self, txt):

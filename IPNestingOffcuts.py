@@ -15,6 +15,7 @@ Goal:
 `holes` is initially empty. The user-selected contours are converted
 to holes later by the UI/export pipeline.
 """
+from IPNestingLanguages import tr
 
 import os
 import traceback
@@ -39,7 +40,7 @@ def _import_dxf(path, doc_name):
     """
     if not path or not os.path.exists(path):
         App.Console.PrintError(
-            "[Offcuts] DXF file does not exist: %s\n" % str(path)
+            tr('offcuts_dxf_file_does_not_exist_s') % str(path)
         )
         return False
 
@@ -57,7 +58,7 @@ def _import_dxf(path, doc_name):
 
     except Exception:
         App.Console.PrintWarning(
-            "[Offcuts] module_io.OpenInsertObject() failed:\n"
+            tr('offcuts_module_io_openinsertobject_failed')
             + traceback.format_exc()
         )
 
@@ -73,7 +74,7 @@ def _import_dxf(path, doc_name):
 
     except Exception:
         App.Console.PrintError(
-            "[Offcuts] DXF import failed with both importers:\n"
+            tr('offcuts_dxf_import_failed_with_both_importers')
             + traceback.format_exc()
         )
 
@@ -302,7 +303,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
     try:
         if not path or not os.path.exists(path):
             App.Console.PrintError(
-                "[Offcuts] DXF file does not exist: %s\n"
+                tr('offcuts_dxf_file_does_not_exist_s')
                 % str(path)
             )
             return None, None, None, []
@@ -322,7 +323,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
         except Exception:
             if debug:
                 App.Console.PrintWarning(
-                    "[Offcuts][DEBUG] recompute failed:\n"
+                    tr('offcuts_debug_recompute_failed')
                     + traceback.format_exc()
                 )
 
@@ -330,7 +331,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
 
         if not objects:
             App.Console.PrintError(
-                "[Offcuts] Temporary DXF document contains no objects.\n"
+                tr('offcuts_temporary_dxf_document_contains_no_objects')
             )
             return None, None, None, []
 
@@ -347,13 +348,13 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
             except Exception:
                 if debug:
                     App.Console.PrintWarning(
-                        "[Offcuts][DEBUG] Failed to collect edges:\n"
+                        tr('offcuts_debug_failed_to_collect_edges')
                         + traceback.format_exc()
                     )
 
         if debug:
             App.Console.PrintMessage(
-                "[Offcuts][DEBUG] Total edges collected: %d\n"
+                tr('offcuts_debug_total_edges_collected_d')
                 % len(all_edges)
             )
 
@@ -437,8 +438,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
             except Exception:
                 if debug:
                     App.Console.PrintWarning(
-                        "[Offcuts][DEBUG] "
-                        "Direct contour scan failed:\n"
+                        tr('offcuts_debug_direct_contour_scan_failed')
                         + traceback.format_exc()
                     )
 
@@ -462,15 +462,14 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
         except Exception:
             if debug:
                 App.Console.PrintWarning(
-                    "[Offcuts][DEBUG] "
-                    "Assembled contour scan failed:\n"
+                    tr('offcuts_debug_assembled_contour_scan_failed')
                     + traceback.format_exc()
                 )
 
         # If direct wires were not available, assemble them from edges.
         if not candidate_polygons:
             App.Console.PrintError(
-                "[Offcuts] No closed contours found in %s\n"
+                tr('offcuts_no_closed_contours_found_in_s')
                 % os.path.basename(path)
             )
             return None, None, None, []
@@ -483,7 +482,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
 
         if not outer:
             App.Console.PrintError(
-                "[Offcuts] No valid outer contour found in %s\n"
+                tr('offcuts_no_valid_outer_contour_found_in_s')
                 % os.path.basename(path)
             )
             return None, None, None, []
@@ -497,7 +496,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
 
     except Exception:
         App.Console.PrintError(
-            "[Offcuts] extract_offcut_from_dxf failed:\n"
+            tr('offcuts_extract_offcut_from_dxf_failed')
             + traceback.format_exc()
         )
         return None, None, None, []
@@ -532,7 +531,7 @@ def _closed_wires_from_edges(edges, debug=False):
     except Exception:
         if debug:
             App.Console.PrintError(
-                "[Offcuts][DEBUG] Part.sortEdges failed:\n"
+                tr('offcuts_debug_part_sortedges_failed')
                 + traceback.format_exc()
             )
         return wires
@@ -575,8 +574,7 @@ def _closed_wires_from_edges(edges, debug=False):
         except Exception:
             if debug:
                 App.Console.PrintError(
-                    "[Offcuts][DEBUG] Failed to create wire "
-                    "from group#%d:\n"
+                    tr('offcuts_debug_failed_to_create_wire_from_group_d')
                     % group_index
                     + traceback.format_exc()
                 )

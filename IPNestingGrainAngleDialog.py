@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr, translate_buttons
 import FreeCAD as App
 from PySide import QtGui, QtCore
 
@@ -7,14 +8,14 @@ class GrainAngleDialog(QtGui.QDialog):
     # Build the part-label list, angle controls and dialog buttons.
     def __init__(self, parent=None, part_labels=None, initial_angle=0):
         super(GrainAngleDialog, self).__init__(parent)
-        self.setWindowTitle("Grain angle")
+        self.setWindowTitle(tr('grain_angle'))
         self.setModal(True)
 
         part_labels = part_labels or []
 
         layout = QtGui.QVBoxLayout(self)
 
-        lbl = QtGui.QLabel("Selected parts / arrows:")
+        lbl = QtGui.QLabel(tr('selected_parts_arrows'))
         layout.addWidget(lbl)
 
         self.listw = QtGui.QListWidget()
@@ -27,7 +28,7 @@ class GrainAngleDialog(QtGui.QDialog):
         angle_row = QtGui.QHBoxLayout()
         layout.addLayout(angle_row)
 
-        angle_row.addWidget(QtGui.QLabel("Angle (°):"))
+        angle_row.addWidget(QtGui.QLabel(tr('angle')))
 
         self.dial = QtGui.QDial()
         self.dial.setMinimum(0)
@@ -81,6 +82,7 @@ class GrainAngleDialog(QtGui.QDialog):
         self.spin.valueChanged.connect(_spin_changed)
 
         buttons = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        translate_buttons(buttons)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

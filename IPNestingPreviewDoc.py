@@ -2,6 +2,7 @@
 IPNestingPreviewDoc - Preview document manager extracted from IPNestingGui.
 Manages preview document operations (create, delete, select objects).
 """
+from IPNestingLanguages import tr
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -57,7 +58,7 @@ class PreviewDocManager:
             normal = best_face.normalAt(u_mid, v_mid)
             return App.Rotation(normal, App.Vector(0, 0, 1))
         except Exception:
-            App.Console.PrintError("align_to_largest_face failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('align_to_largest_face_failed') + traceback.format_exc())
             return App.Rotation()
     
     # Ensure preview document exists; create if needed.
@@ -121,7 +122,7 @@ class PreviewDocManager:
                             p_doc.removeObject(nm)
                             removed.append(nm)
                         except Exception:
-                            App.Console.PrintError("Failed to remove object '%s' from preview:\n%s\n" % (nm, traceback.format_exc()))
+                            App.Console.PrintError(tr('failed_to_remove_object_s_from_preview_s') % (nm, traceback.format_exc()))
                     else:
                         # object not found by exact name: try to find by label or partial match
                         found = None
@@ -153,24 +154,24 @@ class PreviewDocManager:
                                 p_doc.removeObject(nm)
                                 removed.append(nm)
                             except Exception:
-                                App.Console.PrintError("Failed to remove matched object '%s':\n%s\n" % (name, traceback.format_exc()))
+                                App.Console.PrintError(tr('failed_to_remove_matched_object_s_s') % (name, traceback.format_exc()))
                         else:
-                            App.Console.PrintMessage("delete_preview_objects: name '%s' not found in preview doc.\n" % name)
+                            App.Console.PrintMessage(tr('delete_preview_objects_name_s_not_found_in_preview_doc') % name)
                 except Exception:
-                    App.Console.PrintError("delete_preview_objects per-name error for '%s':\n%s\n" % (name, traceback.format_exc()))
+                    App.Console.PrintError(tr('delete_preview_objects_per_name_error_for_s_s') % (name, traceback.format_exc()))
                     continue
 
             if removed:
                 try:
                     p_doc.recompute()
                 except Exception:
-                    App.Console.PrintError("Recompute failed in delete_preview_objects:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('recompute_failed_in_delete_preview_objects') + traceback.format_exc())
                 try:
                     mgr = NestingRelayoutManager(preview_doc_name=self.panel.preview_doc_name, grid_cols=self.panel.grid_cols, padding=50.0)
                     mgr.run(copy_selection=True)
                     mgr.run(copy_selection=True)
                 except Exception:
-                    App.Console.PrintError("Relayout failed in delete_preview_objects:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('relayout_failed_in_delete_preview_objects') + traceback.format_exc())
                 try:
                     self.panel.added_count = max(0, self.panel.added_count - len(removed))
                 except Exception:
@@ -192,7 +193,7 @@ class PreviewDocManager:
                     pass
 
         except Exception:
-            App.Console.PrintError("delete_preview_objects failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('delete_preview_objects_failed') + traceback.format_exc())
         return removed
     
     # Select all preview objects associated with a table row in the Nesting_Preview document.
@@ -264,4 +265,4 @@ class PreviewDocManager:
             finally:
                 self.panel._suppress_selection_update = False
         except Exception:
-            App.Console.PrintError("select_preview_objects_for_row failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('select_preview_objects_for_row_failed') + traceback.format_exc())
