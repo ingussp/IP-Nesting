@@ -13,6 +13,7 @@ from PySide import QtGui, QtCore
 MM_PER_INCH = 25.4
 
 
+# Collect rectangular sheet dimensions or a DXF path and quantity for the parent panel.
 class AddSheetOrOffcutDialog(QtGui.QDialog):
     """
     Dialog for adding either:
@@ -24,6 +25,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
       result_data
     """
 
+    # Restore the last sheet dimensions and build the modal sheet/offcut input dialog.
     def __init__(self, parent=None, panel=None):
         super(AddSheetOrOffcutDialog, self).__init__(parent)
 
@@ -44,6 +46,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         self._build_ui()
 
+    # Read mm or inch from the parent panel, defaulting to mm.
     def _get_display_units(self):
         try:
             units = str(
@@ -63,6 +66,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         except Exception:
             return "mm"
 
+    # Return the IP-Nesting FreeCAD preference group, or None when unavailable.
     def _prefs(self):
         try:
             return App.ParamGet(
@@ -71,6 +75,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         except Exception:
             return None
 
+    # Parse dot/comma decimal text; return None for empty, fractional or invalid input.
     def _parse_decimal(self, text):
         try:
             value = str(text or "").strip()
@@ -85,18 +90,21 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         except Exception:
             return None
 
+    # Convert millimetres to the dialog display units.
     def _mm_to_display(self, value_mm):
         if self._display_units == "inch":
             return float(value_mm) / MM_PER_INCH
 
         return float(value_mm)
 
+    # Convert a value in the dialog display units to millimetres.
     def _display_to_mm(self, value):
         if self._display_units == "inch":
             return float(value) * MM_PER_INCH
 
         return float(value)
 
+    # Format a millimetre dimension in display units without trailing decimal zeros.
     def _format_dimension(self, value_mm):
         value = self._mm_to_display(value_mm)
 
@@ -104,6 +112,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
             "%.6f" % value
         ).rstrip("0").rstrip(".") or "0"
 
+    # Restore saved sheet dimensions and quantity, replacing nonpositive values with defaults.
     def _load_last_rectangular_sheet(self):
         p = self._prefs()
 
@@ -153,6 +162,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         if self._last_quantity < 1:
             self._last_quantity = 1
 
+    # Persist sheet dimensions in millimetres and the requested quantity.
     def _save_last_rectangular_sheet(
         self,
         width_mm,
@@ -183,6 +193,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         except Exception:
             pass
 
+    # Refresh the width and height labels with the active unit suffix.
     def _update_dimension_labels(self):
         suffix = (
             "inch"
@@ -198,6 +209,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
             "Sheet height (Y) (%s):" % suffix
         )
     
+    # Build the sheet and DXF sections and the Cancel button.
     def _build_ui(self):
         layout = QtGui.QVBoxLayout(self)
 
@@ -216,6 +228,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+    # Add the width, height, quantity and Add rectangular sheet controls.
     def _build_rectangular_sheet_section(self, parent_layout):
         sheet_box = QtGui.QGroupBox("Rectangular sheet")
         sheet_layout = QtGui.QVBoxLayout(sheet_box)
@@ -275,6 +288,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         parent_layout.addWidget(sheet_box)
         self._update_dimension_labels()
 
+    # Add the DXF quantity control and file-selection button.
     def _build_dxf_section(self, parent_layout):
         dxf_box = QtGui.QGroupBox("DXF offcut")
         dxf_layout = QtGui.QVBoxLayout(dxf_box)
@@ -308,6 +322,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         parent_layout.addWidget(dxf_box)
 
+    # Validate dimensions and quantity, store the result in millimetres and accept the dialog.
     def _on_add_rectangular_clicked(self):
         try:
             width_value = self._parse_decimal(
@@ -369,6 +384,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
                 "Enter valid decimal values for sheet width and height."
             )
 
+    # Choose an existing DXF file, store its absolute path and quantity and accept the dialog.
     def _on_add_dxf_clicked(self):
         path, _ = QtGui.QFileDialog.getOpenFileName(
             self,
@@ -398,6 +414,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         self.accept()
 
+    # Display a warning in the sheet/offcut dialog.
     def _show_warning(self, message):
         QtGui.QMessageBox.warning(
             self,

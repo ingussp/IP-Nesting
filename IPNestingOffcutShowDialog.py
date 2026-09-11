@@ -1,13 +1,6 @@
 """
-IPNestingOffcutShowDialog - Popup dialog to visualize all added DXF offcuts
-and adjust their grain direction (X/Y/None) per offcut.
-
-- Shows each offcut with a 200x200 preview.
-- Grain direction is relative to DXF local axes, but user can swap X/Y or set None.
-- Draws a small red arrow indicating grain direction on the preview:
-    - X: horizontal arrow near the top
-    - Y: vertical arrow near the left
-    - None: no arrow
+Material preview cards with grain, contour exclusion and shared-clearance controls.
+Supports rectangular sheets and DXF offcuts with resizable, zoomable previews.
 """
 
 import traceback
@@ -22,6 +15,7 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 MM_PER_INCH = 25.4
 
+# Synchronize compatibility fields from user-selected contours.
 def _sync_compatibility_holes(offcut):
     """
     Synchronize compatibility fields from user-selected contours.
@@ -63,6 +57,7 @@ def _sync_compatibility_holes(offcut):
         )
 
 
+# Clickable non-outer contour.
 class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
     """
     Clickable non-outer contour.
@@ -71,6 +66,7 @@ class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
     The outer contour is never represented by this class.
     """
 
+    # Create a clickable contour polygon with its selection state and callback.
     def __init__(
         self,
         contour_index,
@@ -95,6 +91,7 @@ class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
 
         self.update_style()
 
+    # Colour a selected forbidden contour red and an unselected contour grey.
     def update_style(self):
         if self.selected:
             self.setBrush(
@@ -121,6 +118,7 @@ class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
                 )
             )
 
+    # Toggle contour selection on a left click and notify the callback.
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.selected = not self.selected
@@ -138,17 +136,15 @@ class _ContourGraphicsItem(QtGui.QGraphicsPolygonItem):
         event.ignore()
 
 
+# Display a proportional material outline with selectable non-outer contours.
 class _OffcutPreview(QtGui.QGraphicsView):
     """
-    Proportional sheet/offcut preview with:
+    Display a proportional material outline with selectable non-outer contours.
 
-    - full outer contour;
-    - all holes;
-    - mouse-wheel zoom;
-    - horizontal and vertical scrolling;
-    - clickable holes.
+    Include dimensions, an optional grain arrow, scrolling and mouse-wheel zoom.
     """
 
+    # Create the scrollable material scene, copy contour state and initialize units and grain.
     def __init__(
         self,
         outer=None,
@@ -221,6 +217,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         self.set_grain(grain)
 
+    # Convert finite XY pairs to scene points with inverted Y, skipping invalid entries.
     def _valid_points(self, polygon):
         result = []
 
@@ -246,6 +243,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         return result
 
+    # Add labels for the four longest outer polygon segments whose length is greater than 10 mm.
     def _add_outer_dimension_labels(self):
         """
         Add labels for the four longest outer polygon segments
@@ -522,6 +520,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 + traceback.format_exc()
             )
     
+    # Add a red grain-direction arrow over the preview.
     def _add_grain_arrow_to_scene(self):
         """
         Add a red grain-direction arrow over the preview.
@@ -658,6 +657,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 + traceback.format_exc()
             )
 
+    # Change display units for dimension labels.
     def set_display_units(self, units):
         """
         Change display units for dimension labels.
@@ -688,6 +688,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 + traceback.format_exc()
             )
     
+    # Normalize the grain axis to X, Y or None and rebuild the preview.
     def set_grain(self, grain):
         value = str(
             grain or "None"
@@ -702,6 +703,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
             preserve_view=True
         )
     
+    # Update the clicked non-outer contour state and notify the owner.
     def _contour_clicked(self, contour_index, selected):
         for contour in self._contours:
             if int(
@@ -720,6 +722,8 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 bool(selected)
             )
     
+    # Redraw the outline, dimensions, selectable contours and grain arrow, optionally preserving
+    # the view centre.
     def _rebuild_scene(self, preserve_view=False):
         old_center = None
 
@@ -816,6 +820,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
         if old_center is not None:
             self.centerOn(old_center)
 
+    # Mouse wheel zoom.
     def wheelEvent(self, event):
         """
         Mouse wheel zoom.
@@ -862,6 +867,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
             )
             event.ignore()
 
+    # Double-click resets the preview to fit the whole sheet.
     def mouseDoubleClickEvent(self, event):
         """
         Double-click resets the preview to fit the whole sheet.
@@ -887,6 +893,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
             event
         )
 
+    # Fit the material scene on resize unless the user has manually zoomed.
     def resizeEvent(self, event):
         super(_OffcutPreview, self).resizeEvent(event)
 
@@ -900,6 +907,7 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 pass
 
 
+# Parse a decimal value using either comma or dot.
 def _parse_clearance_value(text, default=0.0):
     """
     Parse a decimal value using either comma or dot.
@@ -912,6 +920,7 @@ def _parse_clearance_value(text, default=0.0):
         return float(default)
 
 
+# Format clearance value for display.
 def _format_clearance_value(value):
     """
     Format clearance value for display.
@@ -926,6 +935,7 @@ def _format_clearance_value(value):
     except Exception:
         return "0"
 
+# Parse a nonnegative dot/comma dimension into millimetres, or return None on invalid input.
 def _parse_display_dimension(text, units):
     try:
         value = str(text or "").strip()
@@ -949,6 +959,7 @@ def _parse_display_dimension(text, units):
         return None
 
 
+# Format a millimetre dimension in mm or inch without trailing decimal zeros.
 def _format_display_dimension(value_mm, units):
     try:
         value_mm = float(value_mm)
@@ -965,7 +976,9 @@ def _format_display_dimension(value_mm, units):
     except Exception:
         return "0"
 
+# Display selected material cards and edit contour exclusions, grain and shared clearance.
 class OffcutShowDialog(QtGui.QDialog):
+    # Format rectangular sheet dimensions using active display units.
     def _format_card_label(self, off):
         """
         Format rectangular sheet dimensions using active display units.
@@ -1012,6 +1025,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 )
             )
     
+    # Build material preview cards and connect grain, contour and shared-clearance controls.
     def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
         self.setWindowTitle("Offcuts")
@@ -1176,6 +1190,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 self._on_shared_clearance_mode_changed
             )
 
+            # Capture this card's edit widget and propagate its value to shared clearance.
             clearance_edit.editingFinished.connect(
                 lambda _checked=False,
                 _edit=clearance_edit:
@@ -1308,6 +1323,8 @@ class OffcutShowDialog(QtGui.QDialog):
             # Large preview
             # -------------------------
 
+            # Store a card contour selection and synchronize the material compatibility hole
+            # fields.
             def _on_contour_clicked(
                 contour_index,
                 selected,
@@ -1363,6 +1380,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 1
             )
 
+            # Store the card grain selection and update its preview arrow.
             def _on_combo_changed(
                 index,
                 _off=off,
@@ -1400,9 +1418,12 @@ class OffcutShowDialog(QtGui.QDialog):
             self._resize_cards_to_viewport
         )
     
+    # Update clearance fields and preview dimension labels to the selected units.
     def set_display_units(self, units):
         """
-        Update all visible Offcut card dimension fields.
+        Update clearance fields and preview dimension labels to the selected units.
+
+        Existing card header text is not rebuilt here.
         """
         try:
             units = str(units or "mm").lower()
@@ -1428,6 +1449,8 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
     
+    # Make every card fill the available scroll viewport height while preserving the outer
+    # margins.
     def _resize_cards_to_viewport(self):
         """
         Make every card fill the available scroll viewport height
@@ -1466,6 +1489,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
             
+    # Store the shared clearance state on the main panel.
     def _store_shared_clearance_state(self):
         """
         Store the shared clearance state on the main panel.
@@ -1490,6 +1514,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
 
+    # Update all cards so every card shows the same shared setting.
     def _apply_shared_clearance_to_widgets(self):
         """
         Update all cards so every card shows the same shared setting.
@@ -1540,6 +1565,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
 
+    # Change the shared mode for all cards.
     def _on_shared_clearance_mode_changed(self, index):
         """
         Change the shared mode for all cards.
@@ -1559,6 +1585,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
 
+    # Update the shared custom clearance value.
     def _on_shared_clearance_value_changed(self, edit):
         """
         Update the shared custom clearance value.
@@ -1592,6 +1619,7 @@ class OffcutShowDialog(QtGui.QDialog):
                 + traceback.format_exc()
             )
     
+    # Schedule card-height adjustment after the dialog resizes.
     def resizeEvent(self, event):
         try:
             super(OffcutShowDialog, self).resizeEvent(
@@ -1605,24 +1633,29 @@ class OffcutShowDialog(QtGui.QDialog):
             self._resize_cards_to_viewport
         )
         
+# Controls the Sheet & Offcut Materials table and related dialogs.
 class OffcutMaterialsController(object):
     """
     Controls the Sheet & Offcut Materials table and related dialogs.
     """
     
+    # Store the parent panel and initialize count-update and table-rebuild guards.
     def __init__(self, panel):
         self.panel = panel
         self._count_update_guard = False
         self._table_rebuild_guard = False
 
+    # Expose the parent panel material list.
     @property
     def offcuts(self):
         return self.panel.offcuts
 
+    # Expose the parent panel material table widget.
     @property
     def offcuts_table(self):
         return self.panel.offcuts_table
     
+    # Open the add sheet/offcut dialog and process its result.
     def add_offcut_dxf(self):
         """
         Open the add sheet/offcut dialog and process its result.
@@ -1667,6 +1700,8 @@ class OffcutMaterialsController(object):
             )
             
     
+    # Import the selected DXF and add it as one grouped material row. Repeated imports of the
+    # same DXF increase Count.
     def _process_dxf_offcut_result(self, data):
         """
         Import the selected DXF and add it as one grouped material row.
@@ -1800,6 +1835,8 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Add a rectangular sheet as one grouped material row. Repeated sheets with the same
+    # dimensions increase Count.
     def _process_rectangular_sheet_result(self, data):
         """
         Add a rectangular sheet as one grouped material row.
@@ -1904,6 +1941,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Safely restore or update a Count cell without triggering recursive Count processing.
     def _set_count_cell_text(self, item, value):
         """
         Safely restore or update a Count cell without triggering
@@ -1917,6 +1955,7 @@ class OffcutMaterialsController(object):
         finally:
             self._count_update_guard = False
     
+    # Update the material count when the Count cell is edited.
     def on_offcut_count_changed(self, item):
         """
         Update the material count when the Count cell is edited.
@@ -1982,9 +2021,10 @@ class OffcutMaterialsController(object):
         finally:
             self._count_update_guard = False
     
+    # Remove selected material rows and rebuild the materials table.
     def remove_offcuts(self):
         """
-        Remove the currently selected material row.
+        Remove selected material rows and rebuild the materials table.
         """
         try:
             selection = self.offcuts_table.selectionModel().selectedRows()
@@ -2009,6 +2049,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Move one material in self.offcuts and rebuild the table.
     def _move_offcut_row(self, row, direction):
         """
         Move one material in self.offcuts and rebuild the table.
@@ -2043,6 +2084,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Rebuild the materials table from self.offcuts.
     def _rebuild_offcuts_table(self, selected_row=None):
         """
         Rebuild the materials table from self.offcuts.
@@ -2082,6 +2124,8 @@ class OffcutMaterialsController(object):
             self.offcuts_table.viewport().update()
             self._table_rebuild_guard = False
             
+    # Format rectangular sheet label using the active display units. Internal width and height
+    # values are always stored in mm.
     def _format_material_label(self, material):
         """
         Format rectangular sheet label using the active display units.
@@ -2138,6 +2182,7 @@ class OffcutMaterialsController(object):
                 )
             )
     
+    # Add one material row to the table.
     def _append_offcut_table_row(self, material, row=None):
         """
         Add one material row to the table.
@@ -2228,11 +2273,13 @@ class OffcutMaterialsController(object):
             down_button.setAutoRaise(True)
             down_button.setFixedWidth(28)
 
+            # Capture this row index and move its material one position upward.
             up_button.clicked.connect(
                 lambda checked=False, r=row:
                     self._move_offcut_row(r, -1)
             )
 
+            # Capture this row index and move its material one position downward.
             down_button.clicked.connect(
                 lambda checked=False, r=row:
                     self._move_offcut_row(r, 1)
@@ -2249,6 +2296,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Refresh material labels after changing mm/inch units.
     def _refresh_offcut_material_labels(self):
         """
         Refresh material labels after changing mm/inch units.
@@ -2277,6 +2325,7 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
     
+    # Refresh displayed grain values by matching table material IDs to material records.
     def _refresh_offcut_grain_column(self):
         try:
             for row in range(self.offcuts_table.rowCount()):
@@ -2321,6 +2370,8 @@ class OffcutMaterialsController(object):
                 + traceback.format_exc()
             )
             
+    # Return material records corresponding to selected table rows. The order follows the
+    # table/model order.
     def _get_selected_offcuts(self):
         """
         Return material records corresponding to selected table rows.
@@ -2347,6 +2398,7 @@ class OffcutMaterialsController(object):
 
         return selected
     
+    # Show previews only for the selected sheet/offcut rows.
     def show_offcuts_popup(self):
         """
         Show previews only for the selected sheet/offcut rows.

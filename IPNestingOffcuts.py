@@ -26,6 +26,7 @@ try:
 except Exception:
     Part = None
 
+# Import DXF into an existing FreeCAD document.
 def _import_dxf(path, doc_name):
     """
     Import DXF into an existing FreeCAD document.
@@ -79,6 +80,7 @@ def _import_dxf(path, doc_name):
     return False
 
 
+# Signed area (shoelace). poly is list of [x,y].
 def polygon_area(poly):
     """Signed area (shoelace). poly is list of [x,y]."""
     try:
@@ -95,6 +97,7 @@ def polygon_area(poly):
         return 0.0
 
 
+# BBox dict for poly.
 def poly_bbox(poly):
     """BBox dict for poly."""
     xs = [float(p[0]) for p in poly or []]
@@ -104,12 +107,14 @@ def poly_bbox(poly):
     return {"min_x": min(xs), "min_y": min(ys), "max_x": max(xs), "max_y": max(ys)}
 
 
+# Project a wire or closed edge into an XY point list.
 def _wire_to_polyline_2d(wire, deflection=0.5):
     """
-    Convert a FreeCAD wire or closed edge to a 2D polyline.
+    Project a wire or closed edge into an XY point list.
 
-    Straight contours use their vertices.
-    Curves and circles are discretized.
+    Use vertices when at least three are available; otherwise discretize
+    edges. Curves in contours with three or more vertices are therefore
+    represented by vertex-to-vertex chords.
     """
     pts = []
 
@@ -205,6 +210,8 @@ def _wire_to_polyline_2d(wire, deflection=0.5):
 # -------------------------
 # NEW: recursive doc scan helpers
 # -------------------------
+# Yield all objects in a document, expanding group/part containers when present. This is needed
+# because DXF import may put geometry inside Layer containers/groups.
 def _iter_doc_objects_recursive(doc):
     """
     Yield all objects in a document, expanding group/part containers when present.
@@ -239,6 +246,7 @@ def _iter_doc_objects_recursive(doc):
             pass
 
 
+# Best-effort count of edges in obj.Shape.
 def _shape_edge_count(obj):
     """Best-effort count of edges in obj.Shape."""
     try:
@@ -254,6 +262,7 @@ def _shape_edge_count(obj):
         return 0
 
 
+# Collect shape edges, excluding edges with a readable near-zero length.
 def _collect_edges_from_shape(shp):
     edges = []
     try:
@@ -269,10 +278,14 @@ def _collect_edges_from_shape(shp):
         pass
     return edges
     
+# Import a DXF temporarily and collect closed contours.
 def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
     """
-    Import a DXF into a temporary document and extract
-    the largest closed contour.
+    Import a DXF temporarily and collect closed contours.
+
+    Return (outer, holes, bbox, contour_info), assigning the largest contour
+    as outer and leaving holes empty until user selection. On failure return
+    (None, None, None, []). Always attempt to close the temporary document.
     """
     doc = None
     
@@ -500,6 +513,7 @@ def extract_offcut_from_dxf(path, debug=False, deflection=0.1):
             except Exception:
                 pass
 
+# Assemble closed wires from a flat list of edges.
 def _closed_wires_from_edges(edges, debug=False):
     """
     Assemble closed wires from a flat list of edges.
@@ -569,6 +583,7 @@ def _closed_wires_from_edges(edges, debug=False):
 
     return wires
     
+# Return a stable identity key for a sheet or DXF offcut.
 def material_identity_key(material):
     """
     Return a stable identity key for a sheet or DXF offcut.
@@ -582,6 +597,7 @@ def material_identity_key(material):
         material.get("type", "")
     ).strip().lower()
 
+    # Convert an identity-key number to six decimal places, or return the supplied default.
     def number(value, default=0.0):
         try:
             return round(float(value), 6)
@@ -625,6 +641,7 @@ def material_identity_key(material):
     )
 
 
+# Find an existing material with the same identity.
 def find_existing_material(materials, material):
     """
     Find an existing material with the same identity.
@@ -638,6 +655,7 @@ def find_existing_material(materials, material):
     return None
 
 
+# Add a new material or increase the count of an existing one.
 def add_or_increment_material(materials, material, count=1):
     """
     Add a new material or increase the count of an existing one.
@@ -676,6 +694,7 @@ def add_or_increment_material(materials, material, count=1):
 
     return material, len(materials) - 1, False
     
+# Return True if point lies inside polygon. Uses the ray-casting algorithm.
 def _point_inside_polygon(point, polygon):
     """
     Return True if point lies inside polygon.
@@ -721,6 +740,7 @@ def _point_inside_polygon(point, polygon):
 
     return inside
     
+# Create a normalized contour record.
 def _make_contour_record(index, polygon, area, is_outer=False):
     """
     Create a normalized contour record.
@@ -737,6 +757,7 @@ def _make_contour_record(index, polygon, area, is_outer=False):
         "selected": False,
     }
 
+# Best-effort duplicate contour detection using area and bbox.
 def _polygons_are_same(poly_a, poly_b, tolerance=1e-6):
     """
     Best-effort duplicate contour detection using area and bbox.
@@ -774,9 +795,12 @@ def _polygons_are_same(poly_a, poly_b, tolerance=1e-6):
     except Exception:
         return False
 
+# Append a nonzero-area contour unless an area/bounding-box match exists.
 def _append_unique_contour(candidate_polygons, polygon):
     """
-    Append a contour only if it is valid and not already present.
+    Append a nonzero-area contour unless an area/bounding-box match exists.
+
+    The duplicate check is heuristic and does not compare polygon vertices.
     """
     try:
         if not polygon or len(polygon) < 3:
@@ -801,6 +825,7 @@ def _append_unique_contour(candidate_polygons, polygon):
     except Exception:
         return
 
+# Return all detected contours.
 def _classify_contours(contours):
     """
     Return all detected contours.
@@ -839,6 +864,7 @@ def _classify_contours(contours):
     if not valid:
         return None, [], None, []
 
+    # Sort by absolute area so the first contour becomes the outer material boundary.
     valid.sort(
         key=lambda item: item[0],
         reverse=True

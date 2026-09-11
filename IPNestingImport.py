@@ -6,6 +6,7 @@ import os
 import traceback
 
 
+# Set an RGB shape colour, ignoring view objects that do not support it.
 def _set_object_color(view_obj, r, g, b):
     try:
         view_obj.ShapeColor = (float(r), float(g), float(b))
@@ -13,6 +14,8 @@ def _set_object_color(view_obj, r, g, b):
         pass
 
 
+# Apply legacy label-matched placements to preview objects and hide explicitly unplaced
+# instances.
 def apply_nesting_result(panel, result_path):
     """
     Read libnest2d_import.json and apply placements to preview objects.

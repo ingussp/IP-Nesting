@@ -13,10 +13,13 @@ from PySide import QtGui, QtCore
 import traceback
 import json
 
+# Rotate checkbox-selected preview objects and correct their positions after rotation.
 class NestingRotator:
+    # Store the preview document name for the rotation helper.
     def __init__(self, preview_doc_name):
         self.preview_doc_name = preview_doc_name
 
+    # Return first QCheckBox descendant found in widget (search recursively).
     def _find_checkbox_in_widget(self, widget):
         """Return first QCheckBox descendant found in widget (search recursively)."""
         try:
@@ -50,6 +53,7 @@ class NestingRotator:
             App.Console.PrintError("_find_checkbox_in_widget error:\n" + traceback.format_exc())
         return None
 
+    # Return list of preview object names for all checked rows.
     def _get_checked_object_names_from_table(self, table):
         """Return list of preview object names for all checked rows.
 
@@ -141,6 +145,7 @@ class NestingRotator:
             App.Console.PrintError("_get_checked_object_names_from_table failed:\n" + traceback.format_exc())
         return names
 
+    # Return the X or Y unit axis, defaulting to Z for other values.
     def _axis_vector(self, axis_char):
         a = axis_char.upper() if isinstance(axis_char, str) and axis_char else "Z"
         if a == "X":
@@ -149,6 +154,7 @@ class NestingRotator:
             return App.Vector(0, 1, 0)
         return App.Vector(0, 0, 1)
 
+    # Copy the six bounding-box extrema into a dictionary.
     def _bbox_dict(self, bb):
         return {
             "XMin": bb.XMin, "XMax": bb.XMax,
@@ -156,18 +162,21 @@ class NestingRotator:
             "ZMin": bb.ZMin, "ZMax": bb.ZMax
         }
 
+    # Return the centre of a bounding-box dictionary as a FreeCAD vector.
     def _bbox_center(self, bbox):
         cx = 0.5 * (bbox["XMin"] + bbox["XMax"])
         cy = 0.5 * (bbox["YMin"] + bbox["YMax"])
         cz = 0.5 * (bbox["ZMin"] + bbox["ZMax"])
         return App.Vector(cx, cy, cz)
 
+    # Return 'X' if width >= depth (X >= Y), else 'Y'.
     def _detect_widest_side(self, bbox):
         """Return 'X' if width >= depth (X >= Y), else 'Y'."""
         width_x = bbox["XMax"] - bbox["XMin"]
         width_y = bbox["YMax"] - bbox["YMin"]
         return "X" if width_x >= width_y else "Y"
 
+    # Rotate all checked objects by angle_degrees around axis_char at each object's bbox center.
     def apply_bulk_rotate(self, table, p_doc, angle_degrees, axis_char="X"):
         """Rotate all checked objects by angle_degrees around axis_char at each object's bbox center.
 

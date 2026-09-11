@@ -17,12 +17,14 @@ except Exception:
     GrainPreparer = None
 
 
+# Manager for preview document operations. Operates on a panel instance (NestingTaskPanel).
 class PreviewDocManager:
     """
     Manager for preview document operations.
     Operates on a panel instance (NestingTaskPanel).
     """
     
+    # Initialize the preview document manager.
     def __init__(self, panel):
         """
         Initialize the preview document manager.
@@ -32,17 +34,16 @@ class PreviewDocManager:
         """
         self.panel = panel
     
+    # Return a rotation aligning a selected large-face normal with +Z.
     def align_to_largest_face(self, obj):
         """
-        Compute rotation to align object to its largest face.
-        
-        Args:
-            obj: FreeCAD object with Shape
-            
-        Returns:
-            FreeCAD Rotation object
+        Return a rotation aligning a selected large-face normal with +Z.
+
+        Choose the largest face unless the second-largest has more wires.
+        Return an identity rotation when no face is available or evaluation fails.
         """
         try:
+            # Rank faces by area before choosing the face whose normal will point upward.
             faces = sorted(obj.Shape.Faces, key=lambda f: f.Area, reverse=True)
             if not faces:
                 return App.Rotation()
@@ -59,6 +60,7 @@ class PreviewDocManager:
             App.Console.PrintError("align_to_largest_face failed:\n" + traceback.format_exc())
             return App.Rotation()
     
+    # Ensure preview document exists; create if needed.
     def ensure_preview_doc(self, reset_counters_if_new=True):
         """
         Ensure preview document exists; create if needed.
@@ -77,16 +79,14 @@ class PreviewDocManager:
         else:
             return App.getDocument(self.panel.preview_doc_name)
     
+    # Remove preview objects and their grain arrows, returning removed names.
     def delete_preview_objects(self, names):
         """
-        Delete given object names from the preview document (Nesting_Preview).
-        Robustly removes by Name when present. Recomputes and relayouts preview.
-        
-        Args:
-            names: List of object names to delete
-            
-        Returns:
-            List of removed names
+        Remove preview objects and their grain arrows, returning removed names.
+
+        Try exact names first, then labels and substring matches. Recompute,
+        run the relayout manager twice with selection copying enabled, adjust
+        the panel count and refresh grain layout and Apply state.
         """
         removed = []
         try:
@@ -189,6 +189,7 @@ class PreviewDocManager:
             App.Console.PrintError("delete_preview_objects failed:\n" + traceback.format_exc())
         return removed
     
+    # Select all preview objects associated with a table row in the Nesting_Preview document.
     def select_preview_objects_for_row(self, row):
         """
         Select all preview objects associated with a table row in the Nesting_Preview document.

@@ -1,8 +1,10 @@
 import FreeCAD as App
 from PySide import QtGui, QtCore
 
+# Provide synchronized dial and numeric controls for selecting a grain angle.
 class GrainAngleDialog(QtGui.QDialog):
     angleChanged = QtCore.Signal(int)
+    # Build the part-label list, angle controls and dialog buttons.
     def __init__(self, parent=None, part_labels=None, initial_angle=0):
         super(GrainAngleDialog, self).__init__(parent)
         self.setWindowTitle("Grain angle")
@@ -49,6 +51,8 @@ class GrainAngleDialog(QtGui.QDialog):
         self.spin.setValue(int(initial_angle) % 360)
         angle_row.addWidget(self.spin)
 
+        # Copy the dial angle to the spin box and emit angleChanged while avoiding signal
+        # recursion.
         def _dial_changed(v):
             try:
                 self.spin.blockSignals(True)
@@ -60,6 +64,8 @@ class GrainAngleDialog(QtGui.QDialog):
             except Exception:
                 pass
 
+        # Copy the spin-box angle to the dial and emit angleChanged while avoiding signal
+        # recursion.
         def _spin_changed(v):
             try:
                 self.dial.blockSignals(True)
@@ -79,6 +85,7 @@ class GrainAngleDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+    # Return the selected spin-box angle as an integer.
     def angle_degrees(self):
         try:
             return int(self.spin.value()) % 360

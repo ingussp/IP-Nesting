@@ -17,12 +17,14 @@ except Exception:
     GrainPreparer = None
 
 
+# Controller for grain-related UI operations. Operates on a panel instance (NestingTaskPanel).
 class GrainUIController:
     """
     Controller for grain-related UI operations.
     Operates on a panel instance (NestingTaskPanel).
     """
 
+    # Initialize the grain UI controller.
     def __init__(self, panel):
         """
         Initialize the grain UI controller.
@@ -53,6 +55,7 @@ class GrainUIController:
             self._apply_original_style = ""
 
     # --- Apply Grain blinking helpers ---
+    # Timer callback that toggles orange border on Apply Grain button.
     def _on_apply_blink_tick(self):
         """Timer callback that toggles orange border on Apply Grain button."""
         try:
@@ -74,8 +77,11 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("Apply blink tick error:\n" + traceback.format_exc())
 
+    # Start the Apply Grain highlight timer if it is available and inactive.
     def _start_apply_blink(self):
-        """Start blinking timer when grain checkbox is checked."""
+        """
+        Start the Apply Grain highlight timer if it is available and inactive.
+        """
         try:
             if hasattr(self, "_apply_blink_timer") and self._apply_blink_timer is not None:
                 if not self._apply_blink_timer.isActive():
@@ -90,6 +96,7 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("Failed to start apply blink:\n" + traceback.format_exc())
 
+    # Stop blinking timer and restore button style.
     def _stop_apply_blink(self):
         """Stop blinking timer and restore button style."""
         try:
@@ -104,6 +111,8 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("Failed to stop apply blink:\n" + traceback.format_exc())
 
+    # Return a stable snapshot of grain checkbox states for all data rows. Use tuple of
+    # (row_index, is_checked) so we can compare later.
     def _get_current_grain_state(self):
         """
         Return a stable snapshot of grain checkbox states for all data rows.
@@ -126,6 +135,8 @@ class GrainUIController:
         except Exception:
             return tuple()
 
+    # Blink Apply Grain button only when there are UNSAVED changes in grain checkboxes compared
+    # to the last-applied snapshot.
     def _update_apply_blink_state(self):
         """
         Blink Apply Grain button only when there are UNSAVED changes in grain checkboxes
@@ -156,6 +167,7 @@ class GrainUIController:
             App.Console.PrintError("Failed to update apply blink state:\n" + traceback.format_exc())
 
     # --- Grain arrow helpers (connect widgets + callbacks) ---
+    # Update row arrows and grain angles; save or restore standard rotation as grain is toggled.
     def _on_grain_checkbox_state_changed(self, preview_obj_name, grain_cb, grain_combo, state):
         """Callback for per-row grain checkbox state change."""
         try:
@@ -330,6 +342,7 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("grain checkbox callback failed:\n" + traceback.format_exc())
 
+    # Update stored X/Y grain angles and redraw or remove the row arrows.
     def _on_grain_axis_changed(self, preview_obj_name, grain_cb, grain_combo, index):
         """Callback for per-row grain axis combobox change (redraw only if checked)."""
         try:
@@ -411,6 +424,7 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("grain axis callback failed:\n" + traceback.format_exc())
 
+    # Wire per-row grain checkbox and combobox to callbacks (safe using partial).
     def _connect_grain_widgets(self, grain_cb, grain_combo, preview_obj_name):
         """Wire per-row grain checkbox and combobox to callbacks (safe using partial)."""
         try:
@@ -421,6 +435,8 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("Failed to connect grain widgets:\n" + traceback.format_exc())
 
+    # When bottom bulk combobox is changed, set per-row combobox only for checked rows and
+    # update arrows.
     def _on_bulk_grain_changed(self, index):
         """When bottom bulk combobox is changed, set per-row combobox only for checked rows and update arrows."""
         try:
@@ -473,6 +489,8 @@ class GrainUIController:
         except Exception:
             App.Console.PrintError("bulk grain changed callback failed:\n" + traceback.format_exc())
 
+    # Compute delta degrees (range [-180..180]) so that after rotation the grain angle becomes 0
+    # (arrow parallel to +X).
     def _delta_to_align_grain_to_pos_x(self, angle_deg):
         """
         Compute delta degrees (range [-180..180]) so that after rotation
@@ -487,15 +505,14 @@ class GrainUIController:
             delta -= 360
         return int(delta)
     
+    # Align grain parts to +X, pack both groups and separate their labelled perimeters.
     def update_grain_layout_and_perimeters(self):
         """
-        Splits parts into Standard and Grain groups.
+        Split standard and grain parts, align grain to +X and pack both groups.
 
-        RULE (UPDATED):
-          - Ensure expanded (margin-inflated) blue perimeter never overlaps expanded red perimeter.
-          - gap is taken as a fraction of BLUE bbox height.
-
-        (Legacy wording kept in UI docstring may mention "10% lower".)
+        Place the grain group below the standard group with clearance for both
+        perimeter margins and a gap of at least 300 world units or 30% of its height.
+        Redraw labels/arrows and save the applied checkbox-state snapshot.
         """
         if GrainPreparer is None:
             return
@@ -565,6 +582,8 @@ class GrainUIController:
                 else:
                     standard_parts.extend(names)
 
+            # Compute combined XY bounds for the named preview shapes and report whether any
+            # were found.
             def _bbox_for_names(names_list):
                 found = False
                 min_x = min_y = float("inf")
@@ -586,6 +605,7 @@ class GrainUIController:
                         continue
                 return found, min_x, min_y, max_x, max_y
 
+            # Translate the named preview objects along Y while preserving X, Z and rotation.
             def _shift_names_y(names_list, dy):
                 if not names_list:
                     return
@@ -939,6 +959,7 @@ class GrainUIController:
             
     # inside class GrainUIController:
 
+    # Save object's current rotation as 'standard' rotation (only once).
     def _ensure_saved_std_rotation(self, obj):
         """Save object's current rotation as 'standard' rotation (only once)."""
         try:
@@ -978,6 +999,7 @@ class GrainUIController:
             pass
 
 
+    # Restore object's saved 'standard' rotation if available; keeps Base position intact.
     def _restore_saved_std_rotation(self, obj):
         """Restore object's saved 'standard' rotation if available; keeps Base position intact."""
         try:
