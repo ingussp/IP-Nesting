@@ -517,7 +517,7 @@ class GrainUIController:
         Split standard and grain parts, align grain to +X and pack both groups.
 
         Place the grain group below the standard group with clearance for both
-        perimeter margins and a gap of at least 300 world units or 30% of its height.
+        perimeter margins, its caption and a gap proportional to the lower perimeter height.
         Redraw labels/arrows and save the applied checkbox-state snapshot.
         """
         if GrainPreparer is None:
@@ -816,9 +816,6 @@ class GrainUIController:
             if grain_parts and red_found and blue_found:
                 blue_h = max(1e-6, float(blue_max_y - blue_min_y))
 
-                # Keep original factor (0.10) unless you intentionally want larger spacing.
-                gap = max(300.0, 0.30 * blue_h)
-
                 red_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=standard_parts)
                 blue_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=grain_parts)
 
@@ -838,6 +835,11 @@ class GrainUIController:
                         blue_h = max(1e-6, float(blue_max_y - blue_min_y))
                 except Exception:
                     pass
+
+                # Fit the lower group's caption between borders without a fixed world-unit minimum.
+                gap = GrainPreparer._compute_group_gap(
+                    self.panel.preview_doc_name, p_doc, blue_info
+                ) if blue_info and blue_info[0] else 0.30 * blue_h
 
                 # Want: (blue_max_y + blue_margin) <= (red_min_y - red_margin) - gap
                 desired_blue_max_y = float(red_min_y) - float(red_margin) - float(gap) - float(blue_margin)
