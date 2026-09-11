@@ -7,6 +7,7 @@ import os
 import traceback
 
 
+# Replace unsupported name characters with underscores for generated document and sketch names.
 def _safe_doc_name(name):
     out = []
     for ch in str(name):
@@ -17,6 +18,7 @@ def _safe_doc_name(name):
     return "".join(out)
 
 
+# Return a closed copy of the point sequence, leaving empty input unchanged.
 def _close_polygon(points):
     if not points:
         return points
@@ -25,6 +27,8 @@ def _close_polygon(points):
     return list(points)
 
 
+# Convert absolute export polygon coordinates to local coordinates by shifting so min x/y
+# becomes 0/0.
 def _normalize_polygon(poly):
     """
     Convert absolute export polygon coordinates to local coordinates
@@ -44,6 +48,7 @@ def _normalize_polygon(poly):
     return [[float(p[0]) - min_x, float(p[1]) - min_y] for p in poly if len(p) >= 2]
 
 
+# Create an XY sketch from a closed point sequence, returning None on failure.
 def _create_sketch_with_polygon(doc, sketch_name, label, points):
     try:
         sk = doc.addObject("Sketcher::SketchObject", sketch_name)
@@ -70,11 +75,14 @@ def _create_sketch_with_polygon(doc, sketch_name, label, points):
         return None
 
 
+# Draw legacy polygons in per-bin documents using XY translations without placement rotation.
 def import_nesting_sheets(export_path, import_path):
     """
-    Create one new FreeCAD document per bin_id and draw placed parts as sketches.
-    Geometry comes from export JSON polygons.
-    Placement comes from import JSON placements.
+    Import legacy parts[].polygons and placements into per-bin documents.
+
+    Only the first contour is drawn, normalized to its minimum XY and
+    translated by placement x/y. Placement rotation and holes are ignored.
+    This helper does not consume the current Deepnest parts[].points format.
     """
     try:
         if not os.path.exists(export_path):

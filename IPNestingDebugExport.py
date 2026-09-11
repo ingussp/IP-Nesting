@@ -6,6 +6,7 @@ import os
 import traceback
 
 
+# Replace characters other than letters, digits, underscores and hyphens with underscores.
 def _safe_name(s):
     out = []
     for ch in str(s):
@@ -16,6 +17,7 @@ def _safe_name(s):
     return "".join(out)
 
 
+# Copy a point sequence and append the first point when it is not already closed.
 def _close_poly(points):
     if not points:
         return []
@@ -25,6 +27,7 @@ def _close_poly(points):
     return pts
 
 
+# Return XY bounds of point pairs, or None when no usable points exist.
 def _bbox_of_points(points):
     xs = [float(p[0]) for p in points if len(p) >= 2]
     ys = [float(p[1]) for p in points if len(p) >= 2]
@@ -33,9 +36,10 @@ def _bbox_of_points(points):
     return (min(xs), min(ys), max(xs), max(ys))
 
 
+# Translate nesting CLI point objects into debug sketch coordinates.
 def _translate_poly(points, dx, dy):
     """
-    Translate Deepnest point objects into debug sketch coordinates.
+    Translate nesting CLI point objects into debug sketch coordinates.
     """
     return [
         [
@@ -47,6 +51,7 @@ def _translate_poly(points, dx, dy):
     ]
 
 
+# Create a closed XY sketch from point pairs, returning None on failure.
 def _add_poly_sketch(doc, name, label, poly):
     try:
         sk = doc.addObject("Sketcher::SketchObject", name)
@@ -76,10 +81,13 @@ def _add_poly_sketch(doc, name, label, poly):
         return None
 
 
+# Read nesting CLI parts[].points and draw translated outer contours in a separate debug document.
 def debug_draw_export_polygons(export_path):
     """
-    Draw exported polygons exactly as they appear in libnest2d_export.json,
-    arranged in a separate debug document so we can inspect what is sent to the exe.
+    Read a nesting CLI export file and draw parts[].points as XY sketches.
+
+    Each outer contour is translated into a four-column debug layout;
+    holes and nesting placements are not drawn.
     """
     try:
         if not export_path or not os.path.exists(export_path):

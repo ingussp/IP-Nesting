@@ -12,6 +12,7 @@ import FreeCADGui as Gui
 import traceback
 import json
 
+# Manager to copy selected objects into a preview document and layout all preview objects.
 class NestingRelayoutManager:
     """Manager to copy selected objects into a preview document and layout all preview objects.
 
@@ -19,6 +20,7 @@ class NestingRelayoutManager:
       - run(copy_selection=True): copy selection (if any) then relayout preview contents
       - ensure_preview_doc(): create or return preview doc
     """
+    # Store the preview document name, grid dimensions, padding and recompute option.
     def __init__(self, preview_doc_name="Nesting_Preview", grid_cols=4, padding=50.0, recompute=True):
         self.preview_doc_name = preview_doc_name
         self.grid_cols = int(grid_cols)
@@ -28,6 +30,7 @@ class NestingRelayoutManager:
     # -------------------------
     # Utility / helper methods
     # -------------------------
+    # Create or retrieve the preview document, returning None on failure.
     def ensure_preview_doc(self):
         try:
             if self.preview_doc_name not in App.listDocuments():
@@ -38,6 +41,7 @@ class NestingRelayoutManager:
             App.Console.PrintError("ensure_preview_doc failed:\n" + traceback.format_exc())
             return None
 
+    # Return the containing PartDesign body when found, otherwise the selected object.
     def is_body_candidate(self, obj):
         try:
             if hasattr(obj, "Parent") and obj.Parent and getattr(obj.Parent, "isDerivedFrom", None):
@@ -57,8 +61,11 @@ class NestingRelayoutManager:
             pass
         return obj
 
+    # Align a chosen large-face normal to +Z, preferring the second-largest face if it has more
+    # wires.
     def align_to_largest_face(self, obj):
         try:
+            # Rank faces by area before choosing the face whose normal will point upward.
             faces = sorted(obj.Shape.Faces, key=lambda f: f.Area, reverse=True)
             if not faces:
                 return App.Rotation()
@@ -81,6 +88,9 @@ class NestingRelayoutManager:
     # -------------------------
     # Core behaviour
     # -------------------------
+    # Copy currently selected objects from the active document into preview doc. Skip copies
+    # with duplicate labels. Align each newly copied object and recompute. Returns number of
+    # copied objects.
     def copy_selected_to_preview(self, p_doc):
         """Copy currently selected objects from the active document into preview doc.
            Skip copies with duplicate labels. Align each newly copied object and recompute.
@@ -138,6 +148,8 @@ class NestingRelayoutManager:
             App.Console.PrintError("copy_selected_to_preview failed:\n" + traceback.format_exc())
             return 0
 
+    # Layout all preview objects that have shapes into a grid and place them on a single Z
+    # level.
     def relayout_preview(self, p_doc):
         """Layout all preview objects that have shapes into a grid and place them on a single Z level."""
         try:
@@ -239,6 +251,7 @@ class NestingRelayoutManager:
     # -------------------------
     # Public entrypoint
     # -------------------------
+    # Main entry: optionally copy selection to preview, then relayout preview doc.
     def run(self, copy_selection=True):
         """Main entry: optionally copy selection to preview, then relayout preview doc."""
         try:
@@ -260,6 +273,7 @@ class NestingRelayoutManager:
 
 
 # Convenience function so macro-like usage remains simple
+# Create a relayout manager, optionally copy selection and return the positioned-object count.
 def run_relayout(copy_selection=True, preview_doc_name="Nesting_Preview", grid_cols=4, padding=50.0):
     mgr = NestingRelayoutManager(preview_doc_name=preview_doc_name, grid_cols=grid_cols, padding=padding)
     return mgr.run(copy_selection=copy_selection)

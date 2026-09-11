@@ -59,12 +59,16 @@ try:
 except Exception:
     GrainPreparer = None
 
+# Coordinate nesting settings, material/part tables, preview editing and nesting CLI execution.
 class NestingTaskPanel:
+    # Synchronize preview selection with table rows and unregister when the table is destroyed.
     class _SelectionObserver:
+        # Store the panel reference and mark the selection observer as active.
         def __init__(self, panel):
             self.panel = panel
             self._alive = True
 
+        # Remove this selection observer once and mark it inactive.
         def _unregister(self):
             if self._alive:
                 try:
@@ -74,6 +78,8 @@ class NestingTaskPanel:
                 finally:
                     self._alive = False
 
+        # Check whether the panel table is usable and unregister after its Qt object is
+        # destroyed.
         def _panel_table_alive(self):
             try:
                 if not self.panel:
@@ -91,6 +97,7 @@ class NestingTaskPanel:
             except Exception:
                 return True
 
+        # Select and scroll to the row whose primary object matches the added preview selection.
         def addSelection(self, doc, obj, sub, pos=None):
             try:
                 if not self._panel_table_alive():
@@ -119,6 +126,7 @@ class NestingTaskPanel:
             except Exception:
                 App.Console.PrintError("SelectionObserver.addSelection error:\n" + traceback.format_exc())
 
+        # Attempt to clear table selection when no preview objects remain selected.
         def removeSelection(self, doc, obj, sub):
             try:
                 if not self._panel_table_alive():
@@ -140,6 +148,7 @@ class NestingTaskPanel:
             except Exception:
                 App.Console.PrintError("SelectionObserver.removeSelection error:\n" + traceback.format_exc())
 
+        # Clear table selection when FreeCAD clears selection in the preview document.
         def clearSelection(self, doc):
             try:
                 if not self._panel_table_alive():
@@ -154,6 +163,7 @@ class NestingTaskPanel:
             except Exception:
                 App.Console.PrintError("SelectionObserver.clearSelection error:\n" + traceback.format_exc())
 
+    # Build the task panel, create its controllers and restore saved settings.
     def __init__(self):
         self.preview_doc_name = "Nesting_Preview"
         self.added_count = 0
@@ -318,9 +328,9 @@ class NestingTaskPanel:
             self._on_units_changed
         )
 
-        # Deepnest Settings (RIGHT, row 1)
+        # Nesting CLI settings (RIGHT, row 1)
         deepnest_box = QtGui.QGroupBox(
-            "Deepnest settings"
+            "Nesting CLI settings"
         )
         deepnest_lay = QtGui.QVBoxLayout(
             deepnest_box
@@ -667,7 +677,7 @@ class NestingTaskPanel:
         # Initialize preview document manager (handles preview operations)
         self._preview = PreviewDocManager(self)
         
-        # Manages deepnest.exe execution, result.json waiting,
+        # Manages nesting CLI execution, result.json waiting,
         # and Nesting_Result document creation.
         self._nesting_manager = NestingProcessManager(self)
 
@@ -726,32 +736,35 @@ class NestingTaskPanel:
         # Initialize preview document manager
         self._preview = PreviewDocManager(self)
 
-        # Initialize deepnest process/result manager
+        # Initialize nesting CLI process/result manager
         self._nesting_manager = NestingProcessManager(
             self
         )
 
+    # Recompute the preview and display a textual diagnostic report.
     def debug_export_polygons(self):
         """
-        Show detailed textual debug information about the current
-        Nesting_Preview state.
+        Recompute the preview and display a textual diagnostic report.
 
-        This function deliberately does not generate input.json and does not
-        modify object placements. It only reads the current state visible in
-        FreeCAD and displays diagnostic information.
+        Includes placements, shape topology, table state and selection, with
+        clipboard and file-save actions. Does not generate input.json or
+        explicitly change object placements.
         """
         try:
             lines = []
 
+            # Append one stringified line to the diagnostic report.
             def add(text=""):
                 lines.append(str(text))
 
+            # Format a numeric diagnostic value to nine decimal places, otherwise stringify it.
             def safe_float(value):
                 try:
                     return "%.9f" % float(value)
                 except Exception:
                     return str(value)
 
+            # Format vector components using lowercase or uppercase coordinate attributes.
             def vector_text(vector):
                 try:
                     return (
@@ -775,6 +788,7 @@ class NestingTaskPanel:
                     except Exception:
                         return str(vector)
 
+            # Format a rotation axis and angle in radians and degrees.
             def rotation_text(rotation):
                 try:
                     axis = rotation.Axis
@@ -796,6 +810,7 @@ class NestingTaskPanel:
                 except Exception:
                     return str(rotation)
 
+            # Format a placement translation and rotation for the report.
             def placement_text(placement):
                 try:
                     return (
@@ -808,6 +823,7 @@ class NestingTaskPanel:
                 except Exception:
                     return str(placement)
 
+            # Format an XY point pair for the report.
             def point2d_text(point):
                 try:
                     return (
@@ -820,6 +836,7 @@ class NestingTaskPanel:
                 except Exception:
                     return str(point)
 
+            # Format the lowercase XYZ attributes of a point for the report.
             def point3d_text(point):
                 try:
                     return (
@@ -833,17 +850,20 @@ class NestingTaskPanel:
                 except Exception:
                     return str(point)
 
+            # Apply obj.Placement to the supplied point for diagnostic comparison.
             def get_transformed_point(obj, point):
                 """
-                Transform a local Shape point using the complete current
-                Placement. This is the exact operation that should be used
-                to inspect the current visible orientation.
+                Apply obj.Placement to the supplied point for diagnostic comparison.
+
+                The caller must know the point coordinate frame; Shape points may
+                already include placement, so this is not necessarily the visible point.
                 """
                 try:
                     return obj.Placement.multVec(point)
                 except Exception:
                     return None
 
+            # Format bounding-box extrema and dimensions for the report.
             def bbox_text(bbox):
                 try:
                     return (
@@ -864,6 +884,7 @@ class NestingTaskPanel:
                 except Exception:
                     return str(bbox)
 
+            # List all exposed object properties and mark unreadable values.
             def property_text(obj):
                 try:
                     properties = obj.PropertiesList
@@ -893,11 +914,12 @@ class NestingTaskPanel:
 
                 return "\n".join(result)
 
+            # Report topology and vertices as read from Shape and after applying Placement.
             def dump_shape(obj):
                 """
-                Dump shape topology and all available vertices in both:
-                - local Shape coordinates;
-                - current Placement-transformed coordinates.
+                Report topology and vertices as read from Shape and after applying Placement.
+
+                The extra transformation is diagnostic and can reapply an existing placement.
                 """
                 shape = getattr(obj, "Shape", None)
 
@@ -1070,6 +1092,7 @@ class NestingTaskPanel:
                 except Exception:
                     add("Wires: <unavailable>")
 
+            # Read the row object-name list, falling back to its primary name.
             def get_row_object_names(item):
                 names = []
 
@@ -1595,6 +1618,7 @@ class NestingTaskPanel:
                 buttons_layout
             )
 
+            # Copy the displayed diagnostic report to the clipboard.
             def copy_debug_text():
                 try:
                     QtGui.QApplication.clipboard().setText(
@@ -1606,6 +1630,7 @@ class NestingTaskPanel:
                         + traceback.format_exc()
                     )
 
+            # Prompt for a path and save the displayed report as UTF-8 text.
             def save_debug_text():
                 try:
                     path, _ = QtGui.QFileDialog.getSaveFileName(
@@ -1668,6 +1693,7 @@ class NestingTaskPanel:
             except Exception:
                 pass
     
+    # Append a labelled text input to a layout and return the input and label widgets.
     def create_input_in_layout(self,parent_layout,label,default,tooltip):
         row = QtGui.QHBoxLayout()
 
@@ -1682,6 +1708,7 @@ class NestingTaskPanel:
 
         return edit, label_widget
     
+    # Append a labelled False/True combo box and return it.
     def _create_boolean_setting(
         self,
         parent_layout,
@@ -1720,6 +1747,7 @@ class NestingTaskPanel:
 
         return combo
     
+    # Append a labelled text input to the main panel and return the input widget.
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
         edit = QtGui.QLineEdit(default)
@@ -1729,6 +1757,7 @@ class NestingTaskPanel:
         self.layout.addLayout(row)
         return edit
         
+    # Return the number of logical CPU cores available to Python.
     def _detect_cpu_core_count(self):
         """
         Return the number of logical CPU cores available to Python.
@@ -1768,35 +1797,44 @@ class NestingTaskPanel:
 
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
+    # Timer callback - delegates to grain controller.
     def _on_apply_blink_tick(self):
         """Timer callback - delegates to grain controller."""
         self._grain._on_apply_blink_tick()
     
+    # Start blinking - delegates to grain controller.
     def _start_apply_blink(self):
         """Start blinking - delegates to grain controller."""
         self._grain._start_apply_blink()
     
+    # Stop blinking - delegates to grain controller.
     def _stop_apply_blink(self):
         """Stop blinking - delegates to grain controller."""
         self._grain._stop_apply_blink()
     
+    # Update blinking state - delegates to grain controller.
     def _update_apply_blink_state(self):
         """Update blinking state - delegates to grain controller."""
         self._grain._update_apply_blink_state()
 
     # --- Grain arrow helpers (delegated to GrainUIController) ---
+    # Callback for per-row grain checkbox - delegates to grain controller.
     def _on_grain_checkbox_state_changed(self, preview_obj_name, grain_cb, grain_combo, state):
         """Callback for per-row grain checkbox - delegates to grain controller."""
         self._grain._on_grain_checkbox_state_changed(preview_obj_name, grain_cb, grain_combo, state)
             
+    # Callback for per-row grain axis combobox - delegates to grain controller.
     def _on_grain_axis_changed(self, preview_obj_name, grain_cb, grain_combo, index):
         """Callback for per-row grain axis combobox - delegates to grain controller."""
         self._grain._on_grain_axis_changed(preview_obj_name, grain_cb, grain_combo, index)
 
+    # Wire per-row grain widgets - delegates to grain controller.
     def _connect_grain_widgets(self, grain_cb, grain_combo, preview_obj_name):
         """Wire per-row grain widgets - delegates to grain controller."""
         self._grain._connect_grain_widgets(grain_cb, grain_combo, preview_obj_name)
 
+    # Create two control rows at the bottom: - row (table.rowCount()-2): Rotate controls - row
+    # (table.rowCount()-1): Change grain direction controls
     def _create_control_rows(self):
         """Create two control rows at the bottom:
            - row (table.rowCount()-2): Rotate controls
@@ -1909,6 +1947,8 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("Failed to create control rows:\n" + traceback.format_exc())
 
+    # Open the Custom angle dialog only for rows where both Grain Direction and Custom angle are
+    # enabled.
     def _on_set_angle_clicked(self):
         """
         Open the Custom angle dialog only for rows where both
@@ -2107,6 +2147,8 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
     
+    # Return list of GrainArrow_<previewObjName> for ALL rows where Grain Direction checkbox is
+    # checked.
     def _collect_grain_arrow_names_from_table(self):
         """Return list of GrainArrow_<previewObjName> for ALL rows where Grain Direction checkbox is checked."""
         names = []
@@ -2168,34 +2210,33 @@ class NestingTaskPanel:
             pass
         return names
     
+    # When bulk grain combobox changes - delegates to grain controller.
     def _on_bulk_grain_changed(self, index):
         """When bulk grain combobox changes - delegates to grain controller."""
         self._grain._on_bulk_grain_changed(index)
 
+    # Compute rotation to align object - delegates to preview manager.
     def align_to_largest_face(self, obj):
         """Compute rotation to align object - delegates to preview manager."""
         return self._preview.align_to_largest_face(obj)
 
+    # Ensure preview document exists - delegates to preview manager.
     def ensure_preview_doc(self, reset_counters_if_new=True):
         """Ensure preview document exists - delegates to preview manager."""
         return self._preview.ensure_preview_doc(reset_counters_if_new)
 
+    # Delete preview objects - delegates to preview manager.
     def delete_preview_objects(self, names):
         """Delete preview objects - delegates to preview manager."""
         return self._preview.delete_preview_objects(names)
 
+    # Round-trip geometry through a temporary STEP file to obtain an independent Shape.
     def _serialize_shape_to_avoid_hash_issues(self, shape):
         """
-        Serialize shape to STEP and re-import to break hash chain.
-        
-        This prevents "hasher mismatch" errors when copying PartDesign::Body
-        objects by fully serializing the geometry through STEP format.
-        
-        Args:
-            shape: The shape to serialize
-            
-        Returns:
-            A new independent Shape or the original shape if serialization fails
+        Round-trip geometry through a temporary STEP file to obtain an independent Shape.
+
+        Return the imported Shape, or shape.copy() if STEP serialization fails.
+        Always attempt to remove the temporary file.
         """
         temp_step_path = None
         try:
@@ -2228,6 +2269,8 @@ class NestingTaskPanel:
                 except Exception as e:
                     App.Console.PrintWarning(f"Failed to clean up temporary STEP file {temp_step_path}: {e}\n")
 
+    # Copy selected geometry into the preview, align it and add part rows before arranging
+    # groups.
     def add_selected_objects(self):
         selection = Gui.Selection.getSelection()
         if not selection:
@@ -2293,6 +2336,7 @@ class NestingTaskPanel:
                     except Exception:
                         pass
 
+                    # Check that a bounding box has positive X and Y extents.
                     def _bbox_is_valid(bb):
                         try:
                             # valid bbox must have positive extents in XY at least
@@ -2540,15 +2584,18 @@ class NestingTaskPanel:
         except Exception:
             pass
             
+    # Update grain layout and perimeters - delegates to grain controller.
     def update_grain_layout_and_perimeters(self):
         """Update grain layout and perimeters - delegates to grain controller."""
         self._grain.update_grain_layout_and_perimeters()
 
 
+    # Select preview objects for row - delegates to preview manager.
     def select_preview_objects_for_row(self, row):
         """Select preview objects for row - delegates to preview manager."""
         self._preview.select_preview_objects_for_row(row)
 
+    # Select the preview objects for a clicked data row, ignoring control rows.
     def on_cell_clicked(self, row, col):
         # ignore clicks on control rows
         if row >= self.table.rowCount() - self.control_rows:
@@ -2560,6 +2607,7 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("on_cell_clicked failed:\n" + traceback.format_exc())
 
+    # Handle Qty and Rotation edits.
     def on_item_changed(self, item):
         """
         Handle Qty and Rotation edits.
@@ -2775,6 +2823,7 @@ class NestingTaskPanel:
             )
 
     # Delegation wrappers to NestingRotator
+    # Read angle and axis from control row and delegate to rotator.
     def apply_bulk_rotate(self):
         """Read angle and axis from control row and delegate to rotator."""
         try:
@@ -2807,8 +2856,16 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("apply_bulk_rotate wrapper failed:\n" + traceback.format_exc())
 
+    # Attempt to set the bulk axis on rotation-selected rows, then rebuild grain layout and
+    # arrows.
     def apply_change_grain(self):
-        """Apply selected grain direction (bulk_grain_combo) to all rows where 'Select for rotation' checkbox is checked."""
+        """
+        Attempt to apply the bulk grain axis to rotation-selected rows.
+
+        Then normalize grain layout, redraw arrows and update the Apply state.
+        Checkbox lookup currently checks the first layout item, so rows with
+        a leading spacer can be skipped.
+        """
         try:
             axis = self.bulk_grain_combo.currentText() if hasattr(self, "bulk_grain_combo") else "X"
             changed = 0
@@ -2932,6 +2989,8 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("apply_change_grain failed:\n" + traceback.format_exc())
 
+    # Uncheck every per-row 'Select for rotation' checkbox (column 3) - does not modify grain
+    # states.
     def clear_all_checks(self):
         """Uncheck every per-row 'Select for rotation' checkbox (column 3) - does not modify grain states."""
         try:
@@ -2969,6 +3028,8 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("clear_all_checks failed:\n" + traceback.format_exc())
             
+    # Remove selected table rows and delete their preview objects. Behavior matches entering Qty
+    # = 0 for the selected rows.
     def remove_selected_rows(self):
         """Remove selected table rows and delete their preview objects.
            Behavior matches entering Qty = 0 for the selected rows.
@@ -3069,9 +3130,13 @@ class NestingTaskPanel:
         except Exception:
             pass
 
+    # Validate material/part rows, export the job and start asynchronous nesting CLI result
+    # processing.
     def execute_nesting(self):
         """
-        Generate input.json after validating that sheets and parts exist.
+        Validate material/part rows, write the job files and start the nesting CLI.
+
+        The process manager polls result.json and imports the completed result.
         """
         try:
             data_rows = max(
@@ -3140,7 +3205,7 @@ class NestingTaskPanel:
                 )
                 return
 
-            # Start deepnest.exe and wait asynchronously for result.json.
+            # Start the nesting CLI and wait asynchronously for result.json.
             try:
                 started = self._nesting_manager.start_nesting(
                     input_path=input_path
@@ -3185,6 +3250,7 @@ class NestingTaskPanel:
                 "Failed to generate input.json."
             )
 
+    # Return the Cancel button flag expected by the FreeCAD task-panel API.
     def getStandardButtons(self):
         buttons = QtGui.QDialogButtonBox.Cancel
         try:
@@ -3194,6 +3260,8 @@ class NestingTaskPanel:
             # Compatibility with older PySide/FreeCAD versions
             return int(buttons)
         
+    # Preview arrow rotations in a modal dialog, then apply the grain angle or restore cancelled
+    # changes.
     def _open_grain_angle_dialog_for_arrows(self, arrow_names):
         try:
 
@@ -3271,6 +3339,7 @@ class NestingTaskPanel:
             parent = QtGui.QApplication.activeWindow()
             last_ui_angle = int(initial_angle) % 360
             
+            # Apply the incremental dial-angle change around each arrow bounding-box centre.
             def _apply_angle_to_arrows(angle_deg):
                 nonlocal last_ui_angle
                 try:
@@ -3316,10 +3385,12 @@ class NestingTaskPanel:
             # --- THROTTLE: apply at most every 50ms ---
             pending_angle = None
 
+            # Queue the latest angle for the throttled preview update.
             def _on_angle_changed(a):
                 nonlocal pending_angle
                 pending_angle = a
 
+            # Apply the pending arrow angle once per timer tick.
             def _on_apply_tick():
                 nonlocal pending_angle
                 if pending_angle is None:
@@ -3410,6 +3481,7 @@ class NestingTaskPanel:
             except Exception:
                 pass
             
+    # Rotate named parts about their bounding-box centres around Z and recompute the document.
     def _rotate_preview_parts_about_z(self, p_doc, part_names, delta_deg):
         try:
             axis = App.Vector(0, 0, 1)
@@ -3446,6 +3518,7 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("_rotate_preview_parts_about_z failed:\n" + traceback.format_exc())
             
+    # Recreate X-axis grain arrows for the named preview parts.
     def _redraw_grain_arrows_for_parts(self, part_names):
         try:
             if GrainPreparer is None:
@@ -3470,6 +3543,7 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("_redraw_grain_arrows_for_parts failed:\n" + traceback.format_exc())
             
+    # Return the IP-Nesting FreeCAD preference group, or None when unavailable.
     def _prefs(self):
         # helper so we can call it anywhere
         try:
@@ -3477,6 +3551,7 @@ class NestingTaskPanel:
         except Exception:
             return None
 
+    # Parse decimal input using dot or comma.
     def _parse_decimal_input(self, text):
         """
         Parse decimal input using dot or comma.
@@ -3499,6 +3574,7 @@ class NestingTaskPanel:
         except Exception:
             return None
 
+    # Format a dimension in the currently selected display units.
     def _format_dimension(self, value):
         """
         Format a dimension in the currently selected display units.
@@ -3525,6 +3601,7 @@ class NestingTaskPanel:
         except Exception:
             return "0"
 
+    # Convert a value from the active display unit to mm.
     def _display_to_mm(self, value):
         """
         Convert a value from the active display unit to mm.
@@ -3534,6 +3611,7 @@ class NestingTaskPanel:
 
         return float(value)
 
+    # Convert a millimetre value to the active display unit.
     def _mm_to_display(self, value_mm):
         """
         Convert a millimetre value to the active display unit.
@@ -3543,6 +3621,8 @@ class NestingTaskPanel:
 
         return float(value_mm)
 
+    # Normalize canonical dimension values stored in mm. Boundary resolution is kept to two
+    # decimal places.
     def _normalize_dimension_mm(
         self,
         key,
@@ -3559,6 +3639,7 @@ class NestingTaskPanel:
 
         return value_mm
     
+    # Map a dimension widget to its canonical millimetre-storage key.
     def _dimension_field_key(self, line_edit):
         if line_edit is self.sheet_margin:
             return "sheet_margin"
@@ -3571,6 +3652,7 @@ class NestingTaskPanel:
 
         return None
     
+    # Return all dimension QLineEdit fields in the main panel.
     def _dimension_fields(self):
         """
         Return all dimension QLineEdit fields in the main panel.
@@ -3581,6 +3663,7 @@ class NestingTaskPanel:
             self.res,
         ]
 
+    # Read one dimension field and return mm.
     def _read_dimension_field_mm(self, line_edit):
         """
         Read one dimension field and return mm.
@@ -3594,6 +3677,7 @@ class NestingTaskPanel:
 
         return self._display_to_mm(value)
 
+    # Store the canonical value in mm and display it using the current units.
     def _write_dimension_field_mm(
         self,
         line_edit,
@@ -3626,6 +3710,7 @@ class NestingTaskPanel:
         finally:
             line_edit.blockSignals(False)
 
+    # Refresh margin, spacing and boundary-resolution labels with the display units.
     def _update_dimension_labels(self):
         suffix = (
             "inch"
@@ -3645,6 +3730,7 @@ class NestingTaskPanel:
             "Boundary Resolution (%s):" % suffix
         )
     
+    # Change display units using canonical mm values.
     def _on_units_changed(self, index):
         """
         Change display units using canonical mm values.
@@ -3726,6 +3812,7 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
     
+    # Read one visible dimension and return its value in mm.
     def get_dimension_value_mm(
         self,
         line_edit,
@@ -3747,6 +3834,7 @@ class NestingTaskPanel:
         except Exception:
             return float(default_mm)
     
+    # Restore Deepnest text and boolean settings from preferences with defaults.
     def _load_deepnest_settings(self, prefs):
         text_fields = {
             "DeepnestTimeRatio": (
@@ -3813,6 +3901,7 @@ class NestingTaskPanel:
                     1 if default else 0
                 )
     
+    # Restore dimensions, display units, strategy, CPU selection and nesting CLI settings.
     def _load_settings_from_prefs(self):
         self.display_units = "mm"
         p = self._prefs()
@@ -3994,6 +4083,7 @@ class NestingTaskPanel:
                     pass
             self._update_dimension_labels()
     
+    # Persist the Deepnest text and boolean widget values.
     def _save_deepnest_settings(self, prefs):
         text_fields = {
             "DeepnestTimeRatio": (
@@ -4037,6 +4127,8 @@ class NestingTaskPanel:
             except Exception:
                 pass
     
+    # Persist canonical dimensions, display units, strategy, CPU selection and Deepnest
+    # settings.
     def _save_settings_to_prefs(self):
         p = self._prefs()
 
@@ -4109,6 +4201,7 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
 
+    # Read one field in the current display units and save its canonical value in mm.
     def _update_dimension_value_from_field(
         self,
         line_edit
@@ -4149,6 +4242,7 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
 
+    # Return the stored canonical boundary resolution in millimetres, defaulting to 0.1.
     def get_boundary_resolution_mm(self):
         return float(
             self._dimension_values_mm.get(
@@ -4157,6 +4251,7 @@ class NestingTaskPanel:
             )
         )
 
+    # Normalize one field and update its canonical mm value.
     def _normalize_decimal_field(self, line_edit):
         """
         Normalize one field and update its canonical mm value.
@@ -4202,6 +4297,7 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
     
+    # Connect setting edits to decimal normalization and preference persistence.
     def _connect_settings_persistence(self):
         # Save on change
         try:
@@ -4266,6 +4362,8 @@ class NestingTaskPanel:
         except Exception:
             pass
             
+    # Add an existing preview object (by Name) into the table as a new data row. Mirrors the row
+    # structure used by add_selected_objects().
     def _add_preview_object_to_table(self, p_doc, obj_name):
         """
         Add an existing preview object (by Name) into the table as a new data row.
@@ -4388,6 +4486,7 @@ class NestingTaskPanel:
             App.Console.PrintError("_add_preview_object_to_table failed:\n" + traceback.format_exc())
             return False
 
+    # Choose a DXF, import wire geometry into the preview and add the resulting part row.
     def import_dxf_2d(self):
         try:
             if import_dxf_to_preview is None:
@@ -4436,6 +4535,7 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("import_dxf_2d failed:\n" + traceback.format_exc())
 
+    # Choose an SVG, import wire geometry into the preview and add the resulting part row.
     def import_svg_2d(self):
         try:
             if import_svg_to_preview is None:
@@ -4482,6 +4582,7 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("import_svg_2d failed:\n" + traceback.format_exc())
     
+    # Normalize the rotation count field.
     def _clamp_rotation_degrees_text(self, txt):
         """
         Normalize the rotation count field.
@@ -4511,6 +4612,7 @@ class NestingTaskPanel:
             return "1"
 
 
+    # Normalize the rotation count cell for a given data row.
     def _clamp_rotation_cell(self, row):
         """Normalize the rotation count cell for a given data row."""
         try:

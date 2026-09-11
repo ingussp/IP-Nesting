@@ -23,6 +23,7 @@ except Exception:
     Part = None
 
 
+# Get or create preview doc using existing panel machinery if available.
 def _ensure_preview_doc(panel):
     """Get or create preview doc using existing panel machinery if available."""
     try:
@@ -37,6 +38,7 @@ def _ensure_preview_doc(panel):
     return App.getDocument(panel.preview_doc_name)
 
 
+# Import DXF into doc_name.
 def _import_dxf(path, doc_name):
     """Import DXF into doc_name."""
     # Common importer module for DXF in FreeCAD
@@ -58,6 +60,7 @@ def _import_dxf(path, doc_name):
     return False
 
 
+# Import SVG into doc_name.
 def _import_svg(path, doc_name):
     """Import SVG into doc_name."""
     try:
@@ -77,6 +80,7 @@ def _import_svg(path, doc_name):
     return False
 
 
+# Return an object Shape when its BoundBox is accessible, otherwise None.
 def _safe_shape(obj):
     try:
         shp = getattr(obj, "Shape", None)
@@ -92,6 +96,7 @@ def _safe_shape(obj):
         return None
 
 
+# Build a Part.Compound from a list of shapes.
 def _shape_to_compound(shapes):
     """Build a Part.Compound from a list of shapes."""
     if Part is None:
@@ -122,11 +127,13 @@ def _shape_to_compound(shapes):
         return None
 
 
+# Try to create a face for each closed wire.
 def _try_make_faces_from_wires(shp):
     """
-    Optional: if shape contains closed wires, try to convert each to a Face.
-    Faces are not required, but can be beneficial for downstream operations.
-    Returns either a Compound of faces, or None if not possible.
+    Try to create a face for each closed wire.
+
+    Return one Face, a Compound of multiple faces, or None if none can be made.
+    Nested wires are treated as separate faces, not subtracted as holes.
     """
     if Part is None or shp is None:
         return None
@@ -157,6 +164,7 @@ def _try_make_faces_from_wires(shp):
         return None
 
 
+# Import DXF/SVG into Nesting_Preview and convert to stable Part::Feature.
 def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True,
                              group_into_single_object=True, label_prefix=None):
     """
@@ -286,10 +294,12 @@ def import_2d_file_to_preview(panel, path, fmt=None, make_faces_if_possible=True
 
 
 # Convenience wrappers
+# Import a DXF into stable preview features using the shared 2D importer.
 def import_dxf_to_preview(panel, path, **kwargs):
     return import_2d_file_to_preview(panel, path, fmt="dxf", **kwargs)
 
 
+# Import an SVG into stable preview features, defaulting to wire geometry rather than faces.
 def import_svg_to_preview(panel, path, **kwargs):
     # SVG import often contains overlapping fill/stroke wires -> faces can overlap visually.
     # For nesting/rotation we only need stable Shape + BoundBox, so default to wires (no faces).

@@ -1,7 +1,7 @@
 """
 IPNestingResult.py
 
-Runs deepnest.exe, waits asynchronously for result.json and imports
+Runs the nesting CLI, waits asynchronously for result.json and imports
 the result into a new FreeCAD document named Nesting_Result.
 
 Expected files:
@@ -44,6 +44,7 @@ except Exception:
 # General helpers
 # ----------------------------------------------------------------------
 
+# Convert a value to float, falling back to the numeric default on conversion failure.
 def _safe_float(value, default=0.0):
     try:
         return float(value)
@@ -51,6 +52,7 @@ def _safe_float(value, default=0.0):
         return float(default)
 
 
+# Convert a value to int, falling back to the numeric default on conversion failure.
 def _safe_int(value, default=0):
     try:
         return int(value)
@@ -58,6 +60,7 @@ def _safe_int(value, default=0):
         return int(default)
 
 
+# Read and parse a JSON file.
 def _load_json_file(path):
     """
     Read and parse a JSON file.
@@ -84,6 +87,7 @@ def _load_json_file(path):
         return None
 
 
+# Return a file signature used to detect when result.json is stable.
 def _read_file_signature(path):
     """
     Return a file signature used to detect when result.json is stable.
@@ -100,6 +104,7 @@ def _read_file_signature(path):
         return None
 
 
+# Convert either:
 def _point_xy(point):
     """
     Convert either:
@@ -128,6 +133,7 @@ def _point_xy(point):
         return 0.0, 0.0
 
 
+# Convert XY point records to FreeCAD vectors at the supplied Z height.
 def _points_to_vectors(points, z=0.0):
     result = []
 
@@ -147,6 +153,7 @@ def _points_to_vectors(points, z=0.0):
     return result
 
 
+# Rotate x/y around the local origin counter-clockwise.
 def _rotate_xy(x, y, angle_deg):
     """
     Rotate x/y around the local origin counter-clockwise.
@@ -164,6 +171,7 @@ def _rotate_xy(x, y, angle_deg):
     )
 
 
+# Apply result placement to nesting-local points.
 def _transform_points(points, x, y, rotation):
     """
     Apply result placement to nesting-local points.
@@ -189,6 +197,7 @@ def _transform_points(points, x, y, rotation):
     return transformed
 
 
+# Close a FreeCAD polygon if necessary.
 def _close_vectors(points):
     """
     Close a FreeCAD polygon if necessary.
@@ -221,6 +230,7 @@ def _close_vectors(points):
     return result
 
 
+# Make a safe copy of a FreeCAD Placement.
 def _copy_placement(placement):
     """
     Make a safe copy of a FreeCAD Placement.
@@ -252,11 +262,13 @@ def _copy_placement(placement):
 # Result importer
 # ----------------------------------------------------------------------
 
+# Imports result.json into Nesting_Result.
 class NestingResultImporter(object):
     """
     Imports result.json into Nesting_Result.
     """
 
+    # Store the panel and initialize result/session data and source lookup maps.
     def __init__(self, panel):
         self.panel = panel
         self.preview_doc = None
@@ -272,6 +284,8 @@ class NestingResultImporter(object):
     # Public entry point
     # ------------------------------------------------------------------
 
+    # Resolve source metadata, recreate the result document, import geometry and show the result
+    # summary.
     def import_result(
         self,
         result_data,
@@ -349,6 +363,7 @@ class NestingResultImporter(object):
     # Maps
     # ------------------------------------------------------------------
 
+    # Prepare lookup maps for source parts, session parts and sheets.
     def _prepare_maps(self):
         """
         Prepare lookup maps for source parts, session parts and sheets.
@@ -418,6 +433,7 @@ class NestingResultImporter(object):
             except Exception:
                 continue
 
+    # Find the preview document named by result metadata, falling back to the panel document.
     def _get_preview_document(self):
         try:
             document_name = (
@@ -449,6 +465,7 @@ class NestingResultImporter(object):
 
         return None
 
+    # Return source metadata.
     def _get_source_part(self, source_index):
         """
         Return source metadata.
@@ -473,6 +490,7 @@ class NestingResultImporter(object):
             {}
         )
 
+    # Find the source FreeCAD object name.
     def _get_preview_object_name(
         self,
         source_part
@@ -504,6 +522,7 @@ class NestingResultImporter(object):
 
         return None
 
+    # Read direct or nested source-type metadata, defaulting to 3d.
     def _get_source_type(self, source_part):
         if not source_part:
             return "3d"
@@ -529,6 +548,7 @@ class NestingResultImporter(object):
     # Result document
     # ------------------------------------------------------------------
 
+    # Close any existing Nesting_Result document and create a replacement.
     def _create_result_document(self):
         try:
             if "Nesting_Result" in App.listDocuments():
@@ -554,6 +574,7 @@ class NestingResultImporter(object):
     # Sheets
     # ------------------------------------------------------------------
 
+    # Create and label a result object for each returned sheet record.
     def _import_sheets(self):
         for index, sheet in enumerate(
             self.result_data.get(
@@ -590,6 +611,7 @@ class NestingResultImporter(object):
                     + traceback.format_exc()
                 )
 
+    # Create a rectangle wire or a polygon face with holes at the result document origin.
     def _create_sheet_object(self, name, sheet):
         if Part is None:
             return None
@@ -743,6 +765,7 @@ class NestingResultImporter(object):
     # Parts
     # ------------------------------------------------------------------
 
+    # Import placed 3D or 2D instances using source metadata and log the successful count.
     def _import_placements(self):
         placements = (
             self.result_data.get(
@@ -809,6 +832,7 @@ class NestingResultImporter(object):
             % imported_count
         )
 
+    # Build an instance name from the placement ID or source/instance indices.
     def _result_object_name(self, placement):
         object_id = placement.get(
             "id"
@@ -847,6 +871,7 @@ class NestingResultImporter(object):
             )
         )
 
+    # Import a 3D source object.
     def _import_3d_instance(
         self,
         source_part,
@@ -1107,6 +1132,7 @@ class NestingResultImporter(object):
             )
             return False
 
+    # Import DXF/SVG/2D source geometry from sourceParts.points.
     def _import_2d_instance(
         self,
         source_part,
@@ -1199,6 +1225,7 @@ class NestingResultImporter(object):
     # Summary
     # ------------------------------------------------------------------
 
+    # Show the engine-reported status, placement counts and utilisation in a message box.
     def _show_result_summary(self):
         try:
             summary = (
@@ -1288,11 +1315,13 @@ class NestingResultImporter(object):
 # Process manager
 # ----------------------------------------------------------------------
 
+# Starts the configured nesting CLI and waits asynchronously for result.json.
 class NestingProcessManager(object):
     """
-    Starts deepnest.exe and waits asynchronously for result.json.
+    Starts the configured nesting CLI and waits asynchronously for result.json.
     """
 
+    # Initialize process paths, job identity, polling state and the completion guard.
     def __init__(self, panel):
         self.panel = panel
 
@@ -1316,22 +1345,24 @@ class NestingProcessManager(object):
     # Paths
     # ------------------------------------------------------------------
 
+    # Return the absolute directory containing the result-processing module.
     def _module_directory(self):
         return os.path.abspath(
             os.path.dirname(__file__)
         )
 
+    # Return the nesting CLI executable located inside the workbench directory:
     def _find_deepnest_executable(self):
         """
-        Return the Deepnest executable located inside the workbench
+        Return the nesting CLI executable located inside the workbench
         directory:
 
-            <workbench>/deepnest/deepnest-v1.5.6.exe
+            <workbench>/nesting-cli/nesting-cli.exe
         """
         executable_path = os.path.join(
             self._module_directory(),
-            "deepnest",
-            "deepnest-v1.5.6.exe"
+            "nesting-cli",
+            "nesting-cli.exe"
         )
 
         if os.path.isfile(executable_path):
@@ -1344,6 +1375,8 @@ class NestingProcessManager(object):
     # Start
     # ------------------------------------------------------------------
 
+    # Launch the bundled nesting CLI and poll its result file while disabling Run
+    # Nesting.
     def start_nesting(self, input_path):
         try:
             if self.process is not None:
@@ -1378,18 +1411,18 @@ class NestingProcessManager(object):
                     self.panel.form,
                     "Nesting error",
                     (
-                        "Deepnest executable was not found.\n\n"
+                        "Nesting CLI executable was not found.\n\n"
                         "Expected location:\n%s"
                     )
                     % os.path.join(
                         self._module_directory(),
-                        "deepnest",
-                        "deepnest-v1.5.6.exe"
+                        "nesting-cli",
+                        "nesting-cli.exe"
                     )
                 )
                 return False
 
-            # Deepnest writes result.json into its own directory.
+            # The nesting CLI writes result.json into its own directory.
             deepnest_directory = os.path.dirname(
                 self.deepnest_path
             )
@@ -1404,12 +1437,12 @@ class NestingProcessManager(object):
                     self.panel.form,
                     "Nesting error",
                     (
-                        "deepnest.exe was not found.\n\n"
+                        "Nesting CLI executable was not found.\n\n"
                         "Expected location:\n%s"
                     )
                     % os.path.join(
                         self._module_directory(),
-                        "deepnest.exe"
+                        "nesting-cli.exe"
                     )
                 )
                 return False
@@ -1480,7 +1513,7 @@ class NestingProcessManager(object):
             self.result_timer.start()
 
             App.Console.PrintMessage(
-                "deepnest.exe started.\n"
+                "Nesting CLI started.\n"
             )
 
             App.Console.PrintMessage(
@@ -1496,7 +1529,7 @@ class NestingProcessManager(object):
             )
 
             self._finish_failure(
-                "Could not start deepnest.exe."
+                "Could not start the nesting CLI."
             )
 
             return False
@@ -1505,6 +1538,8 @@ class NestingProcessManager(object):
     # Polling
     # ------------------------------------------------------------------
 
+    # Wait for a stable result file, check its job ID and import it or report a detected
+    # failure.
     def _check_result(self):
         try:
             if self._finished:
@@ -1527,7 +1562,7 @@ class NestingProcessManager(object):
 
                     self._finish_failure(
                         (
-                            "deepnest.exe finished without "
+                            "Nesting CLI finished without "
                             "creating result.json.\n\n"
                             "Exit code: %s"
                         )
@@ -1629,6 +1664,7 @@ class NestingProcessManager(object):
     # Finish
     # ------------------------------------------------------------------
 
+    # Stop result polling when a timer exists.
     def _stop_timer(self):
         try:
             if self.result_timer is not None:
@@ -1636,6 +1672,7 @@ class NestingProcessManager(object):
         except Exception:
             pass
 
+    # Stop result polling and re-enable the Run Nesting button.
     def _restore_ui(self):
         self._stop_timer()
 
@@ -1646,6 +1683,7 @@ class NestingProcessManager(object):
         except Exception:
             pass
 
+    # Mark the job finished once, restore the UI and log successful import.
     def _finish_success(self):
         if self._finished:
             return
@@ -1657,6 +1695,7 @@ class NestingProcessManager(object):
             "Nesting result imported successfully.\n"
         )
 
+    # Mark the job finished once, restore the UI and display the failure message.
     def _finish_failure(self, message):
         if self._finished:
             return

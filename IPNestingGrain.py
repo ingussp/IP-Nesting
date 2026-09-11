@@ -20,11 +20,17 @@ except Exception:
     Draft = None
 
 
+# Provide preview packing, perimeter labels and grain-direction arrow utilities.
 class GrainPreparer:
+    # Return the combined XY bounding-box diagonal and counted shape objects.
     @staticmethod
     def _get_global_bbox_diag(p_doc):
-        """Calculates the diagonal of the bounding box covering ALL valid parts in the doc.
-           Used to maintain consistent font sizing regardless of subset size."""
+        """
+        Return the combined XY bounding-box diagonal and counted shape objects.
+
+        Grain perimeter/arrow names and nonpositive X extents are skipped.
+        When no objects qualify, return the sizing fallback (1000.0, 1).
+        """
         min_x = min_y = float("inf")
         max_x = max_y = float("-inf")
         found = False
@@ -50,6 +56,7 @@ class GrainPreparer:
         h = max_y - min_y
         return math.hypot(w, h), count
 
+    # Read label and margin scale preferences, clamp them to 0.1..10 and default to 1.0.
     @staticmethod
     def _safe_get_scale_factors():
         """
@@ -87,6 +94,7 @@ class GrainPreparer:
 
         return label_scale, margin_scale
 
+    # Helper: returns True if object's Text property contains the label text.
     @staticmethod
     def _safe_text_contains_label(text_val, custom_label):
         """Helper: returns True if object's Text property contains the label text."""
@@ -101,6 +109,8 @@ class GrainPreparer:
         except Exception:
             return False
 
+    # Determine whether obj is the perimeter label text for the given custom_label, without
+    # relying on obj.Name (because in FreeCAD 1.0.2 it may remain 'Text').
     @staticmethod
     def _safe_is_label_object(obj, custom_label):
         """
@@ -123,6 +133,7 @@ class GrainPreparer:
             pass
         return False
 
+    # Determine whether obj is the perimeter border for the given custom_label.
     @staticmethod
     def _safe_is_border_object(obj, custom_label):
         """
@@ -141,6 +152,8 @@ class GrainPreparer:
     # -----------------------------
     # Shared helpers (refactor)
     # -----------------------------
+    # Collect bounding extents for the subset using the same rules as perimeter drawing.
+    # Returns: (found, min_x, min_y, max_x, max_y, subset_part_count)
     @staticmethod
     def _collect_subset_bbox(p_doc, subset_names=None):
         """
@@ -186,6 +199,9 @@ class GrainPreparer:
 
         return found, min_x, min_y, max_x, max_y, subset_part_count
 
+    # Compute (world_font_size, final_margin, scale_multiplier) using the same logic perimeter
+    # drawing needs. Centralizing this allows UI to use identical margin (so expanded perimeters
+    # never overlap).
     @staticmethod
     def _compute_font_and_margin(preview_doc_name, p_doc, min_x, min_y, max_x, max_y, subset_part_count):
         """
@@ -287,6 +303,7 @@ class GrainPreparer:
 
         return float(world_font_size), float(final_margin), scale_multiplier
 
+    # Return subset XY bounds, part count and the margin used to draw its perimeter.
     @staticmethod
     def get_subset_bbox_and_margin(preview_doc_name, subset_names=None):
         """
@@ -315,6 +332,8 @@ class GrainPreparer:
         except Exception:
             return (False, 0.0, 0.0, 0.0, 0.0, 0, 0.0)
 
+    # Draws a perimeter around objects + label. If subset_names is provided (list of strings),
+    # only considers those objects. Otherwise considers all objects in document.
     @staticmethod
     def draw_perimeter_and_label(
         preview_doc_name,
@@ -530,11 +549,14 @@ class GrainPreparer:
         except Exception:
             App.Console.PrintError("GrainPreparer.draw_perimeter_and_label failed:\n" + traceback.format_exc())
 
+    # Arrange parts in height-sorted rows extending right and downward from the target anchor.
     @staticmethod
     def pack_grain_parts(preview_doc_name, part_names, target_x=0.0, target_y=-5000.0, extra_pct=30.0, padding=4.0):
         """
-        Packs the specified parts into a square arrangement and moves them to
-        Start X=target_x, Y=target_y (world units).
+        Pack parts in height-sorted rows anchored at target_x and target_y.
+
+        Rows extend toward +X and -Y. An area-based target width expands
+        on overflow; the final layout is not guaranteed to be square.
         """
         try:
             if preview_doc_name not in App.listDocuments():
@@ -665,6 +687,7 @@ class GrainPreparer:
         except Exception:
             App.Console.PrintError("pack_grain_parts failed:\n" + traceback.format_exc())
 
+    # Find a preview object by internal name, then by exact label.
     @staticmethod
     def _find_preview_object(p_doc, obj_name_or_label):
         try:
@@ -683,11 +706,14 @@ class GrainPreparer:
             pass
         return None
 
+    # Build the GrainArrow_ object name for a preview part.
     @staticmethod
     def _arrow_object_name_for(obj_name):
         safe = str(obj_name)
         return "GrainArrow_" + safe
 
+    # Remove a part arrow by generated name or matching label and report whether one was
+    # removed.
     @staticmethod
     def remove_grain_arrow(preview_doc_name, obj_name):
         try:
@@ -727,6 +753,8 @@ class GrainPreparer:
             App.Console.PrintError("remove_grain_arrow failed:\n" + traceback.format_exc())
             return False
 
+    # Remove objects whose name or label starts with GrainArrow_ and report whether any were
+    # removed.
     @staticmethod
     def remove_all_grain_arrows(preview_doc_name):
         try:
@@ -758,12 +786,17 @@ class GrainPreparer:
             App.Console.PrintError("remove_all_grain_arrows failed:\n" + traceback.format_exc())
             return False
 
+    # Replace or remove an X/Y grain arrow above a part, using Part, Draft or a placeholder
+    # fallback.
     @staticmethod
     def update_grain_arrow(preview_doc_name, obj_name, enable=True, axis='X',
                           length_factor=0.5, width_factor=0.06, z_offset=0.5, color=(1.0, 0.0, 0.0)):
         """
-        Create or remove a 2D red arrow (planar face/wire) representing the grain direction for obj_name.
-        The arrow head (triangle) is clamped inside the part bbox so it doesn't extend past part edges.
+        Replace or remove an X/Y arrow above the preview part.
+
+        The colour defaults to red. Length is limited using the bounding box,
+        but minimum sizes and arrowhead width can extend outside small parts.
+        Part and Draft geometry fall back to a placeholder when unavailable.
         """
         try:
             if preview_doc_name not in App.listDocuments():
@@ -948,4 +981,4 @@ class GrainPreparer:
             App.Console.PrintError("update_grain_arrow failed:\n" + traceback.format_exc())
             return False
             
-    
+

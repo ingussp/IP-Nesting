@@ -1,6 +1,6 @@
 """
 IPNestingExport - Nesting execution logic extracted from IPNestingGui.
-Exports nesting configuration to libnest2d_export.json.
+Exports nesting CLI input.json and the FreeCAD nesting_session.json mapping.
 """
 
 import FreeCAD as App
@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime
 
 
+# Compare two XY point pairs within tolerance; return False for invalid input.
 def _points_equal_2d(a, b, tol=1e-6):
     try:
         return (
@@ -24,6 +25,7 @@ def _points_equal_2d(a, b, tol=1e-6):
         return False
 
 
+# Sample an edge into rounded XY points and remove consecutive duplicates.
 def _discretize_edge_2d(edge, deflection=0.01):
     pts2d = []
 
@@ -69,12 +71,14 @@ def _discretize_edge_2d(edge, deflection=0.01):
         return []
 
 
+# Stitch sampled wire edges by matching endpoints, appending unmatched chunks as a fallback.
 def _extract_wire_points_ordered(wire, deflection=0.01):
     """
-    Build a properly ordered 2D contour from wire edges.
+    Stitch sampled wire edges into an XY contour by matching endpoints.
 
     Edges are stitched by matching endpoints and reversed
-    when necessary.
+    when necessary. If no endpoint matches, append the next chunk and
+    log a warning; continuity is not guaranteed in that fallback.
     """
     try:
         edges = list(
@@ -179,6 +183,7 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
         return []
 
 
+# Read one integer rotation count from a table item.
 def _read_rotation_count(item, default=1):
     """
     Read one integer rotation count from a table item.
@@ -202,9 +207,12 @@ def _read_rotation_count(item, default=1):
         return int(default)
 
 
+# Read a positive deflection directly from panel.res text, without converting display units.
 def _read_boundary_deflection(panel, default=0.01):
     """
-    Read boundary resolution/deflection from the UI.
+    Read positive boundary deflection directly from panel.res text.
+
+    This helper does not convert display units to millimetres.
     """
     try:
         if panel is None or not hasattr(panel, "res"):
@@ -222,6 +230,7 @@ def _read_boundary_deflection(panel, default=0.01):
         return float(default)
 
 
+# Remove consecutive duplicate points from a polygon.
 def _remove_duplicate_points(points, tolerance=1e-6):
     """
     Remove consecutive duplicate points from a polygon.
@@ -260,9 +269,10 @@ def _remove_duplicate_points(points, tolerance=1e-6):
     return cleaned
 
 
+# Round a supplied XY pair without applying Placement; use [0, 0] for invalid input.
 def _transform_point_without_translation(obj, point):
     """
-    Return the point exactly as it exists in the current preview Shape.
+    Round the supplied XY pair to six decimals without applying Placement.
 
     In this project the current visible orientation is already reflected
     in obj.Shape after applying grain direction or Custom angle.
@@ -271,6 +281,7 @@ def _transform_point_without_translation(obj, point):
     the already rotated geometry a second time.
 
     The preview-grid position is removed later by _normalize_polygon().
+    Invalid input returns [0.0, 0.0].
     """
     try:
         return [
@@ -285,6 +296,7 @@ def _transform_point_without_translation(obj, point):
         ]
 
 
+# Move polygon coordinates so the minimum X/Y position becomes 0/0.
 def _normalize_polygon(points):
     """
     Move polygon coordinates so the minimum X/Y position becomes 0/0.
@@ -324,6 +336,7 @@ def _normalize_polygon(points):
         return []
 
 
+# Extract the current visible 2D outer contour from a preview object.
 def _extract_part_points(obj, deflection=0.1):
     """
     Extract the current visible 2D outer contour from a preview object.
@@ -449,6 +462,7 @@ def _extract_part_points(obj, deflection=0.1):
         if not candidates:
             return []
 
+        # Calculate the absolute shoelace area used to select the largest projected contour.
         def polygon_area(points):
             area = 0.0
 
@@ -487,6 +501,7 @@ def _extract_part_points(obj, deflection=0.1):
         return []
 
 
+# Read a non-negative floating-point value from a Qt widget.
 def _read_float_widget(widget, default):
     """
     Read a non-negative floating-point value from a Qt widget.
@@ -507,6 +522,7 @@ def _read_float_widget(widget, default):
         return float(default)
 
 
+# Read a boolean value from the project's False/True combo box.
 def _read_bool_combo(widget, default=False):
     """
     Read a boolean value from the project's False/True combo box.
@@ -517,9 +533,10 @@ def _read_bool_combo(widget, default=False):
         return bool(default)
 
 
+# Convert XY pairs or x/y dictionaries to rounded Deepnest point objects.
 def _points_to_deepnest_points(points):
     """
-    Convert [x, y] point pairs to Deepnest point objects.
+    Convert XY pairs or x/y dictionaries to rounded Deepnest point objects.
     """
     result = []
 
@@ -550,6 +567,7 @@ def _points_to_deepnest_points(points):
     return result
 
 
+# Return all user-selected non-outer contours as hole polygons.
 def _get_selected_material_holes(material):
     """
     Return all user-selected non-outer contours as hole polygons.
@@ -604,6 +622,7 @@ def _get_selected_material_holes(material):
     ]
 
 
+# Convert one IP-Nesting material record to a Deepnest sheet record.
 def _material_to_deepnest_sheet(material):
     """
     Convert one IP-Nesting material record
@@ -677,6 +696,7 @@ def _material_to_deepnest_sheet(material):
         "quantity": quantity
     }
 
+# Return a JSON-safe value.
 def _safe_json_value(value, default=None):
     """
     Return a JSON-safe value.
@@ -688,6 +708,7 @@ def _safe_json_value(value, default=None):
         return default
 
 
+# Safely read an optional FreeCAD object property.
 def _get_object_property(obj, property_name, default=None):
     """
     Safely read an optional FreeCAD object property.
@@ -701,15 +722,12 @@ def _get_object_property(obj, property_name, default=None):
     return default
 
 
+# Read the source-type property or infer DXF/SVG from the label, defaulting to 3d.
 def _get_source_type(obj):
     """
-    Return the IP-Nesting source type for a preview object.
+    Return 3d, dxf or svg from the source property or label.
 
-    Expected values:
-        3d
-        dxf
-        svg
-        unknown
+    Unrecognized or absent metadata defaults to 3d.
     """
     source_type = _get_object_property(
         obj,
@@ -737,6 +755,7 @@ def _get_source_type(obj):
     return "3d"
 
 
+# Read grain/custom-angle checkboxes and axis; retain defaults for the numeric custom angle.
 def _get_grain_metadata(panel, row):
     """
     Read grain and Custom angle state from one table row.
@@ -802,14 +821,17 @@ def _get_grain_metadata(panel, row):
 
     return metadata
 
+# Write nesting CLI input.json and nesting_session.json from the panel and preview geometry.
 def execute_nesting(panel):
     """
-    Export the current FreeCAD nesting state
-    to Deepnest input.json.
+    Export the panel state to the nesting CLI input.json and nesting_session.json.
+
+    Returns True when both files are written, or False on failure.
+    Dimension text is currently read directly, while the payload declares mm.
     """
     try:
         App.Console.PrintMessage(
-            "Starting Deepnest input export...\n"
+            "Starting nesting CLI input export...\n"
         )
         
         job_id = str(
@@ -1155,7 +1177,7 @@ def execute_nesting(panel):
                     "quantity": quantity,
                     "rotations": rotations,
 
-                    # Metadata consumed by the modified deepnest.exe
+                    # Metadata consumed by the nesting CLI
                     # and by IPNestingResult.py.
                     "_ip_nesting": {
                         "job_id": job_id,
@@ -1388,7 +1410,7 @@ def execute_nesting(panel):
             )
 
         App.Console.PrintMessage(
-            "Deepnest input JSON written to: %s\n"
+            "Nesting CLI input JSON written to: %s\n"
             % output_path
         )
 
