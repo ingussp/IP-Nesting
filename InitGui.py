@@ -1,14 +1,10 @@
-from IPNestingLanguages import tr, SettingsCommand, DIRECTORY
+from IPNestingLanguages import SettingsCommand
 
-import os
-import traceback
-import FreeCAD as App
 import FreeCADGui as Gui
 
 # Register the IP-Nesting workbench and its toolbar in FreeCAD.
 class IPNestingWorkbench(Workbench):
     MenuText = "IP - Nesting"
-    ToolTip = tr('optimal_parts_nesting_on_a_sheet')
     
     # Using your color #CF3519 for the placeholder icon
     Icon = """
@@ -35,6 +31,11 @@ class IPNestingWorkbench(Workbench):
     "                "};
     """
 
+    # Resolve translations locally because FreeCAD may execute this script with separate namespaces.
+    def __init__(self):
+        from IPNestingLanguages import tr
+        self.ToolTip = tr('optimal_parts_nesting_on_a_sheet')
+
     # Load the nesting panel and place Settings next to Run Nesting in the toolbar.
     def Initialize(self):
         import IPNestingGui
@@ -49,6 +50,9 @@ class IPNestingWorkbench(Workbench):
 class RunNestingCommand:
     # Return the command label, tooltip and custom icon path, with an icon fallback.
     def GetResources(self):
+        import os
+        from IPNestingLanguages import tr, DIRECTORY
+
         # Path to your custom png icon
         icon_path = os.path.join(DIRECTORY, "nesting_icon.png")
         
@@ -60,6 +64,11 @@ class RunNestingCommand:
 
     # Open the nesting panel and attempt to add the current non-preview selection.
     def Activated(self):
+        import traceback
+        import FreeCAD as App
+        import FreeCADGui as Gui
+        from IPNestingLanguages import tr
+
         # Create and show the panel
         import IPNestingGui
         panel = IPNestingGui.NestingTaskPanel()
