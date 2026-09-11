@@ -1,7 +1,7 @@
 """
 IPNestingResult.py
 
-Runs deepnest.exe, waits asynchronously for result.json and imports
+Runs the nesting CLI, waits asynchronously for result.json and imports
 the result into a new FreeCAD document named Nesting_Result.
 
 Expected files:
@@ -1315,10 +1315,10 @@ class NestingResultImporter(object):
 # Process manager
 # ----------------------------------------------------------------------
 
-# Starts deepnest.exe and waits asynchronously for result.json.
+# Starts the configured nesting CLI and waits asynchronously for result.json.
 class NestingProcessManager(object):
     """
-    Starts deepnest.exe and waits asynchronously for result.json.
+    Starts the configured nesting CLI and waits asynchronously for result.json.
     """
 
     # Initialize process paths, job identity, polling state and the completion guard.
@@ -1351,18 +1351,18 @@ class NestingProcessManager(object):
             os.path.dirname(__file__)
         )
 
-    # Return the Deepnest executable located inside the workbench directory:
+    # Return the nesting CLI executable located inside the workbench directory:
     def _find_deepnest_executable(self):
         """
-        Return the Deepnest executable located inside the workbench
+        Return the nesting CLI executable located inside the workbench
         directory:
 
-            <workbench>/deepnest/deepnest-v1.5.6.exe
+            <workbench>/nesting-cli/nesting-cli.exe
         """
         executable_path = os.path.join(
             self._module_directory(),
-            "deepnest",
-            "deepnest-v1.5.6.exe"
+            "nesting-cli",
+            "nesting-cli.exe"
         )
 
         if os.path.isfile(executable_path):
@@ -1375,7 +1375,7 @@ class NestingProcessManager(object):
     # Start
     # ------------------------------------------------------------------
 
-    # Launch the bundled Deepnest executable and poll its result file while disabling Run
+    # Launch the bundled nesting CLI and poll its result file while disabling Run
     # Nesting.
     def start_nesting(self, input_path):
         try:
@@ -1411,18 +1411,18 @@ class NestingProcessManager(object):
                     self.panel.form,
                     "Nesting error",
                     (
-                        "Deepnest executable was not found.\n\n"
+                        "Nesting CLI executable was not found.\n\n"
                         "Expected location:\n%s"
                     )
                     % os.path.join(
                         self._module_directory(),
-                        "deepnest",
-                        "deepnest-v1.5.6.exe"
+                        "nesting-cli",
+                        "nesting-cli.exe"
                     )
                 )
                 return False
 
-            # Deepnest writes result.json into its own directory.
+            # The nesting CLI writes result.json into its own directory.
             deepnest_directory = os.path.dirname(
                 self.deepnest_path
             )
@@ -1437,12 +1437,12 @@ class NestingProcessManager(object):
                     self.panel.form,
                     "Nesting error",
                     (
-                        "deepnest.exe was not found.\n\n"
+                        "Nesting CLI executable was not found.\n\n"
                         "Expected location:\n%s"
                     )
                     % os.path.join(
                         self._module_directory(),
-                        "deepnest.exe"
+                        "nesting-cli.exe"
                     )
                 )
                 return False
@@ -1513,7 +1513,7 @@ class NestingProcessManager(object):
             self.result_timer.start()
 
             App.Console.PrintMessage(
-                "deepnest.exe started.\n"
+                "Nesting CLI started.\n"
             )
 
             App.Console.PrintMessage(
@@ -1529,7 +1529,7 @@ class NestingProcessManager(object):
             )
 
             self._finish_failure(
-                "Could not start deepnest.exe."
+                "Could not start the nesting CLI."
             )
 
             return False
@@ -1562,7 +1562,7 @@ class NestingProcessManager(object):
 
                     self._finish_failure(
                         (
-                            "deepnest.exe finished without "
+                            "Nesting CLI finished without "
                             "creating result.json.\n\n"
                             "Exit code: %s"
                         )

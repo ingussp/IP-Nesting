@@ -1,6 +1,6 @@
 """
 IPNestingExport - Nesting execution logic extracted from IPNestingGui.
-Exports Deepnest input.json and the FreeCAD nesting_session.json mapping.
+Exports nesting CLI input.json and the FreeCAD nesting_session.json mapping.
 """
 
 import FreeCAD as App
@@ -821,17 +821,17 @@ def _get_grain_metadata(panel, row):
 
     return metadata
 
-# Write Deepnest input.json and nesting_session.json from the panel and preview geometry.
+# Write nesting CLI input.json and nesting_session.json from the panel and preview geometry.
 def execute_nesting(panel):
     """
-    Export the panel state to Deepnest input.json and nesting_session.json.
+    Export the panel state to the nesting CLI input.json and nesting_session.json.
 
     Returns True when both files are written, or False on failure.
     Dimension text is currently read directly, while the payload declares mm.
     """
     try:
         App.Console.PrintMessage(
-            "Starting Deepnest input export...\n"
+            "Starting nesting CLI input export...\n"
         )
         
         job_id = str(
@@ -1177,7 +1177,7 @@ def execute_nesting(panel):
                     "quantity": quantity,
                     "rotations": rotations,
 
-                    # Metadata consumed by the modified deepnest.exe
+                    # Metadata consumed by the nesting CLI
                     # and by IPNestingResult.py.
                     "_ip_nesting": {
                         "job_id": job_id,
@@ -1410,7 +1410,7 @@ def execute_nesting(panel):
             )
 
         App.Console.PrintMessage(
-            "Deepnest input JSON written to: %s\n"
+            "Nesting CLI input JSON written to: %s\n"
             % output_path
         )
 

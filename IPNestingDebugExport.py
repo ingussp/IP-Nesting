@@ -36,10 +36,10 @@ def _bbox_of_points(points):
     return (min(xs), min(ys), max(xs), max(ys))
 
 
-# Translate Deepnest point objects into debug sketch coordinates.
+# Translate nesting CLI point objects into debug sketch coordinates.
 def _translate_poly(points, dx, dy):
     """
-    Translate Deepnest point objects into debug sketch coordinates.
+    Translate nesting CLI point objects into debug sketch coordinates.
     """
     return [
         [
@@ -81,10 +81,10 @@ def _add_poly_sketch(doc, name, label, poly):
         return None
 
 
-# Read Deepnest parts[].points and draw translated outer contours in a separate debug document.
+# Read nesting CLI parts[].points and draw translated outer contours in a separate debug document.
 def debug_draw_export_polygons(export_path):
     """
-    Read a Deepnest export file and draw parts[].points as XY sketches.
+    Read a nesting CLI export file and draw parts[].points as XY sketches.
 
     Each outer contour is translated into a four-column debug layout;
     holes and nesting placements are not drawn.
