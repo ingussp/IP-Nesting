@@ -2883,139 +2883,29 @@ class NestingTaskPanel:
         except Exception:
             App.Console.PrintError("apply_bulk_rotate wrapper failed:\n" + traceback.format_exc())
 
-    # Attempt to set the bulk axis on rotation-selected rows, then rebuild grain layout and
-    # arrows.
+    # Apply checked grain rows using their current axes/angles, then fit the rebuilt preview.
     def apply_change_grain(self):
-        """
-        Attempt to apply the bulk grain axis to rotation-selected rows.
-
-        Then normalize grain layout, redraw arrows and update the Apply state.
-        Checkbox lookup currently checks the first layout item, so rows with
-        a leading spacer can be skipped.
-        """
+        """Normalize and pack grain-enabled rows once, preserving per-row grain settings."""
         try:
-            axis = self.bulk_grain_combo.currentText() if hasattr(self, "bulk_grain_combo") else "X"
             changed = 0
             data_rows = self.table.rowCount() - self.control_rows
-            for r in range(data_rows):
-                try:
-                    widget = self.table.cellWidget(r, 3)
-                    if not widget:
-                        continue
-                    # find selection checkbox
-                    sel_cb = None
-                    try:
-                        lay = widget.layout()
-                        if lay and lay.count() > 0:
-                            candidate = lay.itemAt(0).widget()
-                            if isinstance(candidate, QtGui.QCheckBox):
-                                sel_cb = candidate
-                    except Exception:
-                        try:
-                            sel_cb = widget.findChild(QtGui.QCheckBox)
-                        except Exception:
-                            sel_cb = None
-                    if not sel_cb or not sel_cb.isChecked():
-                        continue
-                    # set per-row grain combobox (column 4)
-                    grain_widget = self.table.cellWidget(r, 4)
-                    if not grain_widget:
-                        continue
-                    try:
-                        g_lay = grain_widget.layout()
-                        # combobox expected (we placed it as second widget)
-                        if g_lay and g_lay.count() > 1:
-                            # Our layout has stretch , checkbox, combobox, stretch => combobox likely at index 2
-                            # Use findChild fallback to be robust
-                            cb_widget = grain_widget.findChild(QtGui.QComboBox)
-                            if isinstance(cb_widget, QtGui.QComboBox):
-                                idx = 0 if axis.upper() == "X" else 1
-                                cb_widget.setCurrentIndex(idx)
-                                changed += 1
-                                continue
-                    except Exception:
-                        pass
-                    # fallback: findChild
-                    try:
-                        cb_widget = grain_widget.findChild(QtGui.QComboBox)
-                        if cb_widget:
-                            idx = 0 if axis.upper() == "X" else 1
-                            cb_widget.setCurrentIndex(idx)
-                            changed += 1
-                    except Exception:
-                        pass
-                except Exception:
-                    App.Console.PrintError("apply_change_grain per-row error:\n" + traceback.format_exc())
-            App.Console.PrintMessage("apply_change_grain: applied grain '%s' to %d rows.\n" % (axis, changed))
+            for row in range(data_rows):
+                grain_widget = self.table.cellWidget(row, 4)
+                if grain_widget is None:
+                    continue
+                checkbox = grain_widget.findChild(QtGui.QCheckBox)
+                if checkbox is not None and checkbox.isChecked():
+                    changed += 1
 
-            # update grain perimeter after grain change
-            try:
-                if GrainPreparer is not None:
-                    try:
-                        self.update_grain_layout_and_perimeters()
-                    except Exception:
-                        App.Console.PrintError("Failed to update grain layout/perimeters after apply_change_grain:\n" + traceback.format_exc())
-            except Exception:
-                App.Console.PrintError("Failed to draw grain perimeter after apply_change_grain:\n" + traceback.format_exc())
-
-            # Ensure GrainArrow objects match new per-row states (draw or remove arrows)
-            try:
-                if GrainPreparer is not None:
-                    data_rows = self.table.rowCount() - self.control_rows
-                    for r in range(data_rows):
-                        try:
-                            name_item = self.table.item(r, 0)
-                            if not name_item:
-                                continue
-                            primary = name_item.data(QtCore.Qt.UserRole)
-                            try:
-                                list_data = name_item.data(QtCore.Qt.UserRole + 1)
-                                if list_data:
-                                    if isinstance(list_data, list):
-                                        names_list = list_data
-                                    else:
-                                        names_list = json.loads(list_data)
-                                    if names_list:
-                                        primary = names_list[0]
-                            except Exception:
-                                pass
-                            obj_name = primary
-                            grain_widget = self.table.cellWidget(r, 4)
-                            if not grain_widget:
-                                continue
-                            cb = grain_widget.findChild(QtGui.QCheckBox)
-                            combo = grain_widget.findChild(QtGui.QComboBox)
-                            if cb and cb.isChecked() and combo:
-                                # The final Apply Grain layout normalizes the grain direction
-                                # to global X, therefore the displayed arrow must be horizontal.
-                                GrainPreparer.update_grain_arrow(
-                                    self.preview_doc_name,
-                                    obj_name,
-                                    enable=True,
-                                    axis="X"
-                                )
-                            else:
-                                GrainPreparer.remove_grain_arrow(
-                                    self.preview_doc_name,
-                                    obj_name
-                                )
-                        except Exception:
-                            pass
-            except Exception:
-                App.Console.PrintError("apply_change_grain: failed to update arrows:\n" + traceback.format_exc())
-            
-            # TRIGGER LAYOUT UPDATE
+            # The controller reads current Grain Direction checkboxes on every apply.
+            # It also normalizes angles, redraws all arrows/perimeters and saves the
+            # applied state. A second pass would process already-normalized geometry.
             self.update_grain_layout_and_perimeters()
-
-            # Recenter the scene after the grain direction and arrows changed.
             self._fit_all_views()
-
-            # update blinking state (checkboxes may be unchanged, but keep consistent)
-            try:
-                self._update_apply_blink_state()
-            except Exception:
-                pass
-
+            self._update_apply_blink_state()
+            App.Console.PrintMessage(
+                "apply_change_grain: applied grain to %d rows.\n" % changed
+            )
         except Exception:
             App.Console.PrintError("apply_change_grain failed:\n" + traceback.format_exc())
 
