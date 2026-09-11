@@ -3,6 +3,7 @@
 Grain preparer utilities for IP-Nesting — improved font/margin sizing.
 Includes logic for packing grain-specific parts at a designated location .
 """
+from IPNestingLanguages import tr, perimeter_labels, perimeter_object_labels
 import FreeCAD as App
 import FreeCADGui as Gui
 import traceback
@@ -118,6 +119,11 @@ class GrainPreparer:
         without relying on obj.Name (because in FreeCAD 1.0.2 it may remain 'Text').
         """
         try:
+            if getattr(obj, "Label", "") in perimeter_object_labels(custom_label, "label"):
+                return True
+            for label in perimeter_labels(custom_label):
+                if hasattr(obj, "Text") and GrainPreparer._safe_text_contains_label(obj.Text, label):
+                    return True
             lbl = getattr(obj, "Label", "") or ""
             if str(custom_label) in lbl and "Label" in lbl:
                 return True
@@ -140,6 +146,8 @@ class GrainPreparer:
         Determine whether obj is the perimeter border for the given custom_label.
         """
         try:
+            if getattr(obj, "Label", "") in perimeter_object_labels(custom_label, "border"):
+                return True
             lbl = getattr(obj, "Label", "") or ""
             if lbl == (str(custom_label) + " Border"):
                 return True
@@ -288,6 +296,9 @@ class GrainPreparer:
             if "with grain" in custom_label:
                 suffix = "Grain"
 
+            # Keep group identity in canonical names; only presentation is translated.
+            display_label = tr("perimeter.with_grain" if suffix == "Grain" else "perimeter.without_grain")
+
             feat_name_poly = "GrainPerimeter_" + suffix
             feat_name_label = "GrainPerimeterLabel_" + suffix
 
@@ -363,7 +374,7 @@ class GrainPreparer:
                     try:
                         wire = Part.makePolygon(pts)
                         feat = p_doc.addObject("Part::Feature", feat_name_poly)
-                        feat.Label = custom_label + " Border"
+                        feat.Label = tr("perimeter.border") % display_label
                         feat.Shape = wire
                         try:
                             vo = feat.ViewObject
@@ -382,7 +393,7 @@ class GrainPreparer:
                 try:
                     w = Draft.make_wire([p1, p2, p3, p4], closed=True)
                     w.Name = feat_name_poly
-                    w.Label = custom_label + " Border"
+                    w.Label = tr("perimeter.border") % display_label
                     try:
                         w.ViewObject.LineColor = line_color
                         w.ViewObject.LineWidth = 2
@@ -403,12 +414,12 @@ class GrainPreparer:
                     try:
                         # Try point argument
                         try:
-                            text_obj = Draft.make_text([custom_label], point=label_pos)
+                            text_obj = Draft.make_text([display_label], point=label_pos)
                         except TypeError:
-                            text_obj = Draft.make_text([custom_label], label_pos)
+                            text_obj = Draft.make_text([display_label], label_pos)
                     except Exception:
                         try:
-                            text_obj = Draft.makeText([custom_label], point=label_pos)
+                            text_obj = Draft.makeText([display_label], point=label_pos)
                         except Exception:
                             pass
 
@@ -421,7 +432,7 @@ class GrainPreparer:
 
                         # This is more reliable than Name for later cleanup
                         try:
-                            text_obj.Label = custom_label + " Label"
+                            text_obj.Label = tr("perimeter.label") % display_label
                         except Exception:
                             pass
 
@@ -474,7 +485,7 @@ class GrainPreparer:
                 pass
 
         except Exception:
-            App.Console.PrintError("GrainPreparer.draw_perimeter_and_label failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('grainpreparer_draw_perimeter_and_label_failed') + traceback.format_exc())
 
     # Arrange parts in height-sorted rows extending right and downward from the target anchor.
     @staticmethod
@@ -613,7 +624,7 @@ class GrainPreparer:
                 pass
 
         except Exception:
-            App.Console.PrintError("pack_grain_parts failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('pack_grain_parts_failed') + traceback.format_exc())
 
     # Find a preview object by internal name, then by exact label.
     @staticmethod
@@ -678,7 +689,7 @@ class GrainPreparer:
                 return True
             return False
         except Exception:
-            App.Console.PrintError("remove_grain_arrow failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('remove_grain_arrow_failed') + traceback.format_exc())
             return False
 
     # Remove objects whose name or label starts with GrainArrow_ and report whether any were
@@ -701,7 +712,7 @@ class GrainPreparer:
                             p_doc.removeObject(o.Name)
                             removed_any = True
                         except Exception:
-                            App.Console.PrintError("Failed to remove grain arrow '%s':\n%s\n" % (o.Name, traceback.format_exc()))
+                            App.Console.PrintError(tr('failed_to_remove_grain_arrow_s_s') % (o.Name, traceback.format_exc()))
                 except Exception:
                     continue
             if removed_any:
@@ -711,7 +722,7 @@ class GrainPreparer:
                     pass
             return removed_any
         except Exception:
-            App.Console.PrintError("remove_all_grain_arrows failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('remove_all_grain_arrows_failed') + traceback.format_exc())
             return False
 
     # Replace or remove an X/Y grain arrow above a part, using Part, Draft or a placeholder
@@ -744,7 +755,7 @@ class GrainPreparer:
 
             obj = GrainPreparer._find_preview_object(p_doc, obj_name)
             if obj is None:
-                App.Console.PrintMessage("update_grain_arrow: object '%s' not found in preview.\n" % str(obj_name))
+                App.Console.PrintMessage(tr('update_grain_arrow_object_s_not_found_in_preview') % str(obj_name))
                 return False
 
             # compute bbox and center/top z
@@ -861,7 +872,7 @@ class GrainPreparer:
                         pass
                     return True
             except Exception:
-                App.Console.PrintError("update_grain_arrow (Part) failed:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('update_grain_arrow_part_failed') + traceback.format_exc())
 
             try:
                 if Draft is not None:
@@ -891,7 +902,7 @@ class GrainPreparer:
                         pass
                     return True
             except Exception:
-                App.Console.PrintError("update_grain_arrow (Draft fallback) failed:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('update_grain_arrow_draft_fallback_failed') + traceback.format_exc())
 
             try:
                 ph = p_doc.addObject("App::FeaturePython", arrow_name)
@@ -902,10 +913,10 @@ class GrainPreparer:
                     pass
                 return True
             except Exception:
-                App.Console.PrintError("update_grain_arrow final fallback failed:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('update_grain_arrow_final_fallback_failed') + traceback.format_exc())
                 return False
 
         except Exception:
-            App.Console.PrintError("update_grain_arrow failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('update_grain_arrow_failed') + traceback.format_exc())
             return False
             

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>IP-Nesting Settings</title>
+  <g fill="#cf3519" stroke="#802314" stroke-width="2" stroke-linejoin="round">
+    <path d="M26 5h12l2 8 5 3 8-2 6 10-6 6v5l6 6-6 10-8-2-5 3-2 8H26l-2-8-5-3-8 2-6-10 6-6v-5l-6-6 6-10 8 2 5-3z"/>
+  </g>
+  <circle cx="32" cy="32" r="13" fill="#fff4ee" stroke="#802314" stroke-width="2"/>
+  <circle cx="32" cy="32" r="6" fill="#cf3519"/>
+</svg>

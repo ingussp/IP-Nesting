@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
@@ -71,7 +72,7 @@ def _create_sketch_with_polygon(doc, sketch_name, label, points):
 
         return sk
     except Exception:
-        App.Console.PrintError("_create_sketch_with_polygon failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('create_sketch_with_polygon_failed') + traceback.format_exc())
         return None
 
 
@@ -86,11 +87,11 @@ def import_nesting_sheets(export_path, import_path):
     """
     try:
         if not os.path.exists(export_path):
-            App.Console.PrintError("Export JSON not found: %s\n" % export_path)
+            App.Console.PrintError(tr('export_json_not_found_s') % export_path)
             return False
 
         if not os.path.exists(import_path):
-            App.Console.PrintError("Import JSON not found: %s\n" % import_path)
+            App.Console.PrintError(tr('import_json_not_found_s') % import_path)
             return False
 
         with open(export_path, "r", encoding="utf-8") as f:
@@ -126,7 +127,7 @@ def import_nesting_sheets(export_path, import_path):
                 continue
 
         if not bins:
-            App.Console.PrintMessage("No placed parts found to import into sheet documents.\n")
+            App.Console.PrintMessage(tr('no_placed_parts_found_to_import_into_sheet_documents'))
             return False
 
         created_docs = []
@@ -156,11 +157,11 @@ def import_nesting_sheets(export_path, import_path):
                     _create_sketch_with_polygon(
                         doc,
                         "SheetBoundary",
-                        "Sheet Boundary",
+                        tr('sheet_boundary'),
                         boundary
                     )
             except Exception:
-                App.Console.PrintError("Failed to draw sheet boundary:\n" + traceback.format_exc())
+                App.Console.PrintError(tr('failed_to_draw_sheet_boundary') + traceback.format_exc())
 
             for idx, pl in enumerate(bins[bin_id]):
                 try:
@@ -203,7 +204,7 @@ def import_nesting_sheets(export_path, import_path):
 
                 except Exception:
                     App.Console.PrintError(
-                        "Failed to import placement into bin %d:\n%s\n"
+                        tr('failed_to_import_placement_into_bin_d_s')
                         % (bin_id, traceback.format_exc())
                     )
 
@@ -222,11 +223,11 @@ def import_nesting_sheets(export_path, import_path):
             pass
 
         App.Console.PrintMessage(
-            "Created %d nesting sheet document(s): %s\n"
+            tr('created_d_nesting_sheet_document_s_s')
             % (len(created_docs), ", ".join(created_docs))
         )
         return True
 
     except Exception:
-        App.Console.PrintError("import_nesting_sheets failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('import_nesting_sheets_failed') + traceback.format_exc())
         return False

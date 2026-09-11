@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 # NestingRelayout.py
 # Class wrapper for the relayout macro so it can be imported and run from IPNestingGui.py
 # Usage (from IPNestingGui or FreeCAD Console):
@@ -38,7 +39,7 @@ class NestingRelayoutManager:
                 return App.getDocument(self.preview_doc_name)
             return App.getDocument(self.preview_doc_name)
         except Exception:
-            App.Console.PrintError("ensure_preview_doc failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('ensure_preview_doc_failed') + traceback.format_exc())
             return None
 
     # Return the containing PartDesign body when found, otherwise the selected object.
@@ -82,7 +83,7 @@ class NestingRelayoutManager:
             normal = best_face.normalAt(u_mid, v_mid)
             return App.Rotation(normal, App.Vector(0, 0, 1))
         except Exception:
-            App.Console.PrintError("align_to_largest_face failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('align_to_largest_face_failed') + traceback.format_exc())
             return App.Rotation()
 
     # -------------------------
@@ -99,7 +100,7 @@ class NestingRelayoutManager:
         try:
             sel = Gui.Selection.getSelection()
             if not sel:
-                App.Console.PrintMessage("No selection found — skipping copy step.\n")
+                App.Console.PrintMessage(tr('no_selection_found_skipping_copy_step'))
                 return 0
 
             existing_labels = set(o.Label for o in p_doc.Objects)
@@ -108,7 +109,7 @@ class NestingRelayoutManager:
                 try:
                     target = self.is_body_candidate(sel_obj)
                     if getattr(target, "Label", None) in existing_labels:
-                        App.Console.PrintMessage("Skipping copy: label '%s' already in preview.\n" % (target.Label,))
+                        App.Console.PrintMessage(tr('skipping_copy_label_s_already_in_preview') % (target.Label,))
                         continue
                     new_obj = p_doc.copyObject(target, False)
                     # keep original label (or adjust if you prefer unique labels)
@@ -128,24 +129,24 @@ class NestingRelayoutManager:
                         try:
                             p_doc.recompute()
                         except Exception:
-                            App.Console.PrintError("Recompute after copy failed for '%s':\n%s\n" % (getattr(new_obj, "Label", "<unknown>"), traceback.format_exc()))
+                            App.Console.PrintError(tr('recompute_after_copy_failed_for_s_s') % (getattr(new_obj, "Label", "<unknown>"), traceback.format_exc()))
 
                     copied += 1
                     existing_labels.add(getattr(new_obj, "Label", ""))
                 except Exception:
-                    App.Console.PrintError("Failed to copy '%s':\n%s\n" % (getattr(sel_obj, "Name", "<unknown>"), traceback.format_exc()))
+                    App.Console.PrintError(tr('failed_to_copy_s_s') % (getattr(sel_obj, "Name", "<unknown>"), traceback.format_exc()))
                     continue
 
             if copied > 0 and self.recompute:
                 try:
                     p_doc.recompute()
                 except Exception:
-                    App.Console.PrintError("Recompute failed after copying:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('recompute_failed_after_copying') + traceback.format_exc())
 
-            App.Console.PrintMessage("Copied %d objects to preview.\n" % copied)
+            App.Console.PrintMessage(tr('copied_d_objects_to_preview') % copied)
             return copied
         except Exception:
-            App.Console.PrintError("copy_selected_to_preview failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('copy_selected_to_preview_failed') + traceback.format_exc())
             return 0
 
     # Layout all preview objects that have shapes into a grid and place them on a single Z
@@ -161,7 +162,7 @@ class NestingRelayoutManager:
 
             objs = [o for o in p_doc.Objects if hasattr(o, "Shape") and getattr(o, "Shape", None) is not None]
             if not objs:
-                App.Console.PrintMessage("No shape objects in preview to layout.\n")
+                App.Console.PrintMessage(tr('no_shape_objects_in_preview_to_layout'))
                 return 0
 
             current_x = 0.0
@@ -190,7 +191,7 @@ class NestingRelayoutManager:
                         # Skip objects with invalid bbox to avoid inf placements
                         try:
                             if not (bb.XMax > bb.XMin and bb.YMax > bb.YMin):
-                                App.Console.PrintMessage("relayout_preview: skipping invalid bbox for %s\n" % getattr(o, "Name", "<unknown>"))
+                                App.Console.PrintMessage(tr('relayout_preview_skipping_invalid_bbox_for_s') % getattr(o, "Name", "<unknown>"))
                                 continue
                         except Exception:
                             continue
@@ -226,14 +227,14 @@ class NestingRelayoutManager:
                     added_count += 1
 
                 except Exception:
-                    App.Console.PrintError("relayout per-object error for %s:\n%s\n" % (getattr(o, "Name", "<unknown>"), traceback.format_exc()))
+                    App.Console.PrintError(tr('relayout_per_object_error_for_s_s') % (getattr(o, "Name", "<unknown>"), traceback.format_exc()))
                     continue
 
             if self.recompute:
                 try:
                     p_doc.recompute()
                 except Exception:
-                    App.Console.PrintError("Recompute failed after relayout:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('recompute_failed_after_relayout') + traceback.format_exc())
 
             try:
                 Gui.setActiveDocument(p_doc)
@@ -241,11 +242,11 @@ class NestingRelayoutManager:
             except Exception:
                 pass
 
-            App.Console.PrintMessage("Relayout completed: %d objects positioned.\n" % added_count)
+            App.Console.PrintMessage(tr('relayout_completed_d_objects_positioned') % added_count)
             return added_count
 
         except Exception:
-            App.Console.PrintError("relayout_preview failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('relayout_preview_failed') + traceback.format_exc())
             return 0
 
     # -------------------------
@@ -257,18 +258,18 @@ class NestingRelayoutManager:
         try:
             p_doc = self.ensure_preview_doc()
             if p_doc is None:
-                App.Console.PrintError("Failed to ensure preview document.\n")
+                App.Console.PrintError(tr('failed_to_ensure_preview_document'))
                 return 0
 
             if copy_selection:
                 try:
                     self.copy_selected_to_preview(p_doc)
                 except Exception:
-                    App.Console.PrintError("Error during copy_selected_to_preview:\n" + traceback.format_exc())
+                    App.Console.PrintError(tr('error_during_copy_selected_to_preview') + traceback.format_exc())
 
             return self.relayout_preview(p_doc)
         except Exception:
-            App.Console.PrintError("NestingRelayoutManager.run failed:\n" + traceback.format_exc())
+            App.Console.PrintError(tr('nestingrelayoutmanager_run_failed') + traceback.format_exc())
             return 0
 
 

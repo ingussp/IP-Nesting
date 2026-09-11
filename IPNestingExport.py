@@ -2,6 +2,7 @@
 IPNestingExport - Nesting execution logic extracted from IPNestingGui.
 Exports nesting CLI input.json and the FreeCAD nesting_session.json mapping.
 """
+from IPNestingLanguages import tr
 
 import FreeCAD as App
 from PySide import QtGui, QtCore
@@ -65,7 +66,7 @@ def _discretize_edge_2d(edge, deflection=0.01):
 
     except Exception:
         App.Console.PrintError(
-            "_discretize_edge_2d failed:\n"
+            tr('discretize_edge_2d_failed')
             + traceback.format_exc()
         )
         return []
@@ -131,8 +132,7 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
 
             if found_pts is None:
                 App.Console.PrintWarning(
-                    "Wire stitching fallback used: "
-                    "edge chain was not continuous.\n"
+                    tr('wire_stitching_fallback_used_edge_chain_was_not_continuous')
                 )
 
                 found_idx = 0
@@ -177,7 +177,7 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
 
     except Exception:
         App.Console.PrintError(
-            "_extract_wire_points_ordered failed:\n"
+            tr('extract_wire_points_ordered_failed')
             + traceback.format_exc()
         )
         return []
@@ -495,7 +495,7 @@ def _extract_part_points(obj, deflection=0.1):
 
     except Exception:
         App.Console.PrintError(
-            "_extract_part_points failed:\n"
+            tr('extract_part_points_failed')
             + traceback.format_exc()
         )
         return []
@@ -831,7 +831,7 @@ def execute_nesting(panel):
     """
     try:
         App.Console.PrintMessage(
-            "Starting nesting CLI input export...\n"
+            tr('starting_nesting_cli_input_export')
         )
         
         job_id = str(
@@ -995,8 +995,7 @@ def execute_nesting(panel):
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to convert material "
-                    "to Deepnest sheet:\n"
+                    tr('failed_to_convert_material_to_deepnest_sheet')
                     + traceback.format_exc()
                 )
 
@@ -1012,7 +1011,7 @@ def execute_nesting(panel):
 
         if not p_doc:
             App.Console.PrintError(
-                "Preview document not found: %s\n"
+                tr('preview_document_not_found_s')
                 % str(
                     panel.preview_doc_name
                 )
@@ -1023,15 +1022,13 @@ def execute_nesting(panel):
             p_doc.recompute()
         except Exception:
             App.Console.PrintError(
-                "Preview document recompute failed "
-                "before export:\n"
+                tr('preview_document_recompute_failed_before_export')
                 + traceback.format_exc()
             )
 
         try:
             App.Console.PrintMessage(
-                "Preview document recomputed before "
-                "polygon extraction.\n"
+                tr('preview_document_recomputed_before_polygon_extraction')
             )
         except Exception:
             pass
@@ -1111,8 +1108,7 @@ def execute_nesting(panel):
 
                 if not primary_name:
                     App.Console.PrintWarning(
-                        "Part row %d has no preview "
-                        "object name.\n"
+                        tr('part_row_d_has_no_preview_object_name')
                         % row
                     )
                     continue
@@ -1123,7 +1119,7 @@ def execute_nesting(panel):
 
                 if not obj:
                     App.Console.PrintWarning(
-                        "Preview object not found: %s\n"
+                        tr('preview_object_not_found_s')
                         % str(
                             primary_name
                         )
@@ -1134,8 +1130,7 @@ def execute_nesting(panel):
                 # Log the actual Placement used for export.
                 try:
                     App.Console.PrintMessage(
-                        "Exporting '%s' with current "
-                        "Placement: %s\n"
+                        tr('exporting_s_with_current_placement_s')
                         % (
                             str(primary_name),
                             str(obj.Placement)
@@ -1151,8 +1146,7 @@ def execute_nesting(panel):
 
                 if len(points) < 3:
                     App.Console.PrintWarning(
-                        "No valid polygon points found "
-                        "for: %s\n"
+                        tr('no_valid_polygon_points_found_for_s')
                         % str(
                             primary_name
                         )
@@ -1255,8 +1249,7 @@ def execute_nesting(panel):
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed to export part row "
-                    "%d:\n%s\n"
+                    tr('failed_to_export_part_row_d_s')
                     % (
                         row,
                         traceback.format_exc()
@@ -1410,7 +1403,7 @@ def execute_nesting(panel):
             )
 
         App.Console.PrintMessage(
-            "Nesting CLI input JSON written to: %s\n"
+            tr('nesting_cli_input_json_written_to_s')
             % output_path
         )
 
@@ -1418,7 +1411,7 @@ def execute_nesting(panel):
 
     except Exception:
         App.Console.PrintError(
-            "execute_nesting failed:\n"
+            tr('execute_nesting_failed')
             + traceback.format_exc()
         )
 

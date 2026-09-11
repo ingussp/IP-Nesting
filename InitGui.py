@@ -1,11 +1,14 @@
+from IPNestingLanguages import tr, SettingsCommand, DIRECTORY
 
 import os
+import traceback
+import FreeCAD as App
 import FreeCADGui as Gui
 
 # Register the IP-Nesting workbench and its toolbar in FreeCAD.
 class IPNestingWorkbench(Workbench):
     MenuText = "IP - Nesting"
-    ToolTip = "Optimal parts nesting on a sheet"
+    ToolTip = tr('optimal_parts_nesting_on_a_sheet')
     
     # Using your color #CF3519 for the placeholder icon
     Icon = """
@@ -32,10 +35,11 @@ class IPNestingWorkbench(Workbench):
     "                "};
     """
 
-    # Load the nesting panel module and add the Run Nesting toolbar command.
+    # Load the nesting panel and place Settings next to Run Nesting in the toolbar.
     def Initialize(self):
         import IPNestingGui
-        self.appendToolbar("IP Nesting Tools", ["IP_RunNesting"])
+        self.appendToolbar("IP Nesting Tools", ["IP_RunNesting", "IP_NestingSettings"])
+        self.appendMenu("IP-Nesting", ["IP_RunNesting", "IP_NestingSettings"])
 
     # Return the FreeCAD Python workbench type identifier.
     def GetClassName(self): 
@@ -46,11 +50,11 @@ class RunNestingCommand:
     # Return the command label, tooltip and custom icon path, with an icon fallback.
     def GetResources(self):
         # Path to your custom png icon
-        icon_path = os.path.join(App.getUserAppDataDir(), "Mod", "IP-Nesting", "nesting_icon.png")
+        icon_path = os.path.join(DIRECTORY, "nesting_icon.png")
         
         return {
-            'MenuText': 'Nesting Tool',
-            'ToolTip': 'Open the nesting configuration panel',
+            'MenuText': tr('nesting_tool'),
+            'ToolTip': tr('open_the_nesting_configuration_panel'),
             'Pixmap': icon_path if os.path.exists(icon_path) else 'Part_Box' # Fallback to standard icon
         }
 
@@ -75,7 +79,7 @@ class RunNestingCommand:
                     try:
                         panel.add_selected_objects()
                     except Exception:
-                        App.Console.PrintError("RunNestingCommand: failed to auto-add selected objects:\n" + traceback.format_exc())
+                        App.Console.PrintError(tr('runnestingcommand_failed_to_auto_add_selected_objects') + traceback.format_exc())
         except Exception:
             # silently continue if selection can't be read
             pass
@@ -85,4 +89,5 @@ class RunNestingCommand:
         return "Gui::PythonWorkbench"
 
 Gui.addCommand('IP_RunNesting', RunNestingCommand())
+Gui.addCommand('IP_NestingSettings', SettingsCommand())
 Gui.addWorkbench(IPNestingWorkbench())

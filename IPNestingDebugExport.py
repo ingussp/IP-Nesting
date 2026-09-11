@@ -1,3 +1,4 @@
+from IPNestingLanguages import tr
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
@@ -77,7 +78,7 @@ def _add_poly_sketch(doc, name, label, poly):
 
         return sk
     except Exception:
-        App.Console.PrintError("_add_poly_sketch failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('add_poly_sketch_failed') + traceback.format_exc())
         return None
 
 
@@ -91,7 +92,7 @@ def debug_draw_export_polygons(export_path):
     """
     try:
         if not export_path or not os.path.exists(export_path):
-            App.Console.PrintError("Export JSON not found: %s\n" % str(export_path))
+            App.Console.PrintError(tr('export_json_not_found_s') % str(export_path))
             return False
 
         with open(export_path, "r") as f:
@@ -99,7 +100,7 @@ def debug_draw_export_polygons(export_path):
 
         parts = data.get("parts", [])
         if not isinstance(parts, list) or not parts:
-            App.Console.PrintError("No parts found in export JSON.\n")
+            App.Console.PrintError(tr('no_parts_found_in_export_json'))
             return False
 
         doc_name = "Nesting_Export_Debug"
@@ -157,7 +158,7 @@ def debug_draw_export_polygons(export_path):
                     "Dbg_%02d_%s" % (i, label)
                 )
 
-                sketch_label = "%s [points]" % label
+                sketch_label = tr('s_points') % label
 
                 _add_poly_sketch(
                     doc,
@@ -179,7 +180,7 @@ def debug_draw_export_polygons(export_path):
 
             except Exception:
                 App.Console.PrintError(
-                    "Failed drawing export polygon for part %d:\n%s\n"
+                    tr('failed_drawing_export_polygon_for_part_d_s')
                     % (i, traceback.format_exc())
                 )
 
@@ -196,10 +197,10 @@ def debug_draw_export_polygons(export_path):
             pass
 
         App.Console.PrintMessage(
-            "Export polygon debug document created: %s\n" % doc.Name
+            tr('export_polygon_debug_document_created_s') % doc.Name
         )
         return True
 
     except Exception:
-        App.Console.PrintError("debug_draw_export_polygons failed:\n" + traceback.format_exc())
+        App.Console.PrintError(tr('debug_draw_export_polygons_failed') + traceback.format_exc())
         return False
