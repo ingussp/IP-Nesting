@@ -2,7 +2,7 @@
 Material preview cards with grain, contour exclusion and shared-clearance controls.
 Supports rectangular sheets and DXF offcuts with resizable, zoomable previews.
 """
-from IPNestingLanguages import tr, translate_buttons
+from IPNestingLanguages import tr, translate_buttons, ui_call, ui_widget, register_window
 
 import traceback
 import math
@@ -1029,7 +1029,7 @@ class OffcutShowDialog(QtGui.QDialog):
     # Build material preview cards and connect grain, contour and shared-clearance controls.
     def __init__(self, offcuts, parent=None, panel=None):
         super(OffcutShowDialog, self).__init__(parent)
-        self.setWindowTitle(tr('offcuts'))
+        ui_call(self, 'setWindowTitle', tr('offcuts'))
         self.setModal(True)
         
         self.setSizeGripEnabled(True)
@@ -1088,8 +1088,8 @@ class OffcutShowDialog(QtGui.QDialog):
 
         root = QtGui.QVBoxLayout(self)
 
-        info = QtGui.QLabel(
-            tr('added_sheets_and_offcuts_grain_direction_is_relative_to_the_material_local_axes')
+        info = ui_widget(
+            QtGui.QLabel, tr('added_sheets_and_offcuts_grain_direction_is_relative_to_the_material_local_axes')
         )
         root.addWidget(info)
 
@@ -1140,8 +1140,8 @@ class OffcutShowDialog(QtGui.QDialog):
             header_lay = QtGui.QHBoxLayout()
             header_lay.setSpacing(12)
 
-            title = QtGui.QLabel(
-                tr('b_s_b_count_d')
+            title = ui_widget(
+                QtGui.QLabel, tr('b_s_b_count_d')
                 % (label, count)
             )
             header_lay.addWidget(title)
@@ -1150,13 +1150,13 @@ class OffcutShowDialog(QtGui.QDialog):
             clearance_lay.setSpacing(8)
 
             clearance_lay.addWidget(
-                QtGui.QLabel(
-                    tr('hole_to_part_clearance')
+                ui_widget(
+                    QtGui.QLabel, tr('hole_to_part_clearance')
                 )
             )
 
             clearance_combo = QtGui.QComboBox()
-            clearance_combo.addItems([
+            ui_call(clearance_combo, 'addItems', [
                 tr('same_as_part_spacing'),
                 tr('custom'),
             ])
@@ -1165,12 +1165,12 @@ class OffcutShowDialog(QtGui.QDialog):
             clearance_edit = QtGui.QLineEdit()
             clearance_edit.setMinimumWidth(90)
             clearance_edit.setMaximumWidth(120)
-            clearance_edit.setToolTip(
-                tr('custom_distance_from_hole_edge_to_part_edge')
+            ui_call(
+                clearance_edit, 'setToolTip', tr('custom_distance_from_hole_edge_to_part_edge')
             )
             
-            clearance_unit_label = QtGui.QLabel(
-                "mm"
+            clearance_unit_label = ui_widget(
+                QtGui.QLabel, "mm"
             )
             clearance_unit_label.setMinimumWidth(
                 35
@@ -1216,11 +1216,11 @@ class OffcutShowDialog(QtGui.QDialog):
             header_lay.addStretch(1)
 
             header_lay.addWidget(
-                QtGui.QLabel(tr('grain_direction_4f9262'))
+                ui_widget(QtGui.QLabel, tr('grain_direction_4f9262'))
             )
 
             combo = QtGui.QComboBox()
-            combo.addItems([tr('none_6eef66'), "X", "Y"])
+            ui_call(combo, 'addItems', [tr('none_6eef66'), "X", "Y"])
             combo.setMinimumWidth(75)
 
             grain = str(
@@ -1245,7 +1245,7 @@ class OffcutShowDialog(QtGui.QDialog):
             path = str(off.get("path", "") or "")
 
             if path:
-                path_label = QtGui.QLabel(path)
+                path_label = ui_widget(QtGui.QLabel, path)
                 path_label.setWordWrap(True)
                 path_label.setTextInteractionFlags(
                     QtCore.Qt.TextSelectableByMouse
@@ -1414,6 +1414,7 @@ class OffcutShowDialog(QtGui.QDialog):
         buttons.accepted.connect(self.accept)
         root.addWidget(buttons)
         self._apply_shared_clearance_to_widgets()
+        register_window(self)
         QtCore.QTimer.singleShot(
             0,
             self._resize_cards_to_viewport
@@ -1539,8 +1540,8 @@ class OffcutShowDialog(QtGui.QDialog):
                 edit.blockSignals(True)
 
                 try:
-                    edit.setText(
-                        _format_display_dimension(
+                    ui_call(
+                        edit, 'setText', _format_display_dimension(
                             self._custom_clearance,
                             self._display_units
                         )
@@ -1556,8 +1557,8 @@ class OffcutShowDialog(QtGui.QDialog):
             )
 
             for unit_label in self._clearance_unit_labels:
-                unit_label.setText(
-                    unit_text
+                ui_call(
+                    unit_label, 'setText', unit_text
                 )
 
         except Exception:
@@ -1950,7 +1951,7 @@ class OffcutMaterialsController(object):
         """
         try:
             self._count_update_guard = True
-            item.setText(str(max(1, int(value))))
+            ui_call(item, 'setText', str(max(1, int(value))))
         except Exception:
             pass
         finally:
@@ -2011,7 +2012,7 @@ class OffcutMaterialsController(object):
             material["quantity"] = new_count
 
             if item.text() != str(new_count):
-                item.setText(str(new_count))
+                ui_call(item, 'setText', str(new_count))
 
         except Exception:
             App.Console.PrintError(
@@ -2202,7 +2203,7 @@ class OffcutMaterialsController(object):
                 material
             )
 
-            material_item = QtGui.QTableWidgetItem(label)
+            material_item = ui_widget(QtGui.QTableWidgetItem, label)
             material_item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
@@ -2230,14 +2231,14 @@ class OffcutMaterialsController(object):
             except Exception:
                 count = 1
 
-            count_item = QtGui.QTableWidgetItem(str(count))
+            count_item = ui_widget(QtGui.QTableWidgetItem, str(count))
             count_item.setFlags(
                 QtCore.Qt.ItemIsEnabled
                 | QtCore.Qt.ItemIsSelectable
                 | QtCore.Qt.ItemIsEditable
             )
             count_item.setTextAlignment(QtCore.Qt.AlignCenter)
-            count_item.setToolTip(tr('enter_the_number_of_sheets_or_offcuts'))
+            ui_call(count_item, 'setToolTip', tr('enter_the_number_of_sheets_or_offcuts'))
             self.offcuts_table.setItem(row, 1, count_item)
 
             # Column 2: Grain
@@ -2248,7 +2249,7 @@ class OffcutMaterialsController(object):
             if grain not in ("X", "Y"):
                 grain = "None"
 
-            grain_item = QtGui.QTableWidgetItem(tr('none_6eef66') if grain == "None" else grain)
+            grain_item = ui_widget(QtGui.QTableWidgetItem, tr('none_6eef66') if grain == "None" else grain)
             grain_item.setFlags(
                 QtCore.Qt.ItemIsEnabled |
                 QtCore.Qt.ItemIsSelectable
@@ -2263,14 +2264,14 @@ class OffcutMaterialsController(object):
             move_layout.setSpacing(2)
 
             up_button = QtGui.QToolButton()
-            up_button.setText("↑")
-            up_button.setToolTip(tr('move_material_up'))
+            ui_call(up_button, 'setText', "↑")
+            ui_call(up_button, 'setToolTip', tr('move_material_up'))
             up_button.setAutoRaise(True)
             up_button.setFixedWidth(28)
 
             down_button = QtGui.QToolButton()
-            down_button.setText("↓")
-            down_button.setToolTip(tr('move_material_down'))
+            ui_call(down_button, 'setText', "↓")
+            ui_call(down_button, 'setToolTip', tr('move_material_down'))
             down_button.setAutoRaise(True)
             down_button.setFixedWidth(28)
 
@@ -2314,8 +2315,8 @@ class OffcutMaterialsController(object):
                 if item is None:
                     continue
 
-                item.setText(
-                    self._format_material_label(
+                ui_call(
+                    item, 'setText', self._format_material_label(
                         material
                     )
                 )
@@ -2363,7 +2364,7 @@ class OffcutMaterialsController(object):
                     grain_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.offcuts_table.setItem(row, 2, grain_item)
 
-                grain_item.setText(tr('none_6eef66') if grain_value == "None" else grain_value)
+                ui_call(grain_item, 'setText', tr('none_6eef66') if grain_value == "None" else grain_value)
 
         except Exception:
             App.Console.PrintError(
@@ -2443,3 +2444,4 @@ class OffcutMaterialsController(object):
                 tr('show_offcuts_popup_failed')
                 + traceback.format_exc()
             )
+

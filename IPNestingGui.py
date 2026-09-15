@@ -1,4 +1,4 @@
-from IPNestingLanguages import tr
+from IPNestingLanguages import tr, ui_call, ui_widget, register_window
 # UI Definition for IP - Nesting Task Panel (final)
 # Uses NestingRotator in IPNestingRotate.py for rotate/flip operations
 # Integrates GrainPreparer from IPNestingGrain.py for grain perimeter and arrows.
@@ -216,7 +216,7 @@ class NestingTaskPanel:
         # -------------------------
 
         # Sheet Settings (LEFT, row 0)
-        sheet_box = QtGui.QGroupBox(tr('sheet_settings'))
+        sheet_box = ui_widget(QtGui.QGroupBox, tr('sheet_settings'))
         sheet_lay = QtGui.QVBoxLayout(sheet_box)
 
         self.sheet_margin, self.sheet_margin_label = (
@@ -238,21 +238,21 @@ class NestingTaskPanel:
         )
 
         # NEW: Offcuts (DXF) (LEFT, row 1)
-        offcut_box = QtGui.QGroupBox(tr('sheet_offcut_materials'))
+        offcut_box = ui_widget(QtGui.QGroupBox, tr('sheet_offcut_materials'))
         offcut_lay = QtGui.QVBoxLayout(offcut_box)
 
         self.offcuts_table = QtGui.QTableWidget(0, 4)
-        self.offcuts_table.setHorizontalHeaderLabels([
+        ui_call(self.offcuts_table, 'setHorizontalHeaderLabels', [
             tr('material'),
             tr('count'),
             tr('grain'),
             tr('move'),
         ])
-        self.offcuts_table.horizontalHeaderItem(1).setToolTip(tr('number_of_sheets_or_offcuts'))
+        ui_call(self.offcuts_table.horizontalHeaderItem(1), 'setToolTip', tr('number_of_sheets_or_offcuts'))
         
         self.offcuts_table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.offcuts_table.setEditTriggers( QtGui.QAbstractItemView.DoubleClicked | QtGui.QAbstractItemView.EditKeyPressed)
-        self.offcuts_table.setToolTip(tr('add_rectangular_sheets_or_dxf_offcuts_for_nesting'))
+        ui_call(self.offcuts_table, 'setToolTip', tr('add_rectangular_sheets_or_dxf_offcuts_for_nesting'))
         self.offcuts_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
         self.offcuts_table.setMinimumHeight(200)
@@ -281,12 +281,12 @@ class NestingTaskPanel:
         offcut_lay.addWidget(self.offcuts_table)
 
         off_btns = QtGui.QHBoxLayout()
-        self.offcut_add_btn = QtGui.QPushButton(tr('add'))
-        self.offcut_show_btn = QtGui.QPushButton(tr('show'))
-        self.offcut_remove_btn = QtGui.QPushButton(tr('remove'))
-        self.offcut_add_btn.setToolTip(tr('add_a_rectangular_sheet_or_a_dxf_offcut'))
-        self.offcut_show_btn.setToolTip(tr('show_all_added_offcuts_and_adjust_grain_x_y_per_offcut'))
-        self.offcut_remove_btn.setToolTip(tr('remove_the_selected_material_from_the_list'))
+        self.offcut_add_btn = ui_widget(QtGui.QPushButton, tr('add'))
+        self.offcut_show_btn = ui_widget(QtGui.QPushButton, tr('show'))
+        self.offcut_remove_btn = ui_widget(QtGui.QPushButton, tr('remove'))
+        ui_call(self.offcut_add_btn, 'setToolTip', tr('add_a_rectangular_sheet_or_a_dxf_offcut'))
+        ui_call(self.offcut_show_btn, 'setToolTip', tr('show_all_added_offcuts_and_adjust_grain_x_y_per_offcut'))
+        ui_call(self.offcut_remove_btn, 'setToolTip', tr('remove_the_selected_material_from_the_list'))
         self.offcut_add_btn.clicked.connect(self.offcut_controller.add_offcut_dxf)
         self.offcut_show_btn.clicked.connect(self.offcut_controller.show_offcuts_popup)
         self.offcut_remove_btn.clicked.connect(self.offcut_controller.remove_offcuts)
@@ -297,7 +297,7 @@ class NestingTaskPanel:
         offcut_lay.addLayout(off_btns)
 
         # General Parameters (LEFT, row 2)  (shifted down by 1)
-        general_box = QtGui.QGroupBox(tr('general_parameters'))
+        general_box = ui_widget(QtGui.QGroupBox, tr('general_parameters'))
         general_lay = QtGui.QVBoxLayout(general_box)
         self.res, self.res_label = (
             self.create_input_in_layout(
@@ -309,17 +309,17 @@ class NestingTaskPanel:
         )
 
         # Display Units (RIGHT, row 0)
-        units_box = QtGui.QGroupBox(tr('units'))
+        units_box = ui_widget(QtGui.QGroupBox, tr('units'))
         units_lay = QtGui.QVBoxLayout(units_box)
 
         self.units_combo = QtGui.QComboBox()
-        self.units_combo.addItems([
+        ui_call(self.units_combo, 'addItems', [
             "mm",
             "inch",
         ])
         self.units_combo.setCurrentIndex(0)
-        self.units_combo.setToolTip(
-            tr('display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres')
+        ui_call(
+            self.units_combo, 'setToolTip', tr('display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres')
         )
 
         units_lay.addWidget(self.units_combo)
@@ -329,8 +329,8 @@ class NestingTaskPanel:
         )
 
         # Nesting CLI settings (RIGHT, row 1)
-        deepnest_box = QtGui.QGroupBox(
-            tr('nesting_cli_settings')
+        deepnest_box = ui_widget(
+            QtGui.QGroupBox, tr('nesting_cli_settings')
         )
         deepnest_lay = QtGui.QVBoxLayout(
             deepnest_box
@@ -409,47 +409,47 @@ class NestingTaskPanel:
         )
 
         # Placement Strategy (RIGHT, row 2)
-        placement_box = QtGui.QGroupBox(
-            tr('placement_strategy')
+        placement_box = ui_widget(
+            QtGui.QGroupBox, tr('placement_strategy')
         )
         placement_lay = QtGui.QVBoxLayout(
             placement_box
         )
 
         self.placement_strategy = QtGui.QComboBox()
-        self.placement_strategy.addItems([
+        ui_call(self.placement_strategy, 'addItems', [
             tr('gravity'),
             tr('bounding_box'),
             tr('squeeze'),
         ])
         self.placement_strategy.setCurrentIndex(0)
 
-        self.placement_strategy.setItemData(
-            0,
+        ui_call(
+            self.placement_strategy, 'setItemData', 0,
             (
                 tr('minimize_the_width_of_the_nest_good_when_using_a_rectangular_sheet_and_the_leftover_materi')
             ),
             QtCore.Qt.ToolTipRole
         )
 
-        self.placement_strategy.setItemData(
-            1,
+        ui_call(
+            self.placement_strategy, 'setItemData', 1,
             (
                 tr('reduce_the_overall_rectangular_bounds_best_for_conserving_material_when_only_a_small_porti')
             ),
             QtCore.Qt.ToolTipRole
         )
 
-        self.placement_strategy.setItemData(
-            2,
+        ui_call(
+            self.placement_strategy, 'setItemData', 2,
             (
                 tr('reduce_the_overall_area_this_may_produce_nests_that_are_not_rectangular_best_for_irregular')
             ),
             QtCore.Qt.ToolTipRole
         )
 
-        self.placement_strategy.setToolTip(
-            tr('controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi')
+        ui_call(
+            self.placement_strategy, 'setToolTip', tr('controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi')
         )
 
         placement_lay.addWidget(
@@ -457,8 +457,8 @@ class NestingTaskPanel:
         )
 
         # CPU Cores (RIGHT, row 3)
-        cpu_box = QtGui.QGroupBox(
-            tr('cpu_cores')
+        cpu_box = ui_widget(
+            QtGui.QGroupBox, tr('cpu_cores')
         )
         cpu_lay = QtGui.QVBoxLayout(
             cpu_box
@@ -497,8 +497,8 @@ class NestingTaskPanel:
             str(default_cpu_cores)
         )
 
-        self.cpu_cores_combo.setToolTip(
-            tr('number_of_cpu_worker_cores_available_to_the_nesting_calculation_the_list_is_based_on_the_l')
+        ui_call(
+            self.cpu_cores_combo, 'setToolTip', tr('number_of_cpu_worker_cores_available_to_the_nesting_calculation_the_list_is_based_on_the_l')
         )
 
         cpu_lay.addWidget(
@@ -552,20 +552,20 @@ class NestingTaskPanel:
             pass
 
         # Table (with control_rows at the bottom)
-        self.layout.addWidget(QtGui.QLabel(tr('b_selected_parts_preview_mode_b')))
+        self.layout.addWidget(ui_widget(QtGui.QLabel, tr('b_selected_parts_preview_mode_b')))
         self.table = QtGui.QTableWidget(self.control_rows, 6)  # reserve control_rows initially
-        self.table.setHorizontalHeaderLabels([
+        ui_call(self.table, 'setHorizontalHeaderLabels', [
             tr('body'), tr('qty'), tr('rotations'), tr('select_for_rotation'), tr('grain_direction'), tr('custom_angle')
         ])
         try:
-            self.table.horizontalHeaderItem(3).setToolTip(
-                tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
+            ui_call(
+                self.table.horizontalHeaderItem(3), 'setToolTip', tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
             )
         except Exception:
             pass
         try:
-            self.table.horizontalHeaderItem(5).setToolTip(
-                tr('enable_this_checkbox_to_allow_the_set_custom_angle_command_to_modify_this_part_grain_direc')
+            ui_call(
+                self.table.horizontalHeaderItem(5), 'setToolTip', tr('enable_this_checkbox_to_allow_the_set_custom_angle_command_to_modify_this_part_grain_direc')
             )
         except Exception:
             pass
@@ -630,8 +630,8 @@ class NestingTaskPanel:
         # Add / Remove buttons (larger, with top/bottom margin 5px)
         self.btn_layout = QtGui.QHBoxLayout()
         self.btn_layout.setContentsMargins(0, 5, 0, 5)
-        self.add_btn = QtGui.QPushButton(tr('add_selected'))
-        self.rem_btn = QtGui.QPushButton(tr('remove_selected'))
+        self.add_btn = ui_widget(QtGui.QPushButton, tr('add_selected'))
+        self.rem_btn = ui_widget(QtGui.QPushButton, tr('remove_selected'))
         self.add_btn.setFixedHeight(32)
         self.rem_btn.setFixedHeight(32)
         self.add_btn.setMinimumWidth(140)
@@ -641,8 +641,8 @@ class NestingTaskPanel:
         self.rem_btn.clicked.connect(self.remove_selected_rows)
 
         # Import 2D buttons (DXF/SVG)
-        self.import_dxf_btn = QtGui.QPushButton(tr('import_dxf'))
-        self.import_svg_btn = QtGui.QPushButton(tr('import_svg'))
+        self.import_dxf_btn = ui_widget(QtGui.QPushButton, tr('import_dxf'))
+        self.import_svg_btn = ui_widget(QtGui.QPushButton, tr('import_svg'))
         self.import_dxf_btn.setFixedHeight(32)
         self.import_svg_btn.setFixedHeight(32)
         self.import_dxf_btn.setFixedWidth(140)
@@ -658,13 +658,13 @@ class NestingTaskPanel:
         self.layout.addLayout(self.btn_layout)
 
         # Run button
-        self.run_btn = QtGui.QPushButton(tr('run_nesting'))
+        self.run_btn = ui_widget(QtGui.QPushButton, tr('run_nesting'))
         self.run_btn.setStyleSheet("background-color: #CF3519; color: white; font-weight: bold; height: 35px;")
         self.run_btn.clicked.connect(self.execute_nesting)
         self.layout.addWidget(self.run_btn)
         
-        self.debug_export_btn = QtGui.QPushButton(tr('debug_export_polygons'))
-        self.debug_export_btn.setToolTip(tr('draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe'))
+        self.debug_export_btn = ui_widget(QtGui.QPushButton, tr('debug_export_polygons'))
+        ui_call(self.debug_export_btn, 'setToolTip', tr('draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe'))
         self.debug_export_btn.clicked.connect(self.debug_export_polygons)
         self.layout.addWidget(self.debug_export_btn)
         
@@ -686,6 +686,7 @@ class NestingTaskPanel:
         self._nesting_manager = NestingProcessManager(
             self
         )
+        register_window(self.form)
 
     # Recompute the preview and display a textual diagnostic report.
     def debug_export_polygons(self):
@@ -1493,8 +1494,8 @@ class NestingTaskPanel:
                 QtGui.QApplication.activeWindow()
             )
 
-            dialog.setWindowTitle(
-                tr('ip_nesting_debug_export_current_state')
+            ui_call(
+                dialog, 'setWindowTitle', tr('ip_nesting_debug_export_current_state')
             )
 
             dialog.resize(
@@ -1506,8 +1507,8 @@ class NestingTaskPanel:
                 dialog
             )
 
-            info_label = QtGui.QLabel(
-                tr('detailed_current_state_debug_the_report_includes_local_and_placement_transformed_geometry_')
+            info_label = ui_widget(
+                QtGui.QLabel, tr('detailed_current_state_debug_the_report_includes_local_and_placement_transformed_geometry_')
             )
 
             info_label.setWordWrap(True)
@@ -1528,16 +1529,16 @@ class NestingTaskPanel:
 
             buttons_layout = QtGui.QHBoxLayout()
 
-            copy_button = QtGui.QPushButton(
-                tr('copy')
+            copy_button = ui_widget(
+                QtGui.QPushButton, tr('copy')
             )
 
-            save_button = QtGui.QPushButton(
-                tr('save_debug_text')
+            save_button = ui_widget(
+                QtGui.QPushButton, tr('save_debug_text')
             )
 
-            close_button = QtGui.QPushButton(
-                tr('close')
+            close_button = ui_widget(
+                QtGui.QPushButton, tr('close')
             )
 
             buttons_layout.addWidget(
@@ -1561,8 +1562,8 @@ class NestingTaskPanel:
             # Copy the displayed diagnostic report to the clipboard.
             def copy_debug_text():
                 try:
-                    QtGui.QApplication.clipboard().setText(
-                        text_edit.toPlainText()
+                    ui_call(
+                        QtGui.QApplication.clipboard(), 'setText', text_edit.toPlainText()
                     )
                 except Exception:
                     App.Console.PrintError(
@@ -1637,9 +1638,9 @@ class NestingTaskPanel:
     def create_input_in_layout(self,parent_layout,label,default,tooltip):
         row = QtGui.QHBoxLayout()
 
-        label_widget = QtGui.QLabel(label)
+        label_widget = ui_widget(QtGui.QLabel, label)
         edit = QtGui.QLineEdit(default)
-        edit.setToolTip(tooltip)
+        ui_call(edit, 'setToolTip', tooltip)
 
         row.addWidget(label_widget)
         row.addWidget(edit)
@@ -1658,12 +1659,12 @@ class NestingTaskPanel:
     ):
         row = QtGui.QHBoxLayout()
 
-        label_widget = QtGui.QLabel(
-            label
+        label_widget = ui_widget(
+            QtGui.QLabel, label
         )
 
         combo = QtGui.QComboBox()
-        combo.addItems([
+        ui_call(combo, 'addItems', [
             tr('false'),
             tr('true'),
         ])
@@ -1673,11 +1674,11 @@ class NestingTaskPanel:
         )
 
         if tooltip:
-            label_widget.setToolTip(
-                tooltip
+            ui_call(
+                label_widget, 'setToolTip', tooltip
             )
-            combo.setToolTip(
-                tooltip
+            ui_call(
+                combo, 'setToolTip', tooltip
             )
 
         row.addWidget(label_widget)
@@ -1691,8 +1692,8 @@ class NestingTaskPanel:
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
         edit = QtGui.QLineEdit(default)
-        edit.setToolTip(tooltip)
-        row.addWidget(QtGui.QLabel(label))
+        ui_call(edit, 'setToolTip', tooltip)
+        row.addWidget(ui_widget(QtGui.QLabel, label))
         row.addWidget(edit)
         self.layout.addLayout(row)
         return edit
@@ -1802,27 +1803,27 @@ class NestingTaskPanel:
             htop.setContentsMargins(5, 2, 5, 2)
             htop.setSpacing(6)
 
-            htop.addWidget(QtGui.QLabel(tr('rotate_7b41f1')))
+            htop.addWidget(ui_widget(QtGui.QLabel, tr('rotate_7b41f1')))
 
             self.bulk_angle_combo = QtGui.QComboBox()
-            self.bulk_angle_combo.addItems(["90°", "180°"])
+            ui_call(self.bulk_angle_combo, 'addItems', ["90°", "180°"])
             self.bulk_angle_combo.setCurrentIndex(1)
             self.bulk_angle_combo.setFixedWidth(100)
             htop.addWidget(self.bulk_angle_combo)
 
             self.bulk_axis_combo = QtGui.QComboBox()
-            self.bulk_axis_combo.addItems(["X", "Y"])
+            ui_call(self.bulk_axis_combo, 'addItems', ["X", "Y"])
             self.bulk_axis_combo.setCurrentIndex(0)
             self.bulk_axis_combo.setFixedWidth(85)
             htop.addWidget(self.bulk_axis_combo)
 
-            self.bulk_rotate_btn = QtGui.QPushButton(tr('rotate'))
+            self.bulk_rotate_btn = ui_widget(QtGui.QPushButton, tr('rotate'))
             self.bulk_rotate_btn.setMinimumWidth(80)
             self.bulk_rotate_btn.clicked.connect(self.apply_bulk_rotate)
             htop.addWidget(self.bulk_rotate_btn)
 
-            self.clear_all_btn = QtGui.QPushButton(tr('clear_all'))
-            self.clear_all_btn.setToolTip(tr('uncheck_all_selection_checkboxes_in_the_table'))
+            self.clear_all_btn = ui_widget(QtGui.QPushButton, tr('clear_all'))
+            ui_call(self.clear_all_btn, 'setToolTip', tr('uncheck_all_selection_checkboxes_in_the_table'))
             self.clear_all_btn.clicked.connect(self.clear_all_checks)
             htop.addWidget(self.clear_all_btn)
 
@@ -1830,7 +1831,7 @@ class NestingTaskPanel:
 
             self.table.setCellWidget(top_idx, 0, container_top)
             self.table.setSpan(top_idx, 0, 1, self.table.columnCount())
-            control_item = QtGui.QTableWidgetItem("")
+            control_item = ui_widget(QtGui.QTableWidgetItem, "")
             control_item.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(top_idx, 0, control_item)
 
@@ -1848,10 +1849,10 @@ class NestingTaskPanel:
             hbot.setContentsMargins(5, 2, 5, 2)
             hbot.setSpacing(6)
 
-            hbot.addWidget(QtGui.QLabel(tr('change_grain_direction')))
+            hbot.addWidget(ui_widget(QtGui.QLabel, tr('change_grain_direction')))
 
             self.bulk_grain_combo = QtGui.QComboBox()
-            self.bulk_grain_combo.addItems(["X", "Y"])
+            ui_call(self.bulk_grain_combo, 'addItems', ["X", "Y"])
             self.bulk_grain_combo.setCurrentIndex(0)
             self.bulk_grain_combo.setFixedWidth(70)
             hbot.addWidget(self.bulk_grain_combo)
@@ -1862,12 +1863,12 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
-            self.bulk_grain_apply_btn = QtGui.QPushButton(tr('apply_grain'))
+            self.bulk_grain_apply_btn = ui_widget(QtGui.QPushButton, tr('apply_grain'))
             self.bulk_grain_apply_btn.setMinimumWidth(100)
             self.bulk_grain_apply_btn.clicked.connect(self.apply_change_grain)
-            self.set_angle_btn = QtGui.QPushButton(tr('set_custom_angle'))
+            self.set_angle_btn = ui_widget(QtGui.QPushButton, tr('set_custom_angle'))
             self.set_angle_btn.setMinimumWidth(160)
-            self.set_angle_btn.setToolTip(tr('set_grain_angle_for_selected_grainarrow_objects'))
+            ui_call(self.set_angle_btn, 'setToolTip', tr('set_grain_angle_for_selected_grainarrow_objects'))
             hbot.addWidget(self.bulk_grain_apply_btn)
             hbot.addWidget(self.set_angle_btn)
             
@@ -1880,7 +1881,7 @@ class NestingTaskPanel:
 
             self.table.setCellWidget(bottom_idx, 0, container_bot)
             self.table.setSpan(bottom_idx, 0, 1, self.table.columnCount())
-            control_item2 = QtGui.QTableWidgetItem("")
+            control_item2 = ui_widget(QtGui.QTableWidgetItem, "")
             control_item2.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(bottom_idx, 0, control_item2)
 
@@ -2394,7 +2395,7 @@ class NestingTaskPanel:
                     self.table.insertRow(insert_pos)
 
                     # Column 0: Body name (keep first column width)
-                    name_item = QtGui.QTableWidgetItem(new_obj.Label)
+                    name_item = ui_widget(QtGui.QTableWidgetItem, new_obj.Label)
                     # Keep compatibility: primary UserRole holds primary preview object name (string)
                     name_item.setData(QtCore.Qt.UserRole, new_obj.Name)
                     # Store full list of preview object names in UserRole+1 as JSON string
@@ -2405,11 +2406,11 @@ class NestingTaskPanel:
                         name_item.setData(QtCore.Qt.UserRole + 1, [new_obj.Name])
                     self.table.setItem(insert_pos, 0, name_item)
                     # Column 1: Qty (defaults to 1)
-                    qty_item = QtGui.QTableWidgetItem("1")
+                    qty_item = ui_widget(QtGui.QTableWidgetItem, "1")
                     qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 1, qty_item)
                     # Column 2: Rotation degree defaults (centered)
-                    rot_item = QtGui.QTableWidgetItem("1")
+                    rot_item = ui_widget(QtGui.QTableWidgetItem, "1")
                     rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 2, rot_item)
                     # Column 3: Select for rotation (checkbox) -- center the checkbox
@@ -2420,8 +2421,8 @@ class NestingTaskPanel:
                     # center: add stretch both sides
                     cell_layout_sel.addStretch()
                     checkbox = QtGui.QCheckBox()
-                    checkbox.setToolTip(
-                        tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
+                    ui_call(
+                        checkbox, 'setToolTip', tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
                     )
                     cell_layout_sel.addWidget(checkbox)
                     cell_layout_sel.addStretch()
@@ -2433,10 +2434,10 @@ class NestingTaskPanel:
                     grain_layout.setSpacing(4)
                     grain_layout.addStretch()
                     grain_cb = QtGui.QCheckBox()
-                    grain_cb.setToolTip(tr('enable_custom_grain_direction_for_this_part'))
+                    ui_call(grain_cb, 'setToolTip', tr('enable_custom_grain_direction_for_this_part'))
                     grain_layout.addWidget(grain_cb)
                     grain_combo = QtGui.QComboBox()
-                    grain_combo.addItems(["X", "Y"])
+                    ui_call(grain_combo, 'addItems', ["X", "Y"])
                     grain_combo.setCurrentIndex(0)
                     grain_combo.setFixedWidth(70)
                     grain_layout.addWidget(grain_combo)
@@ -2460,8 +2461,8 @@ class NestingTaskPanel:
                     custom_angle_layout.addStretch()
 
                     custom_angle_cb = QtGui.QCheckBox()
-                    custom_angle_cb.setToolTip(
-                        tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
+                    ui_call(
+                        custom_angle_cb, 'setToolTip', tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
                     )
 
                     custom_angle_layout.addWidget(
@@ -2700,8 +2701,8 @@ class NestingTaskPanel:
             if text != normalized_text:
                 try:
                     self._suppress_qty_update = True
-                    item.setText(
-                        normalized_text
+                    ui_call(
+                        item, 'setText', normalized_text
                     )
                 finally:
                     self._suppress_qty_update = False
@@ -3556,8 +3557,8 @@ class NestingTaskPanel:
         line_edit.blockSignals(True)
 
         try:
-            line_edit.setText(
-                self._format_dimension(value_mm)
+            ui_call(
+                line_edit, 'setText', self._format_dimension(value_mm)
             )
         finally:
             line_edit.blockSignals(False)
@@ -3570,16 +3571,16 @@ class NestingTaskPanel:
             else "mm"
         )
 
-        self.sheet_margin_label.setText(
-            tr('sheet_margin_s') % suffix
+        ui_call(
+            self.sheet_margin_label, 'setText', tr('sheet_margin_s') % suffix
         )
 
-        self.spacing_label.setText(
-            tr('part_spacing_s') % suffix
+        ui_call(
+            self.spacing_label, 'setText', tr('part_spacing_s') % suffix
         )
 
-        self.res_label.setText(
-            tr('boundary_resolution_s') % suffix
+        ui_call(
+            self.res_label, 'setText', tr('boundary_resolution_s') % suffix
         )
     
     # Change display units using canonical mm values.
@@ -3711,8 +3712,8 @@ class NestingTaskPanel:
             widget, default = data
 
             try:
-                widget.setText(
-                    str(
+                ui_call(
+                    widget, 'setText', str(
                         prefs.GetString(
                             key,
                             default
@@ -3720,8 +3721,8 @@ class NestingTaskPanel:
                     )
                 )
             except Exception:
-                widget.setText(
-                    default
+                ui_call(
+                    widget, 'setText', default
                 )
 
         boolean_fields = {
@@ -3874,20 +3875,20 @@ class NestingTaskPanel:
                 self.units_combo.setCurrentIndex(0)
 
             # Display the stored mm values in the selected units.
-            self.sheet_margin.setText(
-                self._format_dimension(
+            ui_call(
+                self.sheet_margin, 'setText', self._format_dimension(
                     sheet_margin_mm
                 )
             )
 
-            self.spacing.setText(
-                self._format_dimension(
+            ui_call(
+                self.spacing, 'setText', self._format_dimension(
                     spacing_mm
                 )
             )
 
-            self.res.setText(
-                self._format_dimension(
+            ui_call(
+                self.res, 'setText', self._format_dimension(
                     boundary_resolution_mm
                 )
             )
@@ -4127,8 +4128,8 @@ class NestingTaskPanel:
                 line_edit.blockSignals(True)
 
                 try:
-                    line_edit.setText(
-                        normalized
+                    ui_call(
+                        line_edit, 'setText', normalized
                     )
                     line_edit.setCursorPosition(
                         min(
@@ -4231,7 +4232,7 @@ class NestingTaskPanel:
             insert_pos = max(0, self.table.rowCount() - self.control_rows)
             self.table.insertRow(insert_pos)
 
-            name_item = QtGui.QTableWidgetItem(obj.Label)
+            name_item = ui_widget(QtGui.QTableWidgetItem, obj.Label)
             name_item.setData(QtCore.Qt.UserRole, obj.Name)
             try:
                 name_item.setData(QtCore.Qt.UserRole + 1, json.dumps([obj.Name]))
@@ -4239,11 +4240,11 @@ class NestingTaskPanel:
                 name_item.setData(QtCore.Qt.UserRole + 1, [obj.Name])
             self.table.setItem(insert_pos, 0, name_item)
 
-            qty_item = QtGui.QTableWidgetItem("1")
+            qty_item = ui_widget(QtGui.QTableWidgetItem, "1")
             qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 1, qty_item)
 
-            rot_item = QtGui.QTableWidgetItem("1")
+            rot_item = ui_widget(QtGui.QTableWidgetItem, "1")
             rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 2, rot_item)
 
@@ -4254,8 +4255,8 @@ class NestingTaskPanel:
             cell_layout_sel.setSpacing(0)
             cell_layout_sel.addStretch()
             checkbox = QtGui.QCheckBox()
-            checkbox.setToolTip(
-                tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
+            ui_call(
+                checkbox, 'setToolTip', tr('select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo')
             )
             cell_layout_sel.addWidget(checkbox)
             cell_layout_sel.addStretch()
@@ -4268,10 +4269,10 @@ class NestingTaskPanel:
             grain_layout.setSpacing(4)
             grain_layout.addStretch()
             grain_cb = QtGui.QCheckBox()
-            grain_cb.setToolTip(tr('enable_custom_grain_direction_for_this_part'))
+            ui_call(grain_cb, 'setToolTip', tr('enable_custom_grain_direction_for_this_part'))
             grain_layout.addWidget(grain_cb)
             grain_combo = QtGui.QComboBox()
-            grain_combo.addItems(["X", "Y"])
+            ui_call(grain_combo, 'addItems', ["X", "Y"])
             grain_combo.setCurrentIndex(0)
             grain_combo.setFixedWidth(70)
             grain_layout.addWidget(grain_combo)
@@ -4295,8 +4296,8 @@ class NestingTaskPanel:
             custom_angle_layout.addStretch()
 
             custom_angle_cb = QtGui.QCheckBox()
-            custom_angle_cb.setToolTip(
-                tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
+            ui_call(
+                custom_angle_cb, 'setToolTip', tr('enable_custom_angle_for_this_part_the_set_custom_angle_command_can_only_modify_parts_where')
             )
 
             custom_angle_layout.addWidget(
@@ -4481,8 +4482,9 @@ class NestingTaskPanel:
                 # prevent recursive triggers via itemChanged
                 try:
                     self._suppress_qty_update = True  # reuse existing suppression flag
-                    item.setText(new)
+                    ui_call(item, 'setText', new)
                 finally:
                     self._suppress_qty_update = False
         except Exception:
             pass
+

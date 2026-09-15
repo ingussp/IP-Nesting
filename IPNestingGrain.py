@@ -3,7 +3,7 @@
 Grain preparer utilities for IP-Nesting — improved font/margin sizing.
 Includes logic for packing grain-specific parts at a designated location .
 """
-from IPNestingLanguages import tr, perimeter_labels, perimeter_object_labels
+from IPNestingLanguages import tr, perimeter_labels, perimeter_object_labels, tag_perimeter
 import FreeCAD as App
 import FreeCADGui as Gui
 import traceback
@@ -375,6 +375,7 @@ class GrainPreparer:
                         wire = Part.makePolygon(pts)
                         feat = p_doc.addObject("Part::Feature", feat_name_poly)
                         feat.Label = tr("perimeter.border") % display_label
+                        tag_perimeter(feat, custom_label, "border")
                         feat.Shape = wire
                         try:
                             vo = feat.ViewObject
@@ -394,6 +395,7 @@ class GrainPreparer:
                     w = Draft.make_wire([p1, p2, p3, p4], closed=True)
                     w.Name = feat_name_poly
                     w.Label = tr("perimeter.border") % display_label
+                    tag_perimeter(w, custom_label, "border")
                     try:
                         w.ViewObject.LineColor = line_color
                         w.ViewObject.LineWidth = 2
@@ -433,6 +435,7 @@ class GrainPreparer:
                         # This is more reliable than Name for later cleanup
                         try:
                             text_obj.Label = tr("perimeter.label") % display_label
+                            tag_perimeter(text_obj, custom_label, "label")
                         except Exception:
                             pass
 
@@ -920,3 +923,4 @@ class GrainPreparer:
             App.Console.PrintError(tr('update_grain_arrow_failed') + traceback.format_exc())
             return False
             
+

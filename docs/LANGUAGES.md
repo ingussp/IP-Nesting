@@ -1,29 +1,65 @@
 # Languages
 
-IP-Nesting starts in English independently of FreeCAD's own language. Open the
-gear button next to Run Nesting, hover over **Language**, and select **Latviešu**
-or **English**. The choice is saved in FreeCAD preferences under
-`BaseApp/Preferences/Mod/IPNesting/Language`. Restart FreeCAD to apply the selection
-consistently to all commands, dialogs and newly generated preview labels.
+IP-Nesting starts in English independently of FreeCAD's language. Open the gear
+button, hover over **Language**, then select a language. The choice takes effect
+immediately and is saved in `BaseApp/Preferences/Mod/IPNesting/Language`.
 
-`IPNestingLanguages.py` loads UTF-8 dictionaries from `lng/en.json` and
-`lng/lv.json`. Call `tr("message_key")` for text owned by the workbench. English
-is the fallback for missing, empty or incompatible translated messages. Preserve
-percent placeholders (`%s`, `%d`, `%.2f`, `%%`), newlines and HTML markup when
-editing translations. Existing user-provided object names and external engine
-output are not translated. FreeCAD-owned controls and operating-system file
-dialogs retain the host application's language.
+The searchable chooser contains 50 language entries, including all 24 official
+European Union languages. The remaining entries are selected among the most
+widely spoken languages by country population. The 24 EU languages are confirmed
+by the [European Union language list](https://european-union.europa.eu/principles-countries-history/languages_en).
+[Google Translate language selector](https://translate.google.com/?hl=en), matching
+the supplied September 2026 screenshot. English names are sorted alphabetically
+down six columns, or seven on wider screens, followed by native names. Scrolling
+keeps the chooser usable on smaller displays. Search accepts either name or code.
 
-Display text must never become a JSON schema key, object Name, preference key,
-file path, enum code or group identifier. Perimeters retain canonical group names
-and recognize captions saved in either language during cleanup. Numeric entry
-continues to use the existing unit and decimal parsing rules.
+All 50 entries have a separate JSON catalog with the same 506 message keys.
+The main interface vocabulary has been translated locally; technical diagnostic
+messages without a reviewed translation retain English wording so they remain
+accurate. No translation service is used. Native names and remaining diagnostic
+wording for less common languages still need review by a speaker of each language.
 
-To add a language, copy `lng/en.json`, translate all values, and register its code
-and native display name in `LANGUAGES`. Keep keys stable. Include `lng/` and
-`icons/` when distributing the workbench; no external translation service or
-network connection is needed at runtime.
+## Live text updates
 
-Run `python -m unittest discover -s tests` to check first launch, persistence,
-fallback and catalog formatting. A visual check of translated dialog sizes is
-also recommended after changing long labels.
+`tr("key")` retains its key and percent-format arguments in a `str` subclass.
+Use `ui_widget(QtGui.QLabel, tr("key"))` when constructing a text-bearing widget,
+or `ui_call(widget, "setText", tr("key"))` for text setters. Helpers retain
+explicit bindings on the Qt object; they never guess keys from user text.
+Lists passed to `addItems` and `setHorizontalHeaderLabels` are supported too.
+
+Language changes refresh bound controls and toolbar actions in place, with table
+and combo signals blocked. Inputs, option indices, part names and placements
+survive. Standard dialog buttons use `translate_buttons`. Generated perimeter
+captions have stable language-key properties and update without repacking parts.
+Previous English/Latvian perimeter objects in `Nesting_Preview` are recognized.
+
+FreeCAD-owned controls and native file dialogs use FreeCAD/OS language settings.
+Historical console/debug reports and external executable output are not rewritten.
+Right-to-left layout and font coverage need verification before shipping catalogs
+in additional scripts; keep numeric fields and the English-sorted chooser usable.
+
+## Storage and offline maintenance
+
+Every `lng/<code>.json` remains readable and is shipped separately. The language
+loader reads only the selected JSON, validates its dictionary and keeps only the
+English and active catalogs in memory after a switch. Missing or broken entries
+fall back to English; an invalid new choice does not replace the current one.
+
+`lng/index.json` is a small name index, and `lng/perimeters.json` contains only
+caption aliases for saved-document compatibility. Include the entire `lng`
+directory when distributing the workbench.
+
+To update a translation, edit its `CODE.json` and run the catalog validation
+tests. They reject missing keys, empty strings, incompatible percent placeholders
+and changed newline counts. Never alter internal schema keys, axes, object Names,
+user-provided names or nesting engine identifiers.
+
+```console
+python -m unittest discover -s tests
+```
+
+To exercise actual Qt controls, run
+`tests/gui_language_smoke.py` with FreeCAD's bundled Python. The smoke test uses
+an isolated language preference/cache and checks repeated changes, preserved
+input and angles, blocked editing signals, captions, selection and search.
+

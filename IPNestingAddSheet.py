@@ -5,7 +5,7 @@ Dialog for adding rectangular sheets or DXF offcuts.
 The dialog only collects and validates user input.
 The parent panel is responsible for storing the result.
 """
-from IPNestingLanguages import tr, translate_buttons
+from IPNestingLanguages import tr, translate_buttons, ui_call, ui_widget, register_window
 
 import os
 import FreeCAD as App
@@ -41,11 +41,12 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         self._load_last_rectangular_sheet()
 
-        self.setWindowTitle(tr('add_sheet_or_offcut'))
+        ui_call(self, 'setWindowTitle', tr('add_sheet_or_offcut'))
         self.setModal(True)
         self.setMinimumWidth(420)
 
         self._build_ui()
+        register_window(self)
 
     # Read mm or inch from the parent panel, defaulting to mm.
     def _get_display_units(self):
@@ -202,20 +203,20 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
             else "mm"
         )
 
-        self.width_label.setText(
-            tr('sheet_width_x_s') % suffix
+        ui_call(
+            self.width_label, 'setText', tr('sheet_width_x_s') % suffix
         )
 
-        self.height_label.setText(
-            tr('sheet_height_y_s') % suffix
+        ui_call(
+            self.height_label, 'setText', tr('sheet_height_y_s') % suffix
         )
     
     # Build the sheet and DXF sections and the Cancel button.
     def _build_ui(self):
         layout = QtGui.QVBoxLayout(self)
 
-        info = QtGui.QLabel(
-            tr('add_a_rectangular_sheet_or_import_a_dxf_offcut')
+        info = ui_widget(
+            QtGui.QLabel, tr('add_a_rectangular_sheet_or_import_a_dxf_offcut')
         )
         info.setWordWrap(True)
         layout.addWidget(info)
@@ -232,7 +233,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
     # Add the width, height, quantity and Add rectangular sheet controls.
     def _build_rectangular_sheet_section(self, parent_layout):
-        sheet_box = QtGui.QGroupBox(tr('rectangular_sheet'))
+        sheet_box = ui_widget(QtGui.QGroupBox, tr('rectangular_sheet'))
         sheet_layout = QtGui.QVBoxLayout(sheet_box)
 
         width_row = QtGui.QHBoxLayout()
@@ -269,7 +270,7 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         quantity_row = QtGui.QHBoxLayout()
         quantity_row.addWidget(
-            QtGui.QLabel(tr('quantity'))
+            ui_widget(QtGui.QLabel, tr('quantity'))
         )
 
         self.quantity_spin = QtGui.QSpinBox()
@@ -279,8 +280,8 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
         quantity_row.addWidget(self.quantity_spin)
         sheet_layout.addLayout(quantity_row)
 
-        self.add_rectangular_btn = QtGui.QPushButton(
-            tr('add_rectangular_sheet')
+        self.add_rectangular_btn = ui_widget(
+            QtGui.QPushButton, tr('add_rectangular_sheet')
         )
         self.add_rectangular_btn.clicked.connect(
             self._on_add_rectangular_clicked
@@ -292,18 +293,18 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
     # Add the DXF quantity control and file-selection button.
     def _build_dxf_section(self, parent_layout):
-        dxf_box = QtGui.QGroupBox(tr('dxf_offcut'))
+        dxf_box = ui_widget(QtGui.QGroupBox, tr('dxf_offcut'))
         dxf_layout = QtGui.QVBoxLayout(dxf_box)
 
-        info = QtGui.QLabel(
-            tr('import_a_dxf_file_and_use_its_closed_contour_as_an_offcut')
+        info = ui_widget(
+            QtGui.QLabel, tr('import_a_dxf_file_and_use_its_closed_contour_as_an_offcut')
         )
         info.setWordWrap(True)
         dxf_layout.addWidget(info)
 
         dxf_quantity_row = QtGui.QHBoxLayout()
         dxf_quantity_row.addWidget(
-            QtGui.QLabel(tr('quantity'))
+            ui_widget(QtGui.QLabel, tr('quantity'))
         )
 
         self.dxf_quantity_spin = QtGui.QSpinBox()
@@ -314,8 +315,8 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
 
         dxf_layout.addLayout(dxf_quantity_row)
 
-        self.add_dxf_btn = QtGui.QPushButton(
-            tr('add_dxf_offcut')
+        self.add_dxf_btn = ui_widget(
+            QtGui.QPushButton, tr('add_dxf_offcut')
         )
         self.add_dxf_btn.clicked.connect(
             self._on_add_dxf_clicked
@@ -423,3 +424,4 @@ class AddSheetOrOffcutDialog(QtGui.QDialog):
             tr('add_sheet_or_offcut'),
             message
         )
+
