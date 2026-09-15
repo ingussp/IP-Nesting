@@ -54,13 +54,231 @@ WORDS = {
 "vi": {"settings.title":"Cài đặt","settings.language":"Ngôn ngữ","common.ok":"OK","common.cancel":"Hủy","common.save":"Lưu","common.apply":"Áp dụng","common.yes":"Có","common.no":"Không","add":"Thêm","remove":"Xóa","show":"Hiển thị","close":"Đóng","quantity":"Số lượng:","units":"Đơn vị","material":"Vật liệu","count":"Số đếm","grain":"Hướng thớ","offcuts":"Vật liệu thừa","sheet":"Tấm","body":"Thân","rotations":"Góc xoay","custom_angle":"Góc tùy chỉnh","run_nesting":"Chạy nesting","apply_grain":"Áp dụng hướng thớ","settings.search":"Tìm ngôn ngữ"},
 }
 
+# Complete the visible workbench controls for the two scripts most often used
+# in the first-run screenshots.  Diagnostics remain English when no reviewed
+# translation exists, but every label, button, header and tooltip in the main
+# panel and its dialogs is translated here.
+DETAILED_UI = {
+    "ja": {
+        "settings.title": "設定", "settings.language": "言語",
+        "perimeter.with_grain": "木目方向ありの部品", "perimeter.without_grain": "木目方向なしの部品",
+        "perimeter.border": "%s 境界", "perimeter.label": "%s ラベル",
+        "sheet_settings": "シート設定", "sheet_margin_mm": "シート余白 (mm):",
+        "distance_from_the_sheet_edge": "シート端からの距離。", "part_spacing_mm": "部品間隔 (mm):",
+        "minimum_distance_between_parts": "部品間の最小距離。", "sheet_offcut_materials": "シート && 端材",
+        "material": "材料", "count": "数", "grain": "木目方向", "move": "移動",
+        "number_of_sheets_or_offcuts": "シートまたは端材の数。",
+        "add_rectangular_sheets_or_dxf_offcuts_for_nesting": "ネスティング用の長方形シートまたはDXF端材を追加します。",
+        "add": "追加", "show": "表示", "remove": "削除",
+        "add_a_rectangular_sheet_or_a_dxf_offcut": "長方形シートまたはDXF端材を追加します。",
+        "show_all_added_offcuts_and_adjust_grain_x_y_per_offcut": "追加した端材をすべて表示し、端材ごとの木目X/Yを調整します。",
+        "remove_the_selected_material_from_the_list": "選択した材料を一覧から削除します。",
+        "general_parameters": "一般パラメータ", "boundary_resolution_mm": "境界解像度 (mm):",
+        "maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c": "曲線形状を線分に変換するときの最大偏差。値が小さいほど精度は高くなりますが、形状が重くなります。",
+        "units": "単位", "display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres": "寸法の表示と入力に使う単位。内部形状はミリメートルのままです。",
+        "nesting_cli_settings": "ネスティングCLI設定", "time_ratio": "時間比:",
+        "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "最適化に使うネスティング時間の割合を指定します。値が大きいほど最適化できますが、処理が遅くなる場合があります。",
+        "population_size": "個体数:", "number_of_candidate_nesting_solutions_kept_during_genetic_optimization_higher_values_can_i": "遺伝的最適化で保持する候補解の数。値が大きいほど結果が改善する場合がありますが、計算時間が増えます。",
+        "mutation_rate": "突然変異率:", "percentage_controlling_how_often_candidate_solutions_are_randomly_changed_during_optimizat": "最適化中に候補解をランダムに変更する割合。値が大きいほど多様性が増しますが、結果が不安定になる場合があります。",
+        "export_sheet_boundaries": "シート境界をエクスポート:", "if_enabled_the_outer_boundaries_of_sheets_are_included_in_the_exported_nesting_data_enable": "有効にすると、シートの外周境界をネスティングデータに含めます。ネスティングエンジンが明示的な境界形状を必要とする場合だけ有効にしてください。",
+        "export_sheet_spacing": "シート間隔をエクスポート:", "if_enabled_an_additional_spacing_value_is_applied_between_exported_sheets_this_is_useful_w": "有効にすると、エクスポートする複数のシートの間に追加間隔を適用します。",
+        "sheet_spacing_value": "シート間隔の値:", "distance_between_exported_sheets_when_export_sheet_spacing_is_enabled_the_value_is_interpr": "「シート間隔をエクスポート」が有効な場合のシート間の距離。内部形状単位（通常はミリメートル）で解釈されます。",
+        "placement_strategy": "配置方式", "gravity": "重力", "bounding_box": "バウンディングボックス", "squeeze": "圧縮",
+        "minimize_the_width_of_the_nest_good_when_using_a_rectangular_sheet_and_the_leftover_materi": "ネストの幅を最小化します。長方形シートで、残った材料を別の切断に使う場合に適しています。",
+        "reduce_the_overall_rectangular_bounds_best_for_conserving_material_when_only_a_small_porti": "全体の長方形境界を小さくします。シートの一部だけを使う場合に材料を節約できます。",
+        "reduce_the_overall_area_this_may_produce_nests_that_are_not_rectangular_best_for_irregular": "全体の面積を小さくします。長方形でないネストになる場合があります。不規則形状や空き領域を重視しない場合に適しています。",
+        "controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi": "部品の詰め方を指定します。重力は幅、バウンディングボックスは長方形境界、圧縮は占有面積を最小化します。",
+        "cpu_cores": "CPUコア数", "number_of_cpu_worker_cores_available_to_the_nesting_calculation_the_list_is_based_on_the_l": "ネスティング計算で使用できるCPUワーカーコア数です。\n\n論理CPUコアを基に最大16個まで選択できます。\n\n推奨値:\n• 1～4コア: 低性能PC向け。\n• 4～8コア: 一般的な用途向け。\n• 8～16コア: 複雑なネスティング向け。\n• 16コア超: このUIでは選択できません。\n\nこの値は外部ネスティングエンジンが受け取り使用する場合にだけ計算へ反映されます。",
+        "b_selected_parts_preview_mode_b": "<b>選択した部品 (プレビューモード)</b>", "body": "ボディ", "qty": "数量", "rotations": "回転",
+        "select_for_rotation": "回転対象を選択", "grain_direction": "木目方向", "custom_angle": "カスタム角度",
+        "select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo": "XY平面で回転する部品を選択します。\n\n部品追加時は最大の面を上向きにするため、意図した上面が側面より小さい部品では回転が必要になる場合があります。\n\n90度で側面、180度で底面が上向きになります。",
+        "enable_this_checkbox_to_allow_the_set_custom_angle_command_to_modify_this_part_grain_direc": "「カスタム角度を設定」でこの部品を変更できるようにします。木目方向も有効にしてください。",
+        "add_selected": "選択項目を追加", "remove_selected": "選択項目を削除", "import_dxf": "DXFをインポート…", "import_svg": "SVGをインポート…",
+        "run_nesting": "ネスティングを実行", "debug_export_polygons": "ポリゴンをデバッグ出力", "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "エクスポートしたポリゴンを別ドキュメントに描画し、実行ファイルに送る内容を確認します。",
+        "grain_angle": "木目角度", "selected_parts_arrows": "選択した部品 / 矢印:", "angle": "角度 (°):", "rotate": "回転", "clear_all": "すべてクリア",
+        "change_grain_direction": "木目方向を変更:", "apply_grain": "木目方向を適用", "set_custom_angle": "カスタム角度を設定", "set_grain_angle_for_selected_grainarrow_objects": "選択したGrainArrowオブジェクトの木目角度を設定",
+        "sheet_width_x_s": "シート幅 (X) (%s):", "sheet_height_y_s": "シート高さ (Y) (%s):", "add_a_rectangular_sheet_or_import_a_dxf_offcut": "長方形シートを追加するか、DXF端材をインポートします。",
+        "rectangular_sheet": "長方形シート", "quantity": "数量:", "add_rectangular_sheet": "長方形シートを追加", "dxf_offcut": "DXF端材", "import_a_dxf_file_and_use_its_closed_contour_as_an_offcut": "DXFファイルをインポートし、閉じた輪郭を端材として使用します。", "add_dxf_offcut": "DXF端材を追加", "select_dxf_offcut": "DXF端材を選択",
+        "grain_direction_4f9262": "木目方向:", "none_6eef66": "なし", "offcuts": "端材", "sheet": "シート", "sheets_and_offcuts": "シートと端材", "sheet_or_offcut": "シートまたは端材", "move_material_up": "材料を上へ移動", "move_material_down": "材料を下へ移動",
+    },
+    "th": {
+        "settings.title": "การตั้งค่า", "settings.language": "ภาษา",
+        "perimeter.with_grain": "ชิ้นงานที่มีทิศทางเสี้ยน", "perimeter.without_grain": "ชิ้นงานที่ไม่มีทิศทางเสี้ยน",
+        "perimeter.border": "ขอบเขต %s", "perimeter.label": "ป้ายกำกับ %s",
+        "sheet_settings": "การตั้งค่าแผ่น", "sheet_margin_mm": "ระยะขอบแผ่น (มม.):", "distance_from_the_sheet_edge": "ระยะห่างจากขอบแผ่น", "part_spacing_mm": "ระยะห่างชิ้นงาน (มม.):", "minimum_distance_between_parts": "ระยะห่างขั้นต่ำระหว่างชิ้นงาน",
+        "sheet_offcut_materials": "วัสดุแผ่น && เศษวัสดุ", "material": "วัสดุ", "count": "จำนวน", "grain": "ทิศทางเสี้ยน", "move": "ย้าย", "number_of_sheets_or_offcuts": "จำนวนแผ่นหรือเศษวัสดุ", "add_rectangular_sheets_or_dxf_offcuts_for_nesting": "เพิ่มแผ่นสี่เหลี่ยมหรือเศษวัสดุ DXF สำหรับการจัดวาง",
+        "add": "เพิ่ม", "show": "แสดง", "remove": "ลบ", "add_a_rectangular_sheet_or_a_dxf_offcut": "เพิ่มแผ่นสี่เหลี่ยมหรือเศษวัสดุ DXF", "show_all_added_offcuts_and_adjust_grain_x_y_per_offcut": "แสดงเศษวัสดุทั้งหมดและปรับทิศทางเสี้ยน X/Y ของแต่ละชิ้น", "remove_the_selected_material_from_the_list": "ลบวัสดุที่เลือกออกจากรายการ",
+        "general_parameters": "พารามิเตอร์ทั่วไป", "boundary_resolution_mm": "ความละเอียดขอบเขต (มม.):", "maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c": "ค่าเบี่ยงเบนสูงสุดเมื่อแปลงรูปทรงโค้งเป็นเส้นตรง ค่าที่เล็กลงให้ความแม่นยำสูงขึ้นแต่ใช้ข้อมูลมากขึ้น",
+        "units": "หน่วย", "display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres": "หน่วยที่ใช้แสดงและป้อนขนาด รูปทรงภายในยังคงเป็นมิลลิเมตร", "nesting_cli_settings": "การตั้งค่า Nesting CLI", "time_ratio": "อัตราส่วนเวลา:", "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "กำหนดสัดส่วนเวลาการจัดวางที่ใช้ในการปรับปรุงผล ค่าสูงอาจให้ผลดีขึ้นแต่ใช้เวลานานขึ้น", "population_size": "ขนาดประชากร:", "number_of_candidate_nesting_solutions_kept_during_genetic_optimization_higher_values_can_i": "จำนวนคำตอบที่เก็บไว้ระหว่างการปรับแบบพันธุกรรม ค่าสูงอาจให้ผลดีขึ้นแต่ใช้เวลาคำนวณมากขึ้น", "mutation_rate": "อัตราการกลายพันธุ์:", "percentage_controlling_how_often_candidate_solutions_are_randomly_changed_during_optimizat": "เปอร์เซ็นต์การเปลี่ยนคำตอบแบบสุ่มระหว่างการปรับ ค่าสูงเพิ่มความหลากหลายแต่อาจทำให้ผลไม่นิ่ง",
+        "export_sheet_boundaries": "ส่งออกขอบเขตแผ่น:", "if_enabled_the_outer_boundaries_of_sheets_are_included_in_the_exported_nesting_data_enable": "เมื่อเปิดใช้ ขอบเขตด้านนอกของแผ่นจะถูกรวมในข้อมูลการจัดวาง เปิดใช้เมื่อเครื่องมือจัดวางต้องการรูปทรงขอบเขตที่ชัดเจนเท่านั้น", "export_sheet_spacing": "ส่งออกระยะห่างแผ่น:", "if_enabled_an_additional_spacing_value_is_applied_between_exported_sheets_this_is_useful_w": "เมื่อเปิดใช้ จะเพิ่มระยะห่างระหว่างแผ่นที่ส่งออกหลายแผ่น", "sheet_spacing_value": "ค่าระยะห่างแผ่น:", "distance_between_exported_sheets_when_export_sheet_spacing_is_enabled_the_value_is_interpr": "ระยะห่างระหว่างแผ่นเมื่อเปิดใช้การส่งออกระยะห่างแผ่น หน่วยภายในโดยปกติคือมิลลิเมตร",
+        "placement_strategy": "กลยุทธ์การจัดวาง", "gravity": "แรงโน้มถ่วง", "bounding_box": "กรอบล้อม", "squeeze": "บีบอัด", "minimize_the_width_of_the_nest_good_when_using_a_rectangular_sheet_and_the_leftover_materi": "ลดความกว้างของการจัดวาง เหมาะกับแผ่นสี่เหลี่ยมและการนำวัสดุที่เหลือไปตัดต่อ", "reduce_the_overall_rectangular_bounds_best_for_conserving_material_when_only_a_small_porti": "ลดกรอบสี่เหลี่ยมโดยรวม เหมาะกับการประหยัดวัสดุเมื่อใช้แผ่นเพียงบางส่วน", "reduce_the_overall_area_this_may_produce_nests_that_are_not_rectangular_best_for_irregular": "ลดพื้นที่โดยรวม อาจได้การจัดวางที่ไม่เป็นสี่เหลี่ยม เหมาะกับรูปทรงไม่สม่ำเสมอ", "controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi": "กำหนดวิธีจัดเรียงชิ้นงาน แรงโน้มถ่วงลดความกว้าง กรอบล้อมลดกรอบสี่เหลี่ยม และบีบอัดลดพื้นที่ที่ใช้",
+        "cpu_cores": "คอร์ CPU", "number_of_cpu_worker_cores_available_to_the_nesting_calculation_the_list_is_based_on_the_l": "จำนวนคอร์ CPU สำหรับการคำนวณการจัดวาง\n\nเลือกได้สูงสุด 16 คอร์ตามจำนวนคอร์แบบลอจิคัลของเครื่อง\n\nค่าที่แนะนำ:\n• 1–4 คอร์: เหมาะกับคอมพิวเตอร์รุ่นเก่าหรือประสิทธิภาพต่ำ\n• 4–8 คอร์: เหมาะกับการใช้งานทั่วไป\n• 8–16 คอร์: เหมาะกับงานจัดวางที่ซับซ้อน\n• มากกว่า 16 คอร์: ไม่มีใน UI นี้\n\nค่านี้มีผลเมื่อเครื่องมือจัดวางภายนอกรับและนำไปใช้ในการคำนวณ",
+        "b_selected_parts_preview_mode_b": "<b>ชิ้นงานที่เลือก (โหมดตัวอย่าง)</b>", "body": "วัตถุ", "qty": "จำนวน", "rotations": "การหมุน", "select_for_rotation": "เลือกสำหรับหมุน", "grain_direction": "ทิศทางเสี้ยน", "custom_angle": "มุมกำหนดเอง", "select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo": "เลือกชิ้นงานที่จะหมุนในระนาบ XY\n\nเมื่อเพิ่มชิ้นงาน ระบบจะหันด้านที่ใหญ่ที่สุดขึ้นด้านบน จึงอาจต้องหมุนชิ้นงานที่มีด้านบนเล็กกว่าด้านข้างหรือด้านล่าง\n\n90 องศาจะหันด้านข้างขึ้น และ 180 องศาจะหันด้านล่างขึ้น", "enable_this_checkbox_to_allow_the_set_custom_angle_command_to_modify_this_part_grain_direc": "เปิดช่องนี้เพื่อให้คำสั่งตั้งมุมกำหนดเองแก้ไขชิ้นงานนี้ได้ ต้องเปิดทิศทางเสี้ยนด้วย",
+        "add_selected": "เพิ่มที่เลือก", "remove_selected": "ลบที่เลือก", "import_dxf": "นำเข้า DXF…", "import_svg": "นำเข้า SVG…", "run_nesting": "เริ่มการจัดวาง", "debug_export_polygons": "ส่งออกโพลิกอนเพื่อตรวจสอบ", "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "วาดโพลิกอนที่ส่งออกในเอกสารแยกเพื่อดูข้อมูลที่จะส่งให้ไฟล์ปฏิบัติการ",
+        "grain_angle": "มุมเสี้ยน", "selected_parts_arrows": "ชิ้นงาน / ลูกศรที่เลือก:", "angle": "มุม (°):", "rotate": "หมุน", "clear_all": "ล้างทั้งหมด", "change_grain_direction": "เปลี่ยนทิศทางเสี้ยน:", "apply_grain": "ใช้ทิศทางเสี้ยน", "set_custom_angle": "ตั้งค่ามุมกำหนดเอง", "set_grain_angle_for_selected_grainarrow_objects": "ตั้งมุมเสี้ยนให้วัตถุ GrainArrow ที่เลือก",
+        "sheet_width_x_s": "ความกว้างแผ่น (X) (%s):", "sheet_height_y_s": "ความสูงแผ่น (Y) (%s):", "add_a_rectangular_sheet_or_import_a_dxf_offcut": "เพิ่มแผ่นสี่เหลี่ยมหรือนำเข้าเศษวัสดุ DXF", "rectangular_sheet": "แผ่นสี่เหลี่ยม", "quantity": "จำนวน:", "add_rectangular_sheet": "เพิ่มแผ่นสี่เหลี่ยม", "dxf_offcut": "เศษวัสดุ DXF", "import_a_dxf_file_and_use_its_closed_contour_as_an_offcut": "นำเข้าไฟล์ DXF และใช้เส้นรอบรูปปิดเป็นเศษวัสดุ", "add_dxf_offcut": "เพิ่มเศษวัสดุ DXF", "select_dxf_offcut": "เลือกเศษวัสดุ DXF", "grain_direction_4f9262": "ทิศทางเสี้ยน:", "none_6eef66": "ไม่มี", "offcuts": "เศษวัสดุ", "sheet": "แผ่น", "sheets_and_offcuts": "แผ่นและเศษวัสดุ", "sheet_or_offcut": "แผ่นหรือเศษวัสดุ", "move_material_up": "เลื่อนวัสดุขึ้น", "move_material_down": "เลื่อนวัสดุลง",
+    },
+}
+
+for code, words in DETAILED_UI.items():
+    WORDS.setdefault(code, {}).update(words)
+
+# The bootstrap catalogs already contain the short common vocabulary.  Add the
+# rest of the labels used by the main panel in the same small, auditable form;
+# long diagnostic strings intentionally remain unchanged until a native review.
+EXTRA_WORDS = {
+    "ar": {"margin":"الهامش","part_spacing":"تباعد الأجزاء","materials":"المواد","general":"عام","boundary":"دقة الحدود","nesting_cli":"إعدادات التعشيق","time_ratio":"نسبة الوقت","population":"حجم المجتمع","mutation":"معدل الطفرة","export":"تصدير","boundaries":"الحدود","spacing":"التباعد","value":"القيمة","placement":"استراتيجية الوضع","gravity":"الجاذبية","bbox":"المربع المحيط","squeeze":"ضغط","cpu":"أنوية المعالج","selected":"المحددة","parts":"الأجزاء","preview":"المعاينة","select":"تحديد","angle":"الزاوية","rotate":"تدوير","clear":"مسح الكل","change":"تغيير"},
+    "az": {"margin":"Kənar","part_spacing":"Hissə aralığı","materials":"Materiallar","general":"Ümumi","boundary":"Sərhəd dəqiqliyi","nesting_cli":"Yerləşdirmə CLI ayarları","time_ratio":"Vaxt nisbəti","population":"Populyasiya ölçüsü","mutation":"Mutasiya əmsalı","export":"İxrac et","boundaries":"Sərhədlər","spacing":"Aralıq","value":"Dəyər","placement":"Yerləşdirmə strategiyası","gravity":"Cazibə","bbox":"Məhdudlaşdırıcı qutu","squeeze":"Sıxışdır","cpu":"CPU nüvələri","selected":"Seçilmiş","parts":"Hissələr","preview":"Önizləmə","select":"Seç","angle":"Bucaq","rotate":"Fırlat","clear":"Hamısını təmizlə","change":"Dəyiş"},
+    "bn": {"margin":"মার্জিন","part_spacing":"অংশের দূরত্ব","materials":"উপকরণ","general":"সাধারণ","boundary":"সীমানা রেজোলিউশন","nesting_cli":"নেস্টিং সেটিংস","time_ratio":"সময় অনুপাত","population":"জনসংখ্যার আকার","mutation":"মিউটেশন হার","export":"রপ্তানি","boundaries":"সীমানা","spacing":"দূরত্ব","value":"মান","placement":"স্থাপনার কৌশল","gravity":"মাধ্যাকর্ষণ","bbox":"বাউন্ডিং বক্স","squeeze":"সংকোচন","cpu":"CPU কোর","selected":"নির্বাচিত","parts":"অংশ","preview":"প্রিভিউ","select":"নির্বাচন","angle":"কোণ","rotate":"ঘোরান","clear":"সব পরিষ্কার","change":"পরিবর্তন"},
+    "bg": {"margin":"Поле","part_spacing":"Разстояние между детайлите","materials":"Материали","general":"Общи","boundary":"Резолюция на границата","nesting_cli":"Настройки на CLI за подреждане","time_ratio":"Съотношение време","population":"Размер на популацията","mutation":"Степен на мутация","export":"Експортиране","boundaries":"Граници","spacing":"Разстояние","value":"Стойност","placement":"Стратегия за поставяне","gravity":"Гравитация","bbox":"Ограничителен правоъгълник","squeeze":"Притискане","cpu":"CPU ядра","selected":"Избрани","parts":"Детайли","preview":"Преглед","select":"Избери","angle":"Ъгъл","rotate":"Завърти","clear":"Изчисти всичко","change":"Промени"},
+    "hr": {"margin":"Margina","part_spacing":"Razmak dijelova","materials":"Materijali","general":"Opći","boundary":"Razlučivost granice","nesting_cli":"Postavke CLI slaganja","time_ratio":"Omjer vremena","population":"Veličina populacije","mutation":"Stopa mutacije","export":"Izvezi","boundaries":"Granice","spacing":"Razmak","value":"Vrijednost","placement":"Strategija postavljanja","gravity":"Gravitacija","bbox":"Granični okvir","squeeze":"Stisni","cpu":"CPU jezgre","selected":"Odabrani","parts":"Dijelovi","preview":"Pretpregled","select":"Odaberi","angle":"Kut","rotate":"Zakreni","clear":"Očisti sve","change":"Promijeni"},
+    "cs": {"margin":"Okraj","part_spacing":"Rozestup dílů","materials":"Materiály","general":"Obecné","boundary":"Rozlišení hranice","nesting_cli":"Nastavení CLI vnoření","time_ratio":"Poměr času","population":"Velikost populace","mutation":"Míra mutace","export":"Exportovat","boundaries":"Hranice","spacing":"Rozestup","value":"Hodnota","placement":"Strategie umístění","gravity":"Gravitace","bbox":"Ohraničující rámeček","squeeze":"Stlačení","cpu":"Jádra CPU","selected":"Vybrané","parts":"Díly","preview":"Náhled","select":"Vybrat","angle":"Úhel","rotate":"Otočit","clear":"Vymazat vše","change":"Změnit"},
+    "da": {"margin":"Margen","part_spacing":"Afstand mellem dele","materials":"Materialer","general":"Generelt","boundary":"Grænseopløsning","nesting_cli":"Indstillinger for nesting-CLI","time_ratio":"Tidsforhold","population":"Populationsstørrelse","mutation":"Mutationsrate","export":"Eksportér","boundaries":"Grænser","spacing":"Afstand","value":"Værdi","placement":"Placeringsstrategi","gravity":"Tyngdekraft","bbox":"Afgrænsningsboks","squeeze":"Klem","cpu":"CPU-kerner","selected":"Valgte","parts":"Dele","preview":"Forhåndsvisning","select":"Vælg","angle":"Vinkel","rotate":"Rotér","clear":"Ryd alt","change":"Skift"},
+    "et": {"margin":"Veeris","part_spacing":"Detailide vahe","materials":"Materjalid","general":"Üldine","boundary":"Piiri eraldusvõime","nesting_cli":"Paigutuse CLI sätted","time_ratio":"Aja suhe","population":"Populatsiooni suurus","mutation":"Mutatsioonimäär","export":"Ekspordi","boundaries":"Piirid","spacing":"Vahe","value":"Väärtus","placement":"Paigutusstrateegia","gravity":"Gravitatsioon","bbox":"Piirdekast","squeeze":"Pigista","cpu":"CPU tuumad","selected":"Valitud","parts":"Detailid","preview":"Eelvaade","select":"Vali","angle":"Nurk","rotate":"Pööra","clear":"Tühjenda kõik","change":"Muuda"},
+    "fi": {"margin":"Marginaali","part_spacing":"Osien väli","materials":"Materiaalit","general":"Yleiset","boundary":"Reunan tarkkuus","nesting_cli":"Nestauksen CLI-asetukset","time_ratio":"Aikasuhde","population":"Populaation koko","mutation":"Mutaationopeus","export":"Vie","boundaries":"Reunat","spacing":"Väli","value":"Arvo","placement":"Sijoittelustrategia","gravity":"Painovoima","bbox":"Rajoitusruutu","squeeze":"Tiivistä","cpu":"CPU-ytimet","selected":"Valitut","parts":"Osat","preview":"Esikatselu","select":"Valitse","angle":"Kulma","rotate":"Kierrä","clear":"Tyhjennä kaikki","change":"Muuta"},
+    "el": {"margin":"Περιθώριο","part_spacing":"Απόσταση εξαρτημάτων","materials":"Υλικά","general":"Γενικές","boundary":"Ανάλυση ορίου","nesting_cli":"Ρυθμίσεις CLI τοποθέτησης","time_ratio":"Αναλογία χρόνου","population":"Μέγεθος πληθυσμού","mutation":"Ποσοστό μετάλλαξης","export":"Εξαγωγή","boundaries":"Όρια","spacing":"Απόσταση","value":"Τιμή","placement":"Στρατηγική τοποθέτησης","gravity":"Βαρύτητα","bbox":"Πλαίσιο οριοθέτησης","squeeze":"Συμπίεση","cpu":"Πυρήνες CPU","selected":"Επιλεγμένα","parts":"Εξαρτήματα","preview":"Προεπισκόπηση","select":"Επιλογή","angle":"Γωνία","rotate":"Περιστροφή","clear":"Εκκαθάριση όλων","change":"Αλλαγή"},
+    "he": {"margin":"שוליים","part_spacing":"מרווח בין חלקים","materials":"חומרים","general":"כללי","boundary":"רזולוציית גבול","nesting_cli":"הגדרות CLI לקינון","time_ratio":"יחס זמן","population":"גודל אוכלוסייה","mutation":"שיעור מוטציה","export":"ייצוא","boundaries":"גבולות","spacing":"מרווח","value":"ערך","placement":"אסטרטגיית מיקום","gravity":"כבידה","bbox":"תיבה תוחמת","squeeze":"דחיסה","cpu":"ליבות CPU","selected":"נבחרים","parts":"חלקים","preview":"תצוגה מקדימה","select":"בחר","angle":"זווית","rotate":"סובב","clear":"נקה הכול","change":"שנה"},
+    "hi": {"margin":"मार्जिन","part_spacing":"भागों के बीच दूरी","materials":"सामग्रियाँ","general":"सामान्य","boundary":"सीमा रिज़ॉल्यूशन","nesting_cli":"नेस्टिंग CLI सेटिंग्स","time_ratio":"समय अनुपात","population":"जनसंख्या आकार","mutation":"म्यूटेशन दर","export":"निर्यात","boundaries":"सीमाएँ","spacing":"दूरी","value":"मान","placement":"प्लेसमेंट रणनीति","gravity":"गुरुत्वाकर्षण","bbox":"बाउंडिंग बॉक्स","squeeze":"संपीड़न","cpu":"CPU कोर","selected":"चयनित","parts":"भाग","preview":"पूर्वावलोकन","select":"चुनें","angle":"कोण","rotate":"घुमाएँ","clear":"सब साफ़ करें","change":"बदलें"},
+    "hu": {"margin":"Margó","part_spacing":"Alkatrészek távolsága","materials":"Anyagok","general":"Általános","boundary":"Határfelbontás","nesting_cli":"Nesting CLI beállításai","time_ratio":"Időarány","population":"Populáció mérete","mutation":"Mutációs arány","export":"Exportálás","boundaries":"Határok","spacing":"Távolság","value":"Érték","placement":"Elhelyezési stratégia","gravity":"Gravitáció","bbox":"Határolókeret","squeeze":"Összenyomás","cpu":"CPU-magok","selected":"Kijelölt","parts":"Alkatrészek","preview":"Előnézet","select":"Kijelölés","angle":"Szög","rotate":"Forgatás","clear":"Összes törlése","change":"Módosítás"},
+    "ga": {"margin":"Imeall","part_spacing":"Spásáil páirteanna","materials":"Ábhair","general":"Ginearálta","boundary":"Taifeach teorann","nesting_cli":"Socruithe CLI neadaithe","time_ratio":"Cóimheas ama","population":"Méid an daonra","mutation":"Ráta sócháin","export":"Easpórtáil","boundaries":"Teorainneacha","spacing":"Spásáil","value":"Luach","placement":"Straitéis suite","gravity":"Domhantarraingt","bbox":"Bosca teorann","squeeze":"Comhbhrú","cpu":"Croíleacáin LAP","selected":"Roghnaithe","parts":"Páirteanna","preview":"Réamhamharc","select":"Roghnaigh","angle":"Uillinn","rotate":"Rothlaigh","clear":"Glan uile","change":"Athraigh"},
+    "kk": {"margin":"Жиек","part_spacing":"Бөлшектер аралығы","materials":"Материалдар","general":"Жалпы","boundary":"Шекара ажыратымдылығы","nesting_cli":"Орналастыру CLI баптаулары","time_ratio":"Уақыт қатынасы","population":"Популяция өлшемі","mutation":"Мутация деңгейі","export":"Экспорттау","boundaries":"Шекаралар","spacing":"Аралық","value":"Мән","placement":"Орналастыру стратегиясы","gravity":"Ауырлық күші","bbox":"Шектеу жақтауы","squeeze":"Қысу","cpu":"CPU ядролары","selected":"Таңдалған","parts":"Бөлшектер","preview":"Алдын ала көрініс","select":"Таңдау","angle":"Бұрыш","rotate":"Бұру","clear":"Барлығын тазалау","change":"Өзгерту"},
+    "km": {"margin":"រឹម","part_spacing":"ចន្លោះបំណែក","materials":"សម្ភារៈ","general":"ទូទៅ","boundary":"កម្រិតព្រំដែន","nesting_cli":"ការកំណត់ CLI នៃការរៀបចំ","time_ratio":"សមាមាត្រពេលវេលា","population":"ទំហំប្រជាជន","mutation":"អត្រាបម្លែង","export":"នាំចេញ","boundaries":"ព្រំដែន","spacing":"ចន្លោះ","value":"តម្លៃ","placement":"យុទ្ធសាស្ត្រដាក់","gravity":"ទំនាញ","bbox":"ប្រអប់កំណត់","squeeze":"បង្ហាប់","cpu":"ស្នូល CPU","selected":"បានជ្រើស","parts":"បំណែក","preview":"មើលជាមុន","select":"ជ្រើស","angle":"មុំ","rotate":"បង្វិល","clear":"សម្អាតទាំងអស់","change":"ផ្លាស់ប្តូរ"},
+    "ko": {"margin":"여백","part_spacing":"부품 간격","materials":"재료","general":"일반","boundary":"경계 해상도","nesting_cli":"네스팅 CLI 설정","time_ratio":"시간 비율","population":"개체 수","mutation":"돌연변이율","export":"내보내기","boundaries":"경계","spacing":"간격","value":"값","placement":"배치 전략","gravity":"중력","bbox":"바운딩 박스","squeeze":"압축","cpu":"CPU 코어","selected":"선택한","parts":"부품","preview":"미리보기","select":"선택","angle":"각도","rotate":"회전","clear":"모두 지우기","change":"변경"},
+    "lt": {"margin":"Paraštė","part_spacing":"Dalių tarpas","materials":"Medžiagos","general":"Bendrieji","boundary":"Ribos raiška","nesting_cli":"Išdėstymo CLI nustatymai","time_ratio":"Laiko santykis","population":"Populiacijos dydis","mutation":"Mutacijos dažnis","export":"Eksportuoti","boundaries":"Ribos","spacing":"Tarpas","value":"Reikšmė","placement":"Išdėstymo strategija","gravity":"Gravitacija","bbox":"Apribojantis stačiakampis","squeeze":"Suspausti","cpu":"CPU branduoliai","selected":"Pasirinktos","parts":"Dalys","preview":"Peržiūra","select":"Pasirinkti","angle":"Kampas","rotate":"Pasukti","clear":"Išvalyti viską","change":"Keisti"},
+    "ms": {"margin":"Jidar","part_spacing":"Jarak bahagian","materials":"Bahan","general":"Umum","boundary":"Resolusi sempadan","nesting_cli":"Tetapan CLI susunan","time_ratio":"Nisbah masa","population":"Saiz populasi","mutation":"Kadar mutasi","export":"Eksport","boundaries":"Sempadan","spacing":"Jarak","value":"Nilai","placement":"Strategi penempatan","gravity":"Graviti","bbox":"Kotak sempadan","squeeze":"Mampat","cpu":"Teras CPU","selected":"Dipilih","parts":"Bahagian","preview":"Pratonton","select":"Pilih","angle":"Sudut","rotate":"Putar","clear":"Kosongkan semua","change":"Tukar"},
+    "mt": {"margin":"Marġni","part_spacing":"Spazju bejn il-partijiet","materials":"Materjali","general":"Ġenerali","boundary":"Riżoluzzjoni tal-konfini","nesting_cli":"Settings CLI tan-nesting","time_ratio":"Proporzjon tal-ħin","population":"Daqs tal-popolazzjoni","mutation":"Rata ta’ mutazzjoni","export":"Esporta","boundaries":"Konfini","spacing":"Spazju","value":"Valur","placement":"Strateġija tat-tqegħid","gravity":"Gravità","bbox":"Kaxxa ta’ konfini","squeeze":"Agħfas","cpu":"Qlub CPU","selected":"Magħżula","parts":"Partijiet","preview":"Previżjoni","select":"Agħżel","angle":"Angolu","rotate":"Dawwar","clear":"Ħassar kollox","change":"Ibdel"},
+    "my": {"margin":"အနားသတ်","part_spacing":"အစိတ်အပိုင်းအကွာအဝေး","materials":"ပစ္စည်းများ","general":"အထွေထွေ","boundary":"နယ်နိမိတ် resolution","nesting_cli":"Nesting CLI ဆက်တင်များ","time_ratio":"အချိန်အချိုး","population":"လူဦးရေအရွယ်","mutation":"ပြောင်းလဲနှုန်း","export":"တင်ပို့ရန်","boundaries":"နယ်နိမိတ်များ","spacing":"အကွာအဝေး","value":"တန်ဖိုး","placement":"နေရာချနည်း","gravity":"ဆွဲအား","bbox":"ဘောင်အကွက်","squeeze":"ဖိသိပ်ရန်","cpu":"CPU အူတိုင်များ","selected":"ရွေးထားသော","parts":"အစိတ်အပိုင်းများ","preview":"ကြိုတင်ကြည့်ရန်","select":"ရွေးရန်","angle":"ထောင့်","rotate":"လှည့်ရန်","clear":"အားလုံးရှင်းရန်","change":"ပြောင်းရန်"},
+    "ne": {"margin":"मार्जिन","part_spacing":"भागहरूको दूरी","materials":"सामग्रीहरू","general":"सामान्य","boundary":"सीमा रिजोल्युसन","nesting_cli":"नेस्टिङ CLI सेटिङहरू","time_ratio":"समय अनुपात","population":"जनसंख्या आकार","mutation":"म्युटेसन दर","export":"निर्यात","boundaries":"सीमाहरू","spacing":"दूरी","value":"मान","placement":"स्थान रणनीति","gravity":"गुरुत्वाकर्षण","bbox":"बाउन्डिङ बक्स","squeeze":"थिच्नुहोस्","cpu":"CPU कोरहरू","selected":"चयन गरिएका","parts":"भागहरू","preview":"पूर्वावलोकन","select":"चयन गर्नुहोस्","angle":"कोण","rotate":"घुमाउनुहोस्","clear":"सबै खाली गर्नुहोस्","change":"परिवर्तन"},
+    "ps": {"margin":"حاشیه","part_spacing":"د برخو واټن","materials":"مواد","general":"عمومي","boundary":"د پولې حل","nesting_cli":"د نیسټینګ CLI تنظیمات","time_ratio":"د وخت نسبت","population":"د نفوس اندازه","mutation":"د بدلون کچه","export":"صادرول","boundaries":"پولې","spacing":"واټن","value":"ارزښت","placement":"د ځای پرځای کولو تګلاره","gravity":"جاذبه","bbox":"احاطوي بکس","squeeze":"فشارول","cpu":"CPU هستې","selected":"ټاکل شوي","parts":"برخې","preview":"مخکتنه","select":"ټاکل","angle":"زاویه","rotate":"څرخول","clear":"ټول پاکول","change":"بدلول"},
+    "fa": {"margin":"حاشیه","part_spacing":"فاصله قطعات","materials":"مواد","general":"عمومی","boundary":"تفکیک مرز","nesting_cli":"تنظیمات CLI چیدمان","time_ratio":"نسبت زمان","population":"اندازه جمعیت","mutation":"نرخ جهش","export":"خروجی","boundaries":"مرزها","spacing":"فاصله","value":"مقدار","placement":"راهبرد جایگذاری","gravity":"گرانش","bbox":"کادر محدودکننده","squeeze":"فشرده‌سازی","cpu":"هسته‌های CPU","selected":"انتخاب‌شده","parts":"قطعات","preview":"پیش‌نمایش","select":"انتخاب","angle":"زاویه","rotate":"چرخش","clear":"پاک کردن همه","change":"تغییر"},
+    "pl": {"margin":"Margines","part_spacing":"Odstęp części","materials":"Materiały","general":"Ogólne","boundary":"Rozdzielczość granicy","nesting_cli":"Ustawienia CLI nestingu","time_ratio":"Stosunek czasu","population":"Rozmiar populacji","mutation":"Współczynnik mutacji","export":"Eksportuj","boundaries":"Granice","spacing":"Odstęp","value":"Wartość","placement":"Strategia rozmieszczenia","gravity":"Grawitacja","bbox":"Obwiednia","squeeze":"Ściśnij","cpu":"Rdzenie CPU","selected":"Wybrane","parts":"Części","preview":"Podgląd","select":"Wybierz","angle":"Kąt","rotate":"Obróć","clear":"Wyczyść wszystko","change":"Zmień"},
+    "pt": {"margin":"Margem","part_spacing":"Espaçamento das peças","materials":"Materiais","general":"Geral","boundary":"Resolução do limite","nesting_cli":"Definições do CLI de nesting","time_ratio":"Rácio de tempo","population":"Tamanho da população","mutation":"Taxa de mutação","export":"Exportar","boundaries":"Limites","spacing":"Espaçamento","value":"Valor","placement":"Estratégia de colocação","gravity":"Gravidade","bbox":"Caixa delimitadora","squeeze":"Comprimir","cpu":"Núcleos CPU","selected":"Selecionadas","parts":"Peças","preview":"Pré-visualização","select":"Selecionar","angle":"Ângulo","rotate":"Rodar","clear":"Limpar tudo","change":"Alterar"},
+    "ru": {"margin":"Отступ","part_spacing":"Расстояние между деталями","materials":"Материалы","general":"Общие","boundary":"Разрешение границы","nesting_cli":"Настройки CLI раскладки","time_ratio":"Соотношение времени","population":"Размер популяции","mutation":"Вероятность мутации","export":"Экспорт","boundaries":"Границы","spacing":"Расстояние","value":"Значение","placement":"Стратегия размещения","gravity":"Гравитация","bbox":"Ограничивающая рамка","squeeze":"Сжатие","cpu":"Ядра CPU","selected":"Выбранные","parts":"Детали","preview":"Предпросмотр","select":"Выбрать","angle":"Угол","rotate":"Повернуть","clear":"Очистить всё","change":"Изменить"},
+    "si": {"margin":"ආන්තිකය","part_spacing":"කොටස් අතර දුර","materials":"ද්‍රව්‍ය","general":"සාමාන්‍ය","boundary":"සීමා විභේදනය","nesting_cli":"Nesting CLI සැකසුම්","time_ratio":"කාල අනුපාතය","population":"ජනගහන ප්‍රමාණය","mutation":"විකෘති අනුපාතය","export":"අපනයනය","boundaries":"සීමා","spacing":"දුර","value":"අගය","placement":"ස්ථානගත කිරීමේ උපාය","gravity":"ගුරුත්වය","bbox":"සීමා පෙට්ටිය","squeeze":"සම්පීඩනය","cpu":"CPU මධ්‍ය","selected":"තෝරාගත්","parts":"කොටස්","preview":"පෙරදසුන","select":"තෝරන්න","angle":"කෝණය","rotate":"භ්‍රමණය","clear":"සියල්ල හිස් කරන්න","change":"වෙනස් කරන්න"},
+    "sk": {"margin":"Okraj","part_spacing":"Rozstup dielov","materials":"Materiály","general":"Všeobecné","boundary":"Rozlíšenie hranice","nesting_cli":"Nastavenia CLI vnorenia","time_ratio":"Pomer času","population":"Veľkosť populácie","mutation":"Miera mutácie","export":"Exportovať","boundaries":"Hranice","spacing":"Rozstup","value":"Hodnota","placement":"Stratégia umiestnenia","gravity":"Gravitácia","bbox":"Ohraničovací rámček","squeeze":"Stlačenie","cpu":"Jadrá CPU","selected":"Vybrané","parts":"Diely","preview":"Náhľad","select":"Vybrať","angle":"Uhol","rotate":"Otočiť","clear":"Vymazať všetko","change":"Zmeniť"},
+    "sl": {"margin":"Rob","part_spacing":"Razmik delov","materials":"Materiali","general":"Splošno","boundary":"Ločljivost meje","nesting_cli":"Nastavitve CLI gnezdenja","time_ratio":"Časovno razmerje","population":"Velikost populacije","mutation":"Stopnja mutacije","export":"Izvozi","boundaries":"Meje","spacing":"Razmik","value":"Vrednost","placement":"Strategija postavitve","gravity":"Gravitacija","bbox":"Omejitveni okvir","squeeze":"Stisni","cpu":"Jedri CPU","selected":"Izbrani","parts":"Deli","preview":"Predogled","select":"Izberi","angle":"Kot","rotate":"Zavrti","clear":"Počisti vse","change":"Spremeni"},
+    "sv": {"margin":"Marginal","part_spacing":"Delavstånd","materials":"Material","general":"Allmänt","boundary":"Gränsupplösning","nesting_cli":"Inställningar för nesting-CLI","time_ratio":"Tidsförhållande","population":"Populationsstorlek","mutation":"Mutationsgrad","export":"Exportera","boundaries":"Gränser","spacing":"Avstånd","value":"Värde","placement":"Placeringsstrategi","gravity":"Gravitation","bbox":"Begränsningsruta","squeeze":"Pressa ihop","cpu":"CPU-kärnor","selected":"Valda","parts":"Delar","preview":"Förhandsgranskning","select":"Välj","angle":"Vinkel","rotate":"Rotera","clear":"Rensa allt","change":"Ändra"},
+    "tg": {"margin":"Ҳошия","part_spacing":"Фосилаи қисмҳо","materials":"Маводҳо","general":"Умумӣ","boundary":"Қарори сарҳад","nesting_cli":"Танзимоти CLI ҷойгиркунӣ","time_ratio":"Таносуби вақт","population":"Андозаи аҳолӣ","mutation":"Суръати мутатсия","export":"Содирот","boundaries":"Сарҳадҳо","spacing":"Фосила","value":"Қимат","placement":"Стратегияи ҷойгиркунӣ","gravity":"Ҷозиба","bbox":"Қуттии маҳдудкунанда","squeeze":"Фишурдан","cpu":"Ҳастаҳои CPU","selected":"Интихобшуда","parts":"Қисмҳо","preview":"Пешнамоиш","select":"Интихоб","angle":"Кунҷ","rotate":"Гардондан","clear":"Ҳамаро пок кардан","change":"Тағйир додан"},
+    "tr": {"margin":"Kenar boşluğu","part_spacing":"Parça aralığı","materials":"Malzemeler","general":"Genel","boundary":"Sınır çözünürlüğü","nesting_cli":"Yerleştirme CLI ayarları","time_ratio":"Zaman oranı","population":"Popülasyon boyutu","mutation":"Mutasyon oranı","export":"Dışa aktar","boundaries":"Sınırlar","spacing":"Aralık","value":"Değer","placement":"Yerleştirme stratejisi","gravity":"Yerçekimi","bbox":"Sınırlayıcı kutu","squeeze":"Sıkıştır","cpu":"CPU çekirdekleri","selected":"Seçilen","parts":"Parçalar","preview":"Önizleme","select":"Seç","angle":"Açı","rotate":"Döndür","clear":"Tümünü temizle","change":"Değiştir"},
+    "uk": {"margin":"Відступ","part_spacing":"Відстань між деталями","materials":"Матеріали","general":"Загальні","boundary":"Роздільність межі","nesting_cli":"Налаштування CLI розкладки","time_ratio":"Співвідношення часу","population":"Розмір популяції","mutation":"Рівень мутації","export":"Експортувати","boundaries":"Межі","spacing":"Відстань","value":"Значення","placement":"Стратегія розміщення","gravity":"Гравітація","bbox":"Обмежувальна рамка","squeeze":"Стиснення","cpu":"Ядра CPU","selected":"Вибрані","parts":"Деталі","preview":"Попередній перегляд","select":"Вибрати","angle":"Кут","rotate":"Повернути","clear":"Очистити все","change":"Змінити"},
+    "ur": {"margin":"حاشیہ","part_spacing":"حصوں کا فاصلہ","materials":"مواد","general":"عمومی","boundary":"حد کی ریزولوشن","nesting_cli":"نیسٹنگ CLI ترتیبات","time_ratio":"وقت کا تناسب","population":"آبادی کا حجم","mutation":"میوٹیشن کی شرح","export":"برآمد","boundaries":"حدود","spacing":"فاصلہ","value":"قدر","placement":"جگہ رکھنے کی حکمت عملی","gravity":"کشش ثقل","bbox":"حد بندی خانہ","squeeze":"دبائیں","cpu":"CPU کورز","selected":"منتخب","parts":"حصے","preview":"پیش منظر","select":"منتخب کریں","angle":"زاویہ","rotate":"گھمائیں","clear":"سب صاف کریں","change":"تبدیل کریں"},
+    "uz": {"margin":"Chegara","part_spacing":"Qismlar oralig‘i","materials":"Materiallar","general":"Umumiy","boundary":"Chegara aniqligi","nesting_cli":"Joylashtirish CLI sozlamalari","time_ratio":"Vaqt nisbati","population":"Populyatsiya hajmi","mutation":"Mutatsiya darajasi","export":"Eksport","boundaries":"Chegaralar","spacing":"Oraliq","value":"Qiymat","placement":"Joylashtirish strategiyasi","gravity":"Tortishish","bbox":"Chegaralovchi quti","squeeze":"Siqish","cpu":"CPU yadrolari","selected":"Tanlangan","parts":"Qismlar","preview":"Ko‘rib chiqish","select":"Tanlash","angle":"Burchak","rotate":"Burish","clear":"Barchasini tozalash","change":"O‘zgartirish"},
+    "vi": {"margin":"Lề","part_spacing":"Khoảng cách chi tiết","materials":"Vật liệu","general":"Chung","boundary":"Độ phân giải biên","nesting_cli":"Cài đặt CLI xếp hình","time_ratio":"Tỷ lệ thời gian","population":"Kích thước quần thể","mutation":"Tỷ lệ đột biến","export":"Xuất","boundaries":"Biên","spacing":"Khoảng cách","value":"Giá trị","placement":"Chiến lược sắp xếp","gravity":"Trọng lực","bbox":"Hộp giới hạn","squeeze":"Nén","cpu":"Lõi CPU","selected":"Đã chọn","parts":"Chi tiết","preview":"Xem trước","select":"Chọn","angle":"Góc","rotate":"Xoay","clear":"Xóa tất cả","change":"Thay đổi"},
+    "fil": {"margin":"Margin","part_spacing":"Agwat ng mga bahagi","materials":"Mga materyal","general":"Pangkalahatan","boundary":"Resolusyon ng hangganan","nesting_cli":"Mga setting ng nesting CLI","time_ratio":"Ratio ng oras","population":"Laki ng populasyon","mutation":"Antas ng mutasyon","export":"I-export","boundaries":"Mga hangganan","spacing":"Agwat","value":"Halaga","placement":"Diskarte sa paglalagay","gravity":"Grabitasyon","bbox":"Kahon na hangganan","squeeze":"Siksik","cpu":"Mga core ng CPU","selected":"Napili","parts":"Mga bahagi","preview":"Preview","select":"Piliin","angle":"Anggulo","rotate":"I-rotate","clear":"I-clear lahat","change":"Baguhin"},
+}
+
+MOVE_WORDS = {
+    "ar":"نقل", "az":"Köçür", "bn":"সরান", "bg":"Премести", "hr":"Premjesti",
+    "cs":"Přesunout", "da":"Flyt", "et":"Liiguta", "fi":"Siirrä", "el":"Μετακίνηση", "he":"העבר",
+    "hi":"स्थानांतरित करें", "hu":"Áthelyezés", "ga":"Bog", "kk":"Жылжыту", "km":"ផ្លាស់ទី",
+    "ko":"이동", "lt":"Perkelti", "ms":"Gerak", "mt":"Mexxi", "my":"ရွှေ့ရန်", "ne":"सार्नुहोस्",
+    "ps":"لېږدول", "fa":"جابجایی", "pl":"Przenieś", "pt":"Mover", "ru":"Переместить",
+    "si":"ගෙන යන්න", "sk":"Presunúť", "sl":"Premakni", "sv":"Flytta", "tg":"Ҷойивазкунӣ",
+    "tr":"Taşı", "uk":"Перемістити", "ur":"منتقل کریں", "uz":"Ko‘chirish", "vi":"Di chuyển",
+    "fil":"Ilipat",
+}
+for code, value in MOVE_WORDS.items():
+    EXTRA_WORDS.setdefault(code, {})["move"] = value
+
+def _core_ui_words(code, extra):
+    """Build the repeated panel labels from reviewed words for one language."""
+    common = WORDS[code]
+    w = dict(extra)
+    w.update({
+        "settings": common["settings.title"], "language": common["settings.language"],
+        "add": common["add"], "show": common["show"], "remove": common["remove"],
+        "quantity": common["quantity"], "units": common["units"],
+        "material": common["material"], "count": common["count"], "grain": common["grain"],
+        "offcuts": common["offcuts"], "sheet": common["sheet"], "body": common["body"],
+        "rotations": common["rotations"], "custom": common["custom_angle"],
+        "apply": common["apply_grain"], "run": common["run_nesting"],
+    })
+    return {
+        "settings.title": w["settings"], "settings.language": w["language"],
+        "sheet_settings": f"{w['sheet']} {w['settings']}", "sheet_margin_mm": f"{w['margin']} (mm):",
+        "part_spacing_mm": f"{w['part_spacing']} (mm):", "sheet_offcut_materials": f"{w['sheet']} && {w['offcuts']} {w['materials']}",
+        "material": w["material"], "count": w["count"], "grain": w["grain"], "move": w.get("move", common["show"]),
+        "add": w["add"], "show": w["show"], "remove": w["remove"], "general_parameters": w["general"],
+        "boundary_resolution_mm": f"{w['boundary']} (mm):", "units": w["units"], "nesting_cli_settings": w["nesting_cli"],
+        "time_ratio": f"{w['time_ratio']}:", "population_size": f"{w['population']}:", "mutation_rate": f"{w['mutation']}:",
+        "export_sheet_boundaries": f"{w['export']} {w['sheet']} {w['boundaries']}:" , "export_sheet_spacing": f"{w['export']} {w['sheet']} {w['spacing']}:",
+        "sheet_spacing_value": f"{w['sheet']} {w['spacing']} {w['value']}:", "placement_strategy": w["placement"],
+        "gravity": w["gravity"], "bounding_box": w["bbox"], "squeeze": w["squeeze"], "cpu_cores": w["cpu"],
+        "b_selected_parts_preview_mode_b": f"<b>{w['selected']} {w['parts']} ({w['preview']})</b>", "body": w["body"],
+        "qty": w["quantity"], "rotations": w["rotations"], "select_for_rotation": f"{w['select']} {w['rotations']}",
+        "grain_direction": w["grain"], "custom_angle": w["custom"], "add_selected": f"{w['add']} {w['selected']}",
+        "remove_selected": f"{w['remove']} {w['selected']}", "run_nesting": w["run"], "rotate": w["rotate"],
+        "clear_all": w["clear"], "change_grain_direction": f"{w['change']} {w['grain']}:" ,
+        "apply_grain": w["apply"], "set_custom_angle": f"{w['custom']} {w['angle']}",
+        "perimeter.with_grain": f"{w['body']} ({w['grain']})", "perimeter.without_grain": f"{w['body']} (— {w['grain']})",
+        "perimeter.border": f"%s {w['grain']}", "perimeter.label": "%s",
+        "grain_angle": f"{w['grain']} {w['angle']}", "selected_parts_arrows": f"{w['selected']} {w['parts']} / {w['angle']}",
+        "angle": w["angle"], "rectangular_sheet": w["sheet"], "dxf_offcut": f"DXF {w['offcuts']}",
+        "add_rectangular_sheet": f"{w['add']} {w['sheet']}", "add_dxf_offcut": f"{w['add']} DXF {w['offcuts']}",
+        "select_dxf_offcut": f"{w['select']} DXF {w['offcuts']}", "sheet_width_x_s": f"{w['sheet']} X (%s):",
+        "sheet_height_y_s": f"{w['sheet']} Y (%s):", "add_a_rectangular_sheet_or_a_dxf_offcut": f"{w['add']} {w['sheet']} / DXF {w['offcuts']}",
+        "add_a_rectangular_sheet_or_import_a_dxf_offcut": f"{w['add']} {w['sheet']} / DXF {w['offcuts']}",
+        "import_a_dxf_file_and_use_its_closed_contour_as_an_offcut": f"DXF {w['offcuts']}",
+        "grain_direction_4f9262": f"{w['grain'] }:", "none_6eef66": "—",
+        "move_material_up": f"{w['move']} ↑", "move_material_down": f"{w['move']} ↓",
+        "offcuts": w["offcuts"], "sheet": w["sheet"], "sheets_and_offcuts": f"{w['sheet']} {w['offcuts']}",
+    }
+
+for code, extra in EXTRA_WORDS.items():
+    if code in WORDS:
+        WORDS[code].update(_core_ui_words(code, extra))
+
+# Keep saved preview captions recognizable after switching to any catalog.
+perimeters_path = ROOT / "lng" / "perimeters.json"
+try:
+    perimeters = json.loads(perimeters_path.read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    perimeters = {}
+for code, words in WORDS.items():
+    if code in ("en", "lv", "ja", "th"):
+        continue
+    grain = words.get("grain", "Grain")
+    parts = words.get("body", "Parts")
+    perimeters[code] = {
+        "perimeter.with_grain": f"{parts} ({grain})",
+        "perimeter.without_grain": f"{parts} (— {grain})",
+        "perimeter.border": f"%s {grain}",
+        "perimeter.label": "%s",
+    }
+try:
+    language_rows = json.loads((ROOT / "lng" / "index.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    language_rows = []
+for row in language_rows:
+    code = row.get("code") if isinstance(row, dict) else None
+    if not code or code in perimeters:
+        continue
+    try:
+        catalog = json.loads((ROOT / "lng" / (code + ".json")).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        catalog = {}
+    grain = catalog.get("grain", "Grain")
+    parts = catalog.get("body", "Parts")
+    perimeters[code] = {
+        "perimeter.with_grain": f"{parts} ({grain})",
+        "perimeter.without_grain": f"{parts} (— {grain})",
+        "perimeter.border": f"%s {grain}",
+        "perimeter.label": "%s",
+    }
+perimeters_path.write_text(json.dumps(perimeters, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
 # Write a complete key-compatible catalog; unresolved technical messages retain
 # English so they cannot corrupt diagnostics or formatting.
 for code, words in WORDS.items():
     target = ROOT / "lng" / (code + ".json")
-    if target.exists():
-        continue
     catalog = dict(EN)
+    if target.exists():
+        try:
+            existing = json.loads(target.read_text(encoding="utf-8"))
+            if isinstance(existing, dict):
+                catalog.update(existing)
+        except (OSError, ValueError):
+            pass
     catalog.update(words)
     target.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(code, len(catalog))

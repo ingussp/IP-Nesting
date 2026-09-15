@@ -110,11 +110,49 @@ class LanguageTests(unittest.TestCase):
                     if n.args and isinstance(n.args[0], ast.Constant):
                         self.assertIn(n.args[0].value, en, (path.name, n.lineno))
 
+    # The controls visible in the main panel must not silently fall back to
+    # English in any selected catalog.
+    def test_visible_panel_is_translated_for_all_languages(self):
+        en = json.loads((ROOT / 'lng/en.json').read_text(encoding='utf-8'))
+        visible = {
+            'sheet_settings', 'sheet_margin_mm', 'part_spacing_mm',
+            'sheet_offcut_materials', 'material', 'count', 'grain', 'move',
+            'add', 'show', 'remove', 'general_parameters',
+            'boundary_resolution_mm', 'units', 'nesting_cli_settings',
+            'time_ratio', 'population_size', 'mutation_rate',
+            'export_sheet_boundaries', 'export_sheet_spacing',
+            'sheet_spacing_value', 'placement_strategy', 'gravity',
+            'bounding_box', 'squeeze', 'cpu_cores',
+            'b_selected_parts_preview_mode_b', 'body', 'qty', 'rotations',
+            'select_for_rotation', 'grain_direction', 'custom_angle',
+            'add_selected', 'remove_selected', 'run_nesting', 'rotate',
+            'clear_all', 'change_grain_direction', 'apply_grain',
+            'set_custom_angle',
+        }
+        # A few short words (for example "Material" and "Rotations") are
+        # legitimately identical in several languages.  Use distinctive
+        # panel phrases for the fallback assertion instead of rejecting those
+        # valid cognates.
+        distinctive = {
+            'sheet_settings', 'sheet_margin_mm', 'part_spacing_mm',
+            'general_parameters', 'placement_strategy',
+            'b_selected_parts_preview_mode_b', 'change_grain_direction',
+            'set_custom_angle',
+        }
+        for code, _ in self.module.LANGUAGES:
+            if code == 'en':
+                continue
+            translated = json.loads((ROOT / 'lng' / (code + '.json')).read_text(encoding='utf-8'))
+            with self.subTest(language=code):
+                self.assertTrue(all(translated[key] != en[key] for key in distinctive))
+
     # Perimeter cleanup recognizes saved labels independently of the current language.
     def test_perimeter_aliases(self):
         labels = self.module.perimeter_labels('Parts with grain direction')
         self.assertIn('Parts with grain direction', labels)
         self.assertIn('Detaļas ar tekstūras virzienu', labels)
+        self.assertIn('木目方向ありの部品', labels)
+        self.assertIn('ชิ้นงานที่มีทิศทางเสี้ยน', labels)
         self.assertNotIn('Detaļas bez tekstūras virziena', labels)
 
     # PySide may emit triggered() without the optional bool; selecting must still work.
