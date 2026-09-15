@@ -61,6 +61,8 @@ WORDS = {
 DETAILED_UI = {
     "ja": {
         "settings.title": "設定", "settings.language": "言語",
+        "perimeter.with_grain": "木目方向ありの部品", "perimeter.without_grain": "木目方向なしの部品",
+        "perimeter.border": "%s 境界", "perimeter.label": "%s ラベル",
         "sheet_settings": "シート設定", "sheet_margin_mm": "シート余白 (mm):",
         "distance_from_the_sheet_edge": "シート端からの距離。", "part_spacing_mm": "部品間隔 (mm):",
         "minimum_distance_between_parts": "部品間の最小距離。", "sheet_offcut_materials": "シート && 端材",
@@ -101,6 +103,8 @@ DETAILED_UI = {
     },
     "th": {
         "settings.title": "การตั้งค่า", "settings.language": "ภาษา",
+        "perimeter.with_grain": "ชิ้นงานที่มีทิศทางเสี้ยน", "perimeter.without_grain": "ชิ้นงานที่ไม่มีทิศทางเสี้ยน",
+        "perimeter.border": "ขอบเขต %s", "perimeter.label": "ป้ายกำกับ %s",
         "sheet_settings": "การตั้งค่าแผ่น", "sheet_margin_mm": "ระยะขอบแผ่น (มม.):", "distance_from_the_sheet_edge": "ระยะห่างจากขอบแผ่น", "part_spacing_mm": "ระยะห่างชิ้นงาน (มม.):", "minimum_distance_between_parts": "ระยะห่างขั้นต่ำระหว่างชิ้นงาน",
         "sheet_offcut_materials": "วัสดุแผ่น && เศษวัสดุ", "material": "วัสดุ", "count": "จำนวน", "grain": "ทิศทางเสี้ยน", "move": "ย้าย", "number_of_sheets_or_offcuts": "จำนวนแผ่นหรือเศษวัสดุ", "add_rectangular_sheets_or_dxf_offcuts_for_nesting": "เพิ่มแผ่นสี่เหลี่ยมหรือเศษวัสดุ DXF สำหรับการจัดวาง",
         "add": "เพิ่ม", "show": "แสดง", "remove": "ลบ", "add_a_rectangular_sheet_or_a_dxf_offcut": "เพิ่มแผ่นสี่เหลี่ยมหรือเศษวัสดุ DXF", "show_all_added_offcuts_and_adjust_grain_x_y_per_offcut": "แสดงเศษวัสดุทั้งหมดและปรับทิศทางเสี้ยน X/Y ของแต่ละชิ้น", "remove_the_selected_material_from_the_list": "ลบวัสดุที่เลือกออกจากรายการ",
@@ -206,6 +210,8 @@ def _core_ui_words(code, extra):
         "remove_selected": f"{w['remove']} {w['selected']}", "run_nesting": w["run"], "rotate": w["rotate"],
         "clear_all": w["clear"], "change_grain_direction": f"{w['change']} {w['grain']}:" ,
         "apply_grain": w["apply"], "set_custom_angle": f"{w['custom']} {w['angle']}",
+        "perimeter.with_grain": f"{w['body']} ({w['grain']})", "perimeter.without_grain": f"{w['body']} (— {w['grain']})",
+        "perimeter.border": f"%s {w['grain']}", "perimeter.label": "%s",
         "grain_angle": f"{w['grain']} {w['angle']}", "selected_parts_arrows": f"{w['selected']} {w['parts']} / {w['angle']}",
         "angle": w["angle"], "rectangular_sheet": w["sheet"], "dxf_offcut": f"DXF {w['offcuts']}",
         "add_rectangular_sheet": f"{w['add']} {w['sheet']}", "add_dxf_offcut": f"{w['add']} DXF {w['offcuts']}",
