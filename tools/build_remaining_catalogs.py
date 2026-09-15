@@ -229,13 +229,13 @@ try:
 except (OSError, ValueError):
     perimeters = {}
 for code, words in WORDS.items():
-    if code in ("en", "lv") or code in perimeters:
+    if code in ("en", "lv", "ja", "th"):
         continue
     grain = words.get("grain", "Grain")
     parts = words.get("body", "Parts")
     perimeters[code] = {
         "perimeter.with_grain": f"{parts} ({grain})",
-        "perimeter.without_grain": f"{parts} (no {grain})",
+        "perimeter.without_grain": f"{parts} (— {grain})",
         "perimeter.border": f"%s {grain}",
         "perimeter.label": "%s",
     }
@@ -255,7 +255,7 @@ for row in language_rows:
     parts = catalog.get("body", "Parts")
     perimeters[code] = {
         "perimeter.with_grain": f"{parts} ({grain})",
-        "perimeter.without_grain": f"{parts} (no {grain})",
+        "perimeter.without_grain": f"{parts} (— {grain})",
         "perimeter.border": f"%s {grain}",
         "perimeter.label": "%s",
     }
