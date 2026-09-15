@@ -14,10 +14,12 @@ down six columns, or seven on wider screens, followed by native names. Scrolling
 keeps the chooser usable on smaller displays. Search accepts either name or code.
 
 All 50 entries have a separate JSON catalog with the same 506 message keys.
-The main interface vocabulary has been translated locally; technical diagnostic
-messages without a reviewed translation retain English wording so they remain
-accurate. No translation service is used. Native names and remaining diagnostic
-wording for less common languages still need review by a speaker of each language.
+The complete set of visible labels, table headers and buttons used by the main
+panel and its dialogs is translated locally in every catalog. Longer technical
+tooltips and diagnostic messages without a reviewed translation retain English
+wording so they remain accurate. No translation service is used. Native names
+and remaining diagnostic wording for less common languages still need review by
+a speaker of each language.
 
 ## Live text updates
 
