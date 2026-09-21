@@ -239,12 +239,12 @@ for code, words in WORDS.items():
         continue
     grain = words.get("grain", "Grain")
     parts = words.get("body", "Parts")
-    perimeters[code] = {
+    perimeters.setdefault(code, {
         "perimeter.with_grain": f"{parts} ({grain})",
         "perimeter.without_grain": f"{parts} (— {grain})",
         "perimeter.border": f"%s {grain}",
         "perimeter.label": "%s",
-    }
+    })
 try:
     language_rows = json.loads((ROOT / "lng" / "index.json").read_text(encoding="utf-8"))
 except (OSError, ValueError):
@@ -272,6 +272,10 @@ perimeters_path.write_text(json.dumps(perimeters, ensure_ascii=False, indent=2) 
 for code, words in WORDS.items():
     target = ROOT / "lng" / (code + ".json")
     catalog = dict(EN)
+    catalog.update(words)
+    # Existing values take precedence, including valid cognates that happen
+    # to match English. The bootstrap must not replace completed translations
+    # with its original abbreviated vocabulary.
     if target.exists():
         try:
             existing = json.loads(target.read_text(encoding="utf-8"))
@@ -279,7 +283,6 @@ for code, words in WORDS.items():
                 catalog.update(existing)
         except (OSError, ValueError):
             pass
-    catalog.update(words)
     target.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(code, len(catalog))
 

@@ -14,12 +14,13 @@ down six columns, or seven on wider screens, followed by native names. Scrolling
 keeps the chooser usable on smaller displays. Search accepts either name or code.
 
 All 50 entries have a separate JSON catalog with the same 506 message keys.
-The complete set of visible labels, table headers and buttons used by the main
-panel and its dialogs is translated locally in every catalog. Longer technical
-tooltips and diagnostic messages without a reviewed translation retain English
-wording so they remain accurate. No translation service is used. Native names
-and remaining diagnostic wording for less common languages still need review by
-a speaker of each language.
+The catalogs include translated labels, dialog text, tooltips and diagnostics.
+Technical identifiers (such as `Shape.Area`, function names and file names),
+format placeholders and genuine cognates can remain identical to English.
+Catalogs are prepared ahead of time; the workbench does not call a translation
+service. The completed catalogs include offline machine-assisted translations.
+Automated validation checks coverage and formatting, not linguistic accuracy;
+native-speaker review of the technical terminology is still recommended.
 
 ## Live text updates
 
@@ -48,13 +49,20 @@ English and active catalogs in memory after a switch. Missing or broken entries
 fall back to English; an invalid new choice does not replace the current one.
 
 `lng/index.json` is a small name index, and `lng/perimeters.json` contains only
-caption aliases for saved-document compatibility. Include the entire `lng`
-directory when distributing the workbench.
+caption aliases for saved-document compatibility. Each language code stores its
+current captions; additional legacy entries preserve earlier saved captions.
+Include the entire `lng` directory when distributing the workbench.
 
 To update a translation, edit its `CODE.json` and run the catalog validation
-tests. They reject missing keys, empty strings, incompatible percent placeholders
-and changed newline counts. Never alter internal schema keys, axes, object Names,
-user-provided names or nesting engine identifiers.
+tests. They reject missing keys, empty strings, incompatible percent placeholders,
+changed newline counts and untranslated English messages (with explicit exceptions
+for technical strings and genuine cognates). Never alter internal schema keys,
+axes, object Names, user-provided names or nesting engine identifiers.
+
+`tools/build_remaining_catalogs.py` is a bootstrap helper, not a translator.
+It preserves completed translations and existing perimeter aliases. Any newly
+scaffolded English fallback messages must be translated before the catalog
+coverage tests will pass.
 
 ```console
 python -m unittest discover -s tests
