@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Preview document not found: %s\n",
   "execute_nesting_failed": "execute_nesting failed:\n",
   "preview_document_recompute_failed_before_export": "Preview document recompute failed before export:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Failed to convert material to Nesting CLI sheet:\n",
+  "failed_to_convert_material_to_cli_sheet": "Failed to convert material to Nesting CLI sheet:\n",
   "part_row_d_has_no_preview_object_name": "Part row %d has no preview object name.\n",
   "preview_object_not_found_s": "Preview object not found: %s\n",
   "exporting_s_with_current_placement_s": "Exporting '%s' with current Placement: %s\n",

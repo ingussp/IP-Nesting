@@ -200,7 +200,7 @@ def _read_rotation_count(item, default=1):
 
         return max(
             1,
-            min(5000, value)
+            min(3600, value)
         )
 
     except Exception:
@@ -533,10 +533,12 @@ def _read_bool_combo(widget, default=False):
         return bool(default)
 
 
-# Convert XY pairs or x/y dictionaries to rounded Deepnest point objects.
-def _points_to_deepnest_points(points):
+# Convert XY pairs or x/y dictionaries to rounded CLI point arrays.
+def _points_to_cli_points(points):
     """
-    Convert XY pairs or x/y dictionaries to rounded Deepnest point objects.
+    Convert XY pairs or x/y dictionaries to rounded CLI point arrays.
+
+    The nesting CLI accepts [x, y] arrays natively.
     """
     result = []
 
@@ -556,10 +558,10 @@ def _points_to_deepnest_points(points):
                 x = float(point[0])
                 y = float(point[1])
 
-            result.append({
-                "x": round(x, 6),
-                "y": round(y, 6)
-            })
+            result.append([
+                round(x, 6),
+                round(y, 6)
+            ])
 
         except Exception:
             continue
@@ -622,11 +624,11 @@ def _get_selected_material_holes(material):
     ]
 
 
-# Convert one IP-Nesting material record to a Deepnest sheet record.
-def _material_to_deepnest_sheet(material):
+# Convert one IP-Nesting material record to a nesting CLI sheet record.
+def _material_to_cli_sheet(material):
     """
     Convert one IP-Nesting material record
-    to a Deepnest sheet record.
+    to a nesting CLI sheet record.
     """
     material = material or {}
 
@@ -656,7 +658,6 @@ def _material_to_deepnest_sheet(material):
         "rectangle"
     ):
         return {
-            "type": "rect",
             "width": float(
                 material.get("width", 0.0)
             ),
@@ -683,12 +684,11 @@ def _material_to_deepnest_sheet(material):
     )
 
     return {
-        "type": "polygon",
-        "outer": _points_to_deepnest_points(
+        "points": _points_to_cli_points(
             outer
         ),
         "holes": [
-            _points_to_deepnest_points(
+            _points_to_cli_points(
                 hole
             )
             for hole in holes
@@ -842,20 +842,43 @@ def execute_nesting(panel):
             timespec="milliseconds"
         ) + "Z"
 
-        spacing = _read_float_widget(
+        spacing = panel.get_dimension_value_mm(
             panel.spacing,
             0.0
         )
 
-        sheet_margin = _read_float_widget(
+        sheet_margin = panel.get_dimension_value_mm(
             panel.sheet_margin,
             0.0
         )
 
-        boundary_resolution = _read_float_widget(
+        boundary_resolution = panel.get_dimension_value_mm(
             panel.res,
             0.1
         )
+
+        # Hole-to-part clearance. "same" reuses the part spacing;
+        # "custom" uses the offcut dialog's custom clearance value
+        # (already stored in millimetres).
+        try:
+            if str(
+                getattr(
+                    panel,
+                    "offcut_clearance_mode",
+                    "same"
+                )
+            ) == "custom":
+                hole_clearance = float(
+                    getattr(
+                        panel,
+                        "offcut_custom_clearance",
+                        0.0
+                    ) or 0.0
+                )
+            else:
+                hole_clearance = float(spacing)
+        except Exception:
+            hole_clearance = float(spacing)
 
         try:
             threads = max(
@@ -867,68 +890,6 @@ def execute_nesting(panel):
         except Exception:
             threads = 1
 
-        try:
-            time_ratio = max(
-                0.0,
-                float(
-                    str(
-                        panel.deepnest_time_ratio.text()
-                    ).strip().replace(",", ".")
-                )
-            )
-        except Exception:
-            time_ratio = 0.5
-
-        try:
-            population_size = max(
-                1,
-                int(
-                    float(
-                        str(
-                            panel.deepnest_population_size.text()
-                        ).strip().replace(",", ".")
-                    )
-                )
-            )
-        except Exception:
-            population_size = 10
-
-        try:
-            mutation_rate = max(
-                0,
-                int(
-                    float(
-                        str(
-                            panel.deepnest_mutation_rate.text()
-                        ).strip().replace(",", ".")
-                    )
-                )
-            )
-        except Exception:
-            mutation_rate = 10
-
-        export_with_sheet_boundaries = _read_bool_combo(
-            panel.deepnest_export_sheet_boundaries,
-            False
-        )
-
-        export_with_sheets_space = _read_bool_combo(
-            panel.deepnest_export_sheets_space,
-            False
-        )
-
-        try:
-            export_with_sheets_space_value = max(
-                0.0,
-                float(
-                    str(
-                        panel.deepnest_export_sheets_space_value.text()
-                    ).strip().replace(",", ".")
-                )
-            )
-        except Exception:
-            export_with_sheets_space_value = 0.13888
-
         # Export every added sheet and offcut.
         sheets = []
 
@@ -938,7 +899,7 @@ def execute_nesting(panel):
             []
         ) or []:
             try:
-                sheet = _material_to_deepnest_sheet(
+                sheet = _material_to_cli_sheet(
                     material
                 )
                 
@@ -963,9 +924,7 @@ def execute_nesting(panel):
                     )
                 }
 
-                if sheet.get(
-                    "type"
-                ) == "rect":
+                if "width" in sheet:
                     if (
                         float(
                             sheet.get(
@@ -982,20 +941,17 @@ def execute_nesting(panel):
                     ):
                         sheets.append(sheet)
 
-                elif sheet.get(
-                    "type"
-                ) == "polygon":
-                    if len(
-                        sheet.get(
-                            "outer",
-                            []
-                        )
-                    ) >= 3:
-                        sheets.append(sheet)
+                elif len(
+                    sheet.get(
+                        "points",
+                        []
+                    )
+                ) >= 3:
+                    sheets.append(sheet)
 
             except Exception:
                 App.Console.PrintError(
-                    tr('failed_to_convert_material_to_deepnest_sheet')
+                    tr('failed_to_convert_material_to_cli_sheet')
                     + traceback.format_exc()
                 )
 
@@ -1165,7 +1121,7 @@ def execute_nesting(panel):
                 part_id = "part_%d" % len(parts)
 
                 parts.append({
-                    # Fields consumed by Deepnest.
+                    # Fields consumed by the nesting CLI.
                     "id": part_id,
                     "points": points,
                     "quantity": quantity,
@@ -1257,6 +1213,7 @@ def execute_nesting(panel):
                 )
 
         payload = {
+            "units": "mm",
             "schema_version": 1,
             "job_id": job_id,
             "created_at": created_at,
@@ -1270,40 +1227,24 @@ def execute_nesting(panel):
                 "result_file": "result.json",
                 "units": "mm"
             },
-            "settings": {
-                "units": "mm",
+            "config": {
+                # Only the bitmap algorithm is exposed; NFP is used
+                # internally for collision checking only.
+                "algorithm": "bitmap",
+                "mode": "first",
+                # Ignore the global rotation grid; each part uses its
+                # own per-part rotation.
+                "perPartRotationsOnly": True,
+                "resolution": 1.0,
+                "threads": threads,
                 "spacing": spacing,
                 "partToSheet": sheet_margin,
-                "partToHole": 0.0,
-                "curveTolerance": boundary_resolution,
-                "placementType": "gravity",
-                "simplify": False,
-                "threads": threads,
-                "useSvgPreProcessor": False,
-                "scale": 1.0,
-                "endpointTolerance": boundary_resolution,
-                "dxfImportScale": 1.0,
-                "dxfExportScale": 1.0,
-                "exportWithSheetBoundboarders": (
-                    export_with_sheet_boundaries
-                ),
-                "exportWithSheetsSpace": (
-                    export_with_sheets_space
-                ),
-                "exportWithSheetsSpaceValue": (
-                    export_with_sheets_space_value
-                ),
-                "mergeLines": True,
-                "timeRatio": time_ratio,
-                "populationSize": population_size,
-                "mutationRate": mutation_rate,
-                "useQuantityFromFileName": False
+                "partToHole": hole_clearance
             },
             "sheets": sheets,
             "parts": parts,
-            "autoStart": True,
             "output": {
-                "resultJson": "result.json"
+                "json": "result.json"
             }
         }
 

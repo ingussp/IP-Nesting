@@ -1324,7 +1324,7 @@ class NestingProcessManager(object):
         self.input_path = None
         self.result_path = None
         self.session_path = None
-        self.deepnest_path = None
+        self.cli_path = None
 
         self.job_id = None
         self.process_started_at = None
@@ -1345,17 +1345,17 @@ class NestingProcessManager(object):
         )
 
     # Return the nesting CLI executable located inside the workbench directory:
-    def _find_deepnest_executable(self):
+    def _find_nesting_cli_executable(self):
         """
         Return the nesting CLI executable located inside the workbench
         directory:
 
-            <workbench>/nesting-cli/nesting-cli.exe
+            <workbench>/nesting-cli/clinesting.exe
         """
         executable_path = os.path.join(
             self._module_directory(),
             "nesting-cli",
-            "nesting-cli.exe"
+            "clinesting.exe"
         )
 
         if os.path.isfile(executable_path):
@@ -1395,11 +1395,11 @@ class NestingProcessManager(object):
                 "nesting_session.json"
             )
 
-            self.deepnest_path = (
-                self._find_deepnest_executable()
+            self.cli_path = (
+                self._find_nesting_cli_executable()
             )
 
-            if not self.deepnest_path:
+            if not self.cli_path:
                 QtGui.QMessageBox.critical(
                     self.panel.form,
                     tr('nesting_error'),
@@ -1409,34 +1409,18 @@ class NestingProcessManager(object):
                     % os.path.join(
                         self._module_directory(),
                         "nesting-cli",
-                        "nesting-cli.exe"
+                        "clinesting.exe"
                     )
                 )
                 return False
 
-            # The nesting CLI writes result.json into its own directory.
-            deepnest_directory = os.path.dirname(
-                self.deepnest_path
-            )
-
+            # The nesting CLI resolves relative output paths against the
+            # directory containing input.json, so result.json lands next to
+            # the input file, not next to the executable.
             self.result_path = os.path.join(
-                deepnest_directory,
+                work_directory,
                 "result.json"
             )
-
-            if not self.deepnest_path:
-                QtGui.QMessageBox.critical(
-                    self.panel.form,
-                    tr('nesting_error'),
-                    (
-                        tr('nesting_cli_executable_was_not_found_expected_location_s')
-                    )
-                    % os.path.join(
-                        self._module_directory(),
-                        "nesting-cli.exe"
-                    )
-                )
-                return False
 
             session_data = _load_json_file(
                 self.session_path
@@ -1481,10 +1465,11 @@ class NestingProcessManager(object):
 
             self.process = subprocess.Popen(
                 [
-                    self.deepnest_path,
+                    self.cli_path,
+                    "--input",
                     self.input_path
                 ],
-                cwd=deepnest_directory,
+                cwd=work_directory,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT
             )

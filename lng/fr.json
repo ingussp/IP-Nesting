@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Document d'aperçu introuvable : %s\n",
   "execute_nesting_failed": "execute_nesting: échec:\n",
   "preview_document_recompute_failed_before_export": "Échec du recalcul du document d'aperçu avant l'exportation :\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Impossible de convertir le matériau en plaque Nesting CLI :\n",
+  "failed_to_convert_material_to_cli_sheet": "Impossible de convertir le matériau en plaque Nesting CLI :\n",
   "part_row_d_has_no_preview_object_name": "La ligne de pièce %d n'a pas de nom d'objet d'aperçu.\n",
   "preview_object_not_found_s": "Objet d'aperçu introuvable : %s\n",
   "exporting_s_with_current_placement_s": "Exportation de '%s' avec sa propriété Placement actuelle : %s\n",

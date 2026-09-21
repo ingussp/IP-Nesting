@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Dokumen pratinjau tidak ditemukan: %s\n",
   "execute_nesting_failed": "execute_nesting: gagal:\n",
   "preview_document_recompute_failed_before_export": "Penghitungan ulang dokumen pratinjau sebelum ekspor gagal:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Gagal mengonversi bahan menjadi lembaran CLI Penataan:\n",
+  "failed_to_convert_material_to_cli_sheet": "Gagal mengonversi bahan menjadi lembaran CLI Penataan:\n",
   "part_row_d_has_no_preview_object_name": "Baris komponen %d tidak memiliki nama objek pratinjau.\n",
   "preview_object_not_found_s": "Objek pratinjau tidak ditemukan: %s\n",
   "exporting_s_with_current_placement_s": "Mengekspor '%s' dengan Placement saat ini: %s\n",
