@@ -6,10 +6,10 @@
     "perimeter.label": "%s Label"
   },
   "lv": {
-    "perimeter.with_grain": "Detaļas ar tekstūras virzienu",
-    "perimeter.without_grain": "Detaļas bez tekstūras virziena",
     "perimeter.border": "%s Perimetrs",
-    "perimeter.label": "%s Uzraksts"
+    "perimeter.label": "%s Uzraksts",
+    "perimeter.with_grain": "Detaļas ar tekstūras virzienu",
+    "perimeter.without_grain": "Detaļas bez tekstūras virziena"
   },
   "ja": {
     "perimeter.with_grain": "木目方向ありの部品",
@@ -24,280 +24,555 @@
     "perimeter.label": "ป้ายกำกับ %s"
   },
   "ar": {
+    "perimeter.with_grain": "أجزاء ذات اتجاه الألياف",
+    "perimeter.without_grain": "أجزاء بدون توجيه الألياف",
+    "perimeter.border": "محيط %s",
+    "perimeter.label": "تسمية %s"
+  },
+  "az": {
+    "perimeter.with_grain": "Fiber istiqamətində olan hissələr",
+    "perimeter.without_grain": "Fiber istiqamətsiz hissələr",
+    "perimeter.border": "%s Kontur",
+    "perimeter.label": "%s Yazı"
+  },
+  "bn": {
+    "perimeter.with_grain": "ফাইবার দিকনির্দেশক অংশ",
+    "perimeter.without_grain": "ফাইবার দিকনির্দেশনা ছাড়াই অংশ",
+    "perimeter.border": "%s বহিরেখা",
+    "perimeter.label": "%s লেবেল"
+  },
+  "bg": {
+    "perimeter.with_grain": "Части с насочен влакно",
+    "perimeter.without_grain": "Части без насока на влакна",
+    "perimeter.border": "%s Контур",
+    "perimeter.label": "%s Надпис"
+  },
+  "hr": {
+    "perimeter.with_grain": "Čestici s pravcem vlakana",
+    "perimeter.without_grain": "Čestici bez smjernice vlakana",
+    "perimeter.border": "%s Obris",
+    "perimeter.label": "%s Oznaka"
+  },
+  "cs": {
+    "perimeter.with_grain": "Části s směrem vlákna",
+    "perimeter.without_grain": "Části bez směru vlákniny",
+    "perimeter.border": "%s Obrys",
+    "perimeter.label": "%s Popisek"
+  },
+  "da": {
+    "perimeter.with_grain": "Stykker med fiberretning",
+    "perimeter.without_grain": "Stykker uden fiberledning",
+    "perimeter.border": "%s Omrids",
+    "perimeter.label": "%s Etiket"
+  },
+  "et": {
+    "perimeter.with_grain": "Valgusrünnid",
+    "perimeter.without_grain": "Valgusvõimsus",
+    "perimeter.border": "%s Piirjoon",
+    "perimeter.label": "%s Silt"
+  },
+  "fil": {
+    "perimeter.with_grain": "Mga bahagi na may direksyon ng fiber",
+    "perimeter.without_grain": "Mga bahagi na walang direksyon ng fiber",
+    "perimeter.border": "%s Balangkas",
+    "perimeter.label": "%s Etiketa"
+  },
+  "fi": {
+    "perimeter.with_grain": "Valmistuvat osat",
+    "perimeter.without_grain": "Muut osat",
+    "perimeter.border": "%s Ääriviiva",
+    "perimeter.label": "%s Tunniste"
+  },
+  "el": {
+    "perimeter.with_grain": "Μέρη με κατεύθυνση ινών",
+    "perimeter.without_grain": "Μέρη χωρίς κατεύθυνση ινών",
+    "perimeter.border": "%s Περίγραμμα",
+    "perimeter.label": "%s Ετικέτα"
+  },
+  "he": {
+    "perimeter.with_grain": "חלקים עם כיוון סיבים",
+    "perimeter.without_grain": "חלקי ללא כיוון סיבים",
+    "perimeter.border": "%s קו מתאר",
+    "perimeter.label": "%s תווית"
+  },
+  "hi": {
+    "perimeter.with_grain": "फाइबर दिशा वाले भाग",
+    "perimeter.without_grain": "फाइबर दिशा रहित भाग",
+    "perimeter.border": "%s बाहरी रेखा",
+    "perimeter.label": "%s लेबल"
+  },
+  "hu": {
+    "perimeter.with_grain": "Főszálból készült alkatrészek",
+    "perimeter.without_grain": "Főszálból készült alkatrészek",
+    "perimeter.border": "%s Körvonal",
+    "perimeter.label": "%s Felirat"
+  },
+  "ga": {
+    "perimeter.with_grain": "De chuid le treoir uasteorainne",
+    "perimeter.without_grain": "Cinntí agus cnámha",
+    "perimeter.border": "%s Imlíne",
+    "perimeter.label": "%s Lipéad"
+  },
+  "kk": {
+    "perimeter.with_grain": "Көмiрмен бағытталатын бөлшектер",
+    "perimeter.without_grain": "Көмiрмен бағытталмаған бөлшектер",
+    "perimeter.border": "%s Контур",
+    "perimeter.label": "%s Жазу"
+  },
+  "km": {
+    "perimeter.with_grain": "ផ្នែក ដែលមាន ការចង្អុលបង្ហាញ ដោយ ខ្សែ",
+    "perimeter.without_grain": "ផ្នែក ដែល គ្មាន ការចង្អុល",
+    "perimeter.border": "%s គ្រោង",
+    "perimeter.label": "%s ស្លាក"
+  },
+  "ko": {
+    "perimeter.with_grain": "섬유 방향 부품",
+    "perimeter.without_grain": "섬유 방향 없는 부품",
+    "perimeter.border": "%s 외곽선",
+    "perimeter.label": "%s 레이블"
+  },
+  "lt": {
+    "perimeter.with_grain": "Dalis su pluošto nukreipimu",
+    "perimeter.without_grain": "Dėmenys be pluošto nukreipimo",
+    "perimeter.border": "%s Kontūras",
+    "perimeter.label": "%s Užrašas"
+  },
+  "ms": {
+    "perimeter.with_grain": "Bahagian dengan arah serat",
+    "perimeter.without_grain": "Bahagian tanpa arah serat",
+    "perimeter.border": "%s Garis luar",
+    "perimeter.label": "%s Label"
+  },
+  "mt": {
+    "perimeter.with_grain": "Partijiet b'direzzjoni tal-fibra",
+    "perimeter.without_grain": "Partijiet mingħajr direzzjoni tal-fibri",
+    "perimeter.border": "%s Kontorn",
+    "perimeter.label": "%s Tikketta"
+  },
+  "my": {
+    "perimeter.with_grain": "အမျှင်လမ်းကြောင်းနှင့်ဆိုင်သော အစိတ်အပိုင်းများ",
+    "perimeter.without_grain": "အမျှင်မောင်းနှင်သော အစိတ်အပိုင်းများ",
+    "perimeter.border": "%s အနားသတ်မျဉ်း",
+    "perimeter.label": "%s အညွှန်း"
+  },
+  "ne": {
+    "perimeter.with_grain": "फाइबर दिशाका भागहरू",
+    "perimeter.without_grain": "फाइबर दिशा बिनाको भागहरू",
+    "perimeter.border": "%s बाहिरी रेखा",
+    "perimeter.label": "%s लेबल"
+  },
+  "ps": {
+    "perimeter.with_grain": "د فایبر لارښوونې برخې",
+    "perimeter.without_grain": "د فایبر لارښود پرته برخې",
+    "perimeter.border": "%s بهرنۍ کرښه",
+    "perimeter.label": "%s نښه"
+  },
+  "fa": {
+    "perimeter.with_grain": "قطعات با جهت فیبر",
+    "perimeter.without_grain": "قطعات بدون جهت فیبر",
+    "perimeter.border": "%s خط پیرامونی",
+    "perimeter.label": "%s برچسب"
+  },
+  "pl": {
+    "perimeter.with_grain": "Części z kierunkiem włókna",
+    "perimeter.without_grain": "Części bez kierunku włókna",
+    "perimeter.border": "%s Obrys",
+    "perimeter.label": "%s Etykieta"
+  },
+  "pt": {
+    "perimeter.with_grain": "Parças com direcção de fibras",
+    "perimeter.without_grain": "Partes sem direcção de fibras",
+    "perimeter.border": "%s Contorno",
+    "perimeter.label": "%s Etiqueta"
+  },
+  "ru": {
+    "perimeter.with_grain": "Детали с направлением волокон",
+    "perimeter.without_grain": "Детали без направления волокон",
+    "perimeter.border": "%s Контур",
+    "perimeter.label": "%s Надпись"
+  },
+  "si": {
+    "perimeter.with_grain": "ෆයිබර් දිශාව සහිත කොටස්",
+    "perimeter.without_grain": "ෆයිබර් දිශාව නැති කොටස්",
+    "perimeter.border": "%s පිටත දළ සටහන",
+    "perimeter.label": "%s ලේබලය"
+  },
+  "sk": {
+    "perimeter.with_grain": "Ostatné časti s smerom vlákna",
+    "perimeter.without_grain": "Ostatné časti bez smeru vlákniny",
+    "perimeter.border": "%s Obrys",
+    "perimeter.label": "%s Popis"
+  },
+  "sl": {
+    "perimeter.with_grain": "Členovi z usmeritvijo vlaken",
+    "perimeter.without_grain": "Členki brez smeri vlaken",
+    "perimeter.border": "%s Obris",
+    "perimeter.label": "%s Oznaka"
+  },
+  "sv": {
+    "perimeter.with_grain": "Världsblandningar",
+    "perimeter.without_grain": "Andra delar utan fibrriktning",
+    "perimeter.border": "%s Kontur",
+    "perimeter.label": "%s Etikett"
+  },
+  "tg": {
+    "perimeter.with_grain": "Қисмҳои бо равияи фибро",
+    "perimeter.without_grain": "Қисмҳои бе равияи фибро",
+    "perimeter.border": "%s Хатти канорӣ",
+    "perimeter.label": "%s Навиштаҷот"
+  },
+  "tr": {
+    "perimeter.with_grain": "Fiber yönlü parçalar",
+    "perimeter.without_grain": "Fiber yönü olmayan parçalar",
+    "perimeter.border": "%s Dış hat",
+    "perimeter.label": "%s Etiket"
+  },
+  "uk": {
+    "perimeter.with_grain": "Части з напрямком волокон",
+    "perimeter.without_grain": "Частини без напрямку волокон",
+    "perimeter.border": "%s Контур",
+    "perimeter.label": "%s Напис"
+  },
+  "ur": {
+    "perimeter.with_grain": "فائبر کی سمت والے حصے",
+    "perimeter.without_grain": "فائبر کی سمت کے بغیر حصے",
+    "perimeter.border": "%s بیرونی خاکہ",
+    "perimeter.label": "%s لیبل"
+  },
+  "uz": {
+    "perimeter.with_grain": "Fiber yo'nalishidagi qismlar",
+    "perimeter.without_grain": "Issiqlik qismlari",
+    "perimeter.border": "%s Kontur",
+    "perimeter.label": "%s Yozuv"
+  },
+  "vi": {
+    "perimeter.with_grain": "Các bộ phận có đường dẫn sợi",
+    "perimeter.without_grain": "Các bộ phận không có đường dẫn sợi",
+    "perimeter.border": "%s Đường bao",
+    "perimeter.label": "%s Nhãn"
+  },
+  "zh-Hans": {
+    "perimeter.with_grain": "有纹理方向的零件",
+    "perimeter.without_grain": "无纹理方向的零件",
+    "perimeter.border": "%s 边框",
+    "perimeter.label": "%s 标签"
+  },
+  "nl": {
+    "perimeter.with_grain": "Onderdelen met nerfrichting",
+    "perimeter.without_grain": "Onderdelen zonder nerfrichting",
+    "perimeter.border": "%s-rand",
+    "perimeter.label": "%s-label"
+  },
+  "fr": {
+    "perimeter.with_grain": "Pièces avec sens du fil",
+    "perimeter.without_grain": "Pièces sans sens du fil",
+    "perimeter.border": "%s Contour",
+    "perimeter.label": "%s Libellé"
+  },
+  "de": {
+    "perimeter.with_grain": "Teile mit Faserrichtung",
+    "perimeter.without_grain": "Teile ohne Faserrichtung",
+    "perimeter.border": "%s Umrandung",
+    "perimeter.label": "%s Beschriftung"
+  },
+  "id": {
+    "perimeter.with_grain": "Komponen dengan arah serat",
+    "perimeter.without_grain": "Komponen tanpa arah serat",
+    "perimeter.border": "Batas %s",
+    "perimeter.label": "Label %s"
+  },
+  "it": {
+    "perimeter.with_grain": "Parti con direzione della venatura",
+    "perimeter.without_grain": "Parti senza direzione della venatura",
+    "perimeter.border": "Bordo %s",
+    "perimeter.label": "Etichetta %s"
+  },
+  "ro": {
+    "perimeter.with_grain": "Piese cu direcția fibrei",
+    "perimeter.without_grain": "Piese fără direcția fibrei",
+    "perimeter.border": "Contur %s",
+    "perimeter.label": "Etichetă %s"
+  },
+  "es": {
+    "perimeter.with_grain": "Piezas con dirección de veta",
+    "perimeter.without_grain": "Piezas sin dirección de veta",
+    "perimeter.border": "%s Contorno",
+    "perimeter.label": "%s Etiqueta"
+  },
+  "ar-legacy": {
     "perimeter.with_grain": "الجسم (اتجاه الألياف)",
     "perimeter.without_grain": "الجسم (— اتجاه الألياف)",
     "perimeter.border": "%s اتجاه الألياف",
     "perimeter.label": "%s"
   },
-  "az": {
+  "az-legacy": {
     "perimeter.with_grain": "Cisim (Lif istiqaməti)",
     "perimeter.without_grain": "Cisim (— Lif istiqaməti)",
     "perimeter.border": "%s Lif istiqaməti",
     "perimeter.label": "%s"
   },
-  "bn": {
+  "bn-legacy": {
     "perimeter.with_grain": "বডি (শস্যের দিক)",
     "perimeter.without_grain": "বডি (— শস্যের দিক)",
     "perimeter.border": "%s শস্যের দিক",
     "perimeter.label": "%s"
   },
-  "bg": {
+  "bg-legacy": {
     "perimeter.with_grain": "Тяло (Посока на влакната)",
     "perimeter.without_grain": "Тяло (— Посока на влакната)",
     "perimeter.border": "%s Посока на влакната",
     "perimeter.label": "%s"
   },
-  "hr": {
-    "perimeter.with_grain": "Tijelo (Smjer vlakana)",
-    "perimeter.without_grain": "Tijelo (— Smjer vlakana)",
-    "perimeter.border": "%s Smjer vlakana",
-    "perimeter.label": "%s"
-  },
-  "cs": {
-    "perimeter.with_grain": "Těleso (Směr vláken)",
-    "perimeter.without_grain": "Těleso (— Směr vláken)",
-    "perimeter.border": "%s Směr vláken",
-    "perimeter.label": "%s"
-  },
-  "da": {
-    "perimeter.with_grain": "Krop (Fiberretning)",
-    "perimeter.without_grain": "Krop (— Fiberretning)",
-    "perimeter.border": "%s Fiberretning",
-    "perimeter.label": "%s"
-  },
-  "et": {
-    "perimeter.with_grain": "Keha (Kiudude suund)",
-    "perimeter.without_grain": "Keha (— Kiudude suund)",
-    "perimeter.border": "%s Kiudude suund",
-    "perimeter.label": "%s"
-  },
-  "fil": {
-    "perimeter.with_grain": "Katawan (Direksyon ng hibla)",
-    "perimeter.without_grain": "Katawan (— Direksyon ng hibla)",
-    "perimeter.border": "%s Direksyon ng hibla",
-    "perimeter.label": "%s"
-  },
-  "fi": {
-    "perimeter.with_grain": "Kappale (Syysuunta)",
-    "perimeter.without_grain": "Kappale (— Syysuunta)",
-    "perimeter.border": "%s Syysuunta",
-    "perimeter.label": "%s"
-  },
-  "el": {
-    "perimeter.with_grain": "Σώμα (Κατεύθυνση νερών)",
-    "perimeter.without_grain": "Σώμα (— Κατεύθυνση νερών)",
-    "perimeter.border": "%s Κατεύθυνση νερών",
-    "perimeter.label": "%s"
-  },
-  "he": {
-    "perimeter.with_grain": "גוף (כיוון הסיבים)",
-    "perimeter.without_grain": "גוף (— כיוון הסיבים)",
-    "perimeter.border": "%s כיוון הסיבים",
-    "perimeter.label": "%s"
-  },
-  "hi": {
-    "perimeter.with_grain": "बॉडी (दाने की दिशा)",
-    "perimeter.without_grain": "बॉडी (— दाने की दिशा)",
-    "perimeter.border": "%s दाने की दिशा",
-    "perimeter.label": "%s"
-  },
-  "hu": {
-    "perimeter.with_grain": "Test (Szálirány)",
-    "perimeter.without_grain": "Test (— Szálirány)",
-    "perimeter.border": "%s Szálirány",
-    "perimeter.label": "%s"
-  },
-  "ga": {
-    "perimeter.with_grain": "Corp (Treo snáithíní)",
-    "perimeter.without_grain": "Corp (— Treo snáithíní)",
-    "perimeter.border": "%s Treo snáithíní",
-    "perimeter.label": "%s"
-  },
-  "kk": {
-    "perimeter.with_grain": "Дене (Талшық бағыты)",
-    "perimeter.without_grain": "Дене (— Талшық бағыты)",
-    "perimeter.border": "%s Талшық бағыты",
-    "perimeter.label": "%s"
-  },
-  "km": {
-    "perimeter.with_grain": "តួ (ទិសសរសៃ)",
-    "perimeter.without_grain": "តួ (— ទិសសរសៃ)",
-    "perimeter.border": "%s ទិសសរសៃ",
-    "perimeter.label": "%s"
-  },
-  "ko": {
-    "perimeter.with_grain": "바디 (결 방향)",
-    "perimeter.without_grain": "바디 (— 결 방향)",
-    "perimeter.border": "%s 결 방향",
-    "perimeter.label": "%s"
-  },
-  "lt": {
-    "perimeter.with_grain": "Kūnas (Pluošto kryptis)",
-    "perimeter.without_grain": "Kūnas (— Pluošto kryptis)",
-    "perimeter.border": "%s Pluošto kryptis",
-    "perimeter.label": "%s"
-  },
-  "ms": {
-    "perimeter.with_grain": "Badan (Arah ira)",
-    "perimeter.without_grain": "Badan (— Arah ira)",
-    "perimeter.border": "%s Arah ira",
-    "perimeter.label": "%s"
-  },
-  "mt": {
-    "perimeter.with_grain": "Korp (Direzzjoni tal-fibra)",
-    "perimeter.without_grain": "Korp (— Direzzjoni tal-fibra)",
-    "perimeter.border": "%s Direzzjoni tal-fibra",
-    "perimeter.label": "%s"
-  },
-  "my": {
-    "perimeter.with_grain": "ကိုယ်ထည် (အမျှင်ဦးတည်ချက်)",
-    "perimeter.without_grain": "ကိုယ်ထည် (— အမျှင်ဦးတည်ချက်)",
-    "perimeter.border": "%s အမျှင်ဦးတည်ချက်",
-    "perimeter.label": "%s"
-  },
-  "ne": {
-    "perimeter.with_grain": "बडी (दानाको दिशा)",
-    "perimeter.without_grain": "बडी (— दानाको दिशा)",
-    "perimeter.border": "%s दानाको दिशा",
-    "perimeter.label": "%s"
-  },
-  "ps": {
-    "perimeter.with_grain": "بدن (د فایبر لوری)",
-    "perimeter.without_grain": "بدن (— د فایبر لوری)",
-    "perimeter.border": "%s د فایبر لوری",
-    "perimeter.label": "%s"
-  },
-  "fa": {
-    "perimeter.with_grain": "بدنه (جهت الیاف)",
-    "perimeter.without_grain": "بدنه (— جهت الیاف)",
-    "perimeter.border": "%s جهت الیاف",
-    "perimeter.label": "%s"
-  },
-  "pl": {
-    "perimeter.with_grain": "Korpus (Kierunek włókien)",
-    "perimeter.without_grain": "Korpus (— Kierunek włókien)",
-    "perimeter.border": "%s Kierunek włókien",
-    "perimeter.label": "%s"
-  },
-  "pt": {
-    "perimeter.with_grain": "Corpo (Direção do veio)",
-    "perimeter.without_grain": "Corpo (— Direção do veio)",
-    "perimeter.border": "%s Direção do veio",
-    "perimeter.label": "%s"
-  },
-  "ru": {
-    "perimeter.with_grain": "Тело (Направление волокон)",
-    "perimeter.without_grain": "Тело (— Направление волокон)",
-    "perimeter.border": "%s Направление волокон",
-    "perimeter.label": "%s"
-  },
-  "si": {
-    "perimeter.with_grain": "ශරීරය (තන්තු දිශාව)",
-    "perimeter.without_grain": "ශරීරය (— තන්තු දිශාව)",
-    "perimeter.border": "%s තන්තු දිශාව",
-    "perimeter.label": "%s"
-  },
-  "sk": {
-    "perimeter.with_grain": "Teleso (Smer vlákien)",
-    "perimeter.without_grain": "Teleso (— Smer vlákien)",
-    "perimeter.border": "%s Smer vlákien",
-    "perimeter.label": "%s"
-  },
-  "sl": {
-    "perimeter.with_grain": "Telo (Smer vlaken)",
-    "perimeter.without_grain": "Telo (— Smer vlaken)",
-    "perimeter.border": "%s Smer vlaken",
-    "perimeter.label": "%s"
-  },
-  "sv": {
-    "perimeter.with_grain": "Kropp (Fiberriktning)",
-    "perimeter.without_grain": "Kropp (— Fiberriktning)",
-    "perimeter.border": "%s Fiberriktning",
-    "perimeter.label": "%s"
-  },
-  "tg": {
-    "perimeter.with_grain": "Ҷисм (Самти нах)",
-    "perimeter.without_grain": "Ҷисм (— Самти нах)",
-    "perimeter.border": "%s Самти нах",
-    "perimeter.label": "%s"
-  },
-  "tr": {
-    "perimeter.with_grain": "Gövde (Damar yönü)",
-    "perimeter.without_grain": "Gövde (— Damar yönü)",
-    "perimeter.border": "%s Damar yönü",
-    "perimeter.label": "%s"
-  },
-  "uk": {
-    "perimeter.with_grain": "Тіло (Напрямок волокон)",
-    "perimeter.without_grain": "Тіло (— Напрямок волокон)",
-    "perimeter.border": "%s Напрямок волокон",
-    "perimeter.label": "%s"
-  },
-  "ur": {
-    "perimeter.with_grain": "جسم (ریشے کی سمت)",
-    "perimeter.without_grain": "جسم (— ریشے کی سمت)",
-    "perimeter.border": "%s ریشے کی سمت",
-    "perimeter.label": "%s"
-  },
-  "uz": {
-    "perimeter.with_grain": "Jism (Tola yo‘nalishi)",
-    "perimeter.without_grain": "Jism (— Tola yo‘nalishi)",
-    "perimeter.border": "%s Tola yo‘nalishi",
-    "perimeter.label": "%s"
-  },
-  "vi": {
-    "perimeter.with_grain": "Thân (Hướng thớ)",
-    "perimeter.without_grain": "Thân (— Hướng thớ)",
-    "perimeter.border": "%s Hướng thớ",
-    "perimeter.label": "%s"
-  },
-  "zh-Hans": {
+  "zh-Hans-legacy": {
     "perimeter.with_grain": "实体 (纹理)",
     "perimeter.without_grain": "实体 (no 纹理)",
     "perimeter.border": "%s 纹理",
     "perimeter.label": "%s"
   },
-  "nl": {
+  "hr-legacy": {
+    "perimeter.with_grain": "Tijelo (Smjer vlakana)",
+    "perimeter.without_grain": "Tijelo (— Smjer vlakana)",
+    "perimeter.border": "%s Smjer vlakana",
+    "perimeter.label": "%s"
+  },
+  "cs-legacy": {
+    "perimeter.with_grain": "Těleso (Směr vláken)",
+    "perimeter.without_grain": "Těleso (— Směr vláken)",
+    "perimeter.border": "%s Směr vláken",
+    "perimeter.label": "%s"
+  },
+  "da-legacy": {
+    "perimeter.with_grain": "Krop (Fiberretning)",
+    "perimeter.without_grain": "Krop (— Fiberretning)",
+    "perimeter.border": "%s Fiberretning",
+    "perimeter.label": "%s"
+  },
+  "nl-legacy": {
     "perimeter.with_grain": "Lichaam (Nerf)",
     "perimeter.without_grain": "Lichaam (no Nerf)",
     "perimeter.border": "%s Nerf",
     "perimeter.label": "%s"
   },
-  "fr": {
+  "et-legacy": {
+    "perimeter.with_grain": "Keha (Kiudude suund)",
+    "perimeter.without_grain": "Keha (— Kiudude suund)",
+    "perimeter.border": "%s Kiudude suund",
+    "perimeter.label": "%s"
+  },
+  "fil-legacy": {
+    "perimeter.with_grain": "Katawan (Direksyon ng hibla)",
+    "perimeter.without_grain": "Katawan (— Direksyon ng hibla)",
+    "perimeter.border": "%s Direksyon ng hibla",
+    "perimeter.label": "%s"
+  },
+  "fi-legacy": {
+    "perimeter.with_grain": "Kappale (Syysuunta)",
+    "perimeter.without_grain": "Kappale (— Syysuunta)",
+    "perimeter.border": "%s Syysuunta",
+    "perimeter.label": "%s"
+  },
+  "fr-legacy": {
     "perimeter.with_grain": "Corps (Fil)",
     "perimeter.without_grain": "Corps (no Fil)",
     "perimeter.border": "%s Fil",
     "perimeter.label": "%s"
   },
-  "de": {
+  "de-legacy": {
     "perimeter.with_grain": "Körper (Faser)",
     "perimeter.without_grain": "Körper (no Faser)",
     "perimeter.border": "%s Faser",
     "perimeter.label": "%s"
   },
-  "id": {
+  "el-legacy": {
+    "perimeter.with_grain": "Σώμα (Κατεύθυνση νερών)",
+    "perimeter.without_grain": "Σώμα (— Κατεύθυνση νερών)",
+    "perimeter.border": "%s Κατεύθυνση νερών",
+    "perimeter.label": "%s"
+  },
+  "he-legacy": {
+    "perimeter.with_grain": "גוף (כיוון הסיבים)",
+    "perimeter.without_grain": "גוף (— כיוון הסיבים)",
+    "perimeter.border": "%s כיוון הסיבים",
+    "perimeter.label": "%s"
+  },
+  "hi-legacy": {
+    "perimeter.with_grain": "बॉडी (दाने की दिशा)",
+    "perimeter.without_grain": "बॉडी (— दाने की दिशा)",
+    "perimeter.border": "%s दाने की दिशा",
+    "perimeter.label": "%s"
+  },
+  "hu-legacy": {
+    "perimeter.with_grain": "Test (Szálirány)",
+    "perimeter.without_grain": "Test (— Szálirány)",
+    "perimeter.border": "%s Szálirány",
+    "perimeter.label": "%s"
+  },
+  "id-legacy": {
     "perimeter.with_grain": "Badan (Serat)",
     "perimeter.without_grain": "Badan (no Serat)",
     "perimeter.border": "%s Serat",
     "perimeter.label": "%s"
   },
-  "it": {
+  "ga-legacy": {
+    "perimeter.with_grain": "Corp (Treo snáithíní)",
+    "perimeter.without_grain": "Corp (— Treo snáithíní)",
+    "perimeter.border": "%s Treo snáithíní",
+    "perimeter.label": "%s"
+  },
+  "it-legacy": {
     "perimeter.with_grain": "Corpo (Venatura)",
     "perimeter.without_grain": "Corpo (no Venatura)",
     "perimeter.border": "%s Venatura",
     "perimeter.label": "%s"
   },
-  "ro": {
+  "kk-legacy": {
+    "perimeter.with_grain": "Дене (Талшық бағыты)",
+    "perimeter.without_grain": "Дене (— Талшық бағыты)",
+    "perimeter.border": "%s Талшық бағыты",
+    "perimeter.label": "%s"
+  },
+  "km-legacy": {
+    "perimeter.with_grain": "តួ (ទិសសរសៃ)",
+    "perimeter.without_grain": "តួ (— ទិសសរសៃ)",
+    "perimeter.border": "%s ទិសសរសៃ",
+    "perimeter.label": "%s"
+  },
+  "ko-legacy": {
+    "perimeter.with_grain": "바디 (결 방향)",
+    "perimeter.without_grain": "바디 (— 결 방향)",
+    "perimeter.border": "%s 결 방향",
+    "perimeter.label": "%s"
+  },
+  "lt-legacy": {
+    "perimeter.with_grain": "Kūnas (Pluošto kryptis)",
+    "perimeter.without_grain": "Kūnas (— Pluošto kryptis)",
+    "perimeter.border": "%s Pluošto kryptis",
+    "perimeter.label": "%s"
+  },
+  "ms-legacy": {
+    "perimeter.with_grain": "Badan (Arah ira)",
+    "perimeter.without_grain": "Badan (— Arah ira)",
+    "perimeter.border": "%s Arah ira",
+    "perimeter.label": "%s"
+  },
+  "mt-legacy": {
+    "perimeter.with_grain": "Korp (Direzzjoni tal-fibra)",
+    "perimeter.without_grain": "Korp (— Direzzjoni tal-fibra)",
+    "perimeter.border": "%s Direzzjoni tal-fibra",
+    "perimeter.label": "%s"
+  },
+  "my-legacy": {
+    "perimeter.with_grain": "ကိုယ်ထည် (အမျှင်ဦးတည်ချက်)",
+    "perimeter.without_grain": "ကိုယ်ထည် (— အမျှင်ဦးတည်ချက်)",
+    "perimeter.border": "%s အမျှင်ဦးတည်ချက်",
+    "perimeter.label": "%s"
+  },
+  "ne-legacy": {
+    "perimeter.with_grain": "बडी (दानाको दिशा)",
+    "perimeter.without_grain": "बडी (— दानाको दिशा)",
+    "perimeter.border": "%s दानाको दिशा",
+    "perimeter.label": "%s"
+  },
+  "ps-legacy": {
+    "perimeter.with_grain": "بدن (د فایبر لوری)",
+    "perimeter.without_grain": "بدن (— د فایبر لوری)",
+    "perimeter.border": "%s د فایبر لوری",
+    "perimeter.label": "%s"
+  },
+  "fa-legacy": {
+    "perimeter.with_grain": "بدنه (جهت الیاف)",
+    "perimeter.without_grain": "بدنه (— جهت الیاف)",
+    "perimeter.border": "%s جهت الیاف",
+    "perimeter.label": "%s"
+  },
+  "pl-legacy": {
+    "perimeter.with_grain": "Korpus (Kierunek włókien)",
+    "perimeter.without_grain": "Korpus (— Kierunek włókien)",
+    "perimeter.border": "%s Kierunek włókien",
+    "perimeter.label": "%s"
+  },
+  "pt-legacy": {
+    "perimeter.with_grain": "Corpo (Direção do veio)",
+    "perimeter.without_grain": "Corpo (— Direção do veio)",
+    "perimeter.border": "%s Direção do veio",
+    "perimeter.label": "%s"
+  },
+  "ro-legacy": {
     "perimeter.with_grain": "Corp (Fibră)",
     "perimeter.without_grain": "Corp (no Fibră)",
     "perimeter.border": "%s Fibră",
     "perimeter.label": "%s"
   },
-  "es": {
+  "ru-legacy": {
+    "perimeter.with_grain": "Тело (Направление волокон)",
+    "perimeter.without_grain": "Тело (— Направление волокон)",
+    "perimeter.border": "%s Направление волокон",
+    "perimeter.label": "%s"
+  },
+  "si-legacy": {
+    "perimeter.with_grain": "ශරීරය (තන්තු දිශාව)",
+    "perimeter.without_grain": "ශරීරය (— තන්තු දිශාව)",
+    "perimeter.border": "%s තන්තු දිශාව",
+    "perimeter.label": "%s"
+  },
+  "sk-legacy": {
+    "perimeter.with_grain": "Teleso (Smer vlákien)",
+    "perimeter.without_grain": "Teleso (— Smer vlákien)",
+    "perimeter.border": "%s Smer vlákien",
+    "perimeter.label": "%s"
+  },
+  "sl-legacy": {
+    "perimeter.with_grain": "Telo (Smer vlaken)",
+    "perimeter.without_grain": "Telo (— Smer vlaken)",
+    "perimeter.border": "%s Smer vlaken",
+    "perimeter.label": "%s"
+  },
+  "es-legacy": {
     "perimeter.with_grain": "Cuerpo (Veta)",
     "perimeter.without_grain": "Cuerpo (no Veta)",
     "perimeter.border": "%s Veta",
     "perimeter.label": "%s"
+  },
+  "sv-legacy": {
+    "perimeter.with_grain": "Kropp (Fiberriktning)",
+    "perimeter.without_grain": "Kropp (— Fiberriktning)",
+    "perimeter.border": "%s Fiberriktning",
+    "perimeter.label": "%s"
+  },
+  "tg-legacy": {
+    "perimeter.with_grain": "Ҷисм (Самти нах)",
+    "perimeter.without_grain": "Ҷисм (— Самти нах)",
+    "perimeter.border": "%s Самти нах",
+    "perimeter.label": "%s"
+  },
+  "tr-legacy": {
+    "perimeter.with_grain": "Gövde (Damar yönü)",
+    "perimeter.without_grain": "Gövde (— Damar yönü)",
+    "perimeter.border": "%s Damar yönü",
+    "perimeter.label": "%s"
+  },
+  "uk-legacy": {
+    "perimeter.with_grain": "Тіло (Напрямок волокон)",
+    "perimeter.without_grain": "Тіло (— Напрямок волокон)",
+    "perimeter.border": "%s Напрямок волокон",
+    "perimeter.label": "%s"
+  },
+  "ur-legacy": {
+    "perimeter.with_grain": "جسم (ریشے کی سمت)",
+    "perimeter.without_grain": "جسم (— ریشے کی سمت)",
+    "perimeter.border": "%s ریشے کی سمت",
+    "perimeter.label": "%s"
+  },
+  "uz-legacy": {
+    "perimeter.with_grain": "Jism (Tola yo‘nalishi)",
+    "perimeter.without_grain": "Jism (— Tola yo‘nalishi)",
+    "perimeter.border": "%s Tola yo‘nalishi",
+    "perimeter.label": "%s"
+  },
+  "vi-legacy": {
+    "perimeter.with_grain": "Thân (Hướng thớ)",
+    "perimeter.without_grain": "Thân (— Hướng thớ)",
+    "perimeter.border": "%s Hướng thớ",
+    "perimeter.label": "%s"
   }
 }
-
