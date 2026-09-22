@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Dokument wstępny nie znaleziony: %s\n",
   "execute_nesting_failed": "execute_nesting nie powiodło się:\n",
   "preview_document_recompute_failed_before_export": "W przypadku, gdy dokument wstępny nie jest wyliczany przed wywozem:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Nieprzekonanie materiału do układu części CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Nieprzekonanie materiału do układu części CLI:\n",
   "part_row_d_has_no_preview_object_name": "W rzędzie %d nie ma nazwy obiektu przeglądowego.\n",
   "preview_object_not_found_s": "Przedwzór obiektu nie znaleziony: %s\n",
   "exporting_s_with_current_placement_s": "Eksport%s\" z prądem Placement: %s\n",

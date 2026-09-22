@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Не е намерен предварителен документ: %s\n",
   "execute_nesting_failed": "execute_nesting не е изпълнен:\n",
   "preview_document_recompute_failed_before_export": "Преизчисляване на предварителния документ не е успяло преди износ:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Несъвместимост на материала с устройство на части CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Несъвместимост на материала с устройство на части CLI:\n",
   "part_row_d_has_no_preview_object_name": "Част ред %d няма име на предварителния обект.\n",
   "preview_object_not_found_s": "Предварително преглеждане обект не е намерен: %s\n",
   "exporting_s_with_current_placement_s": "Износ%s\" с ток Placement: %s\n",

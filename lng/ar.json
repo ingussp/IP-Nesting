@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "الوثيقة الافتراضية لم يتم العثور عليها: %s\n",
   "execute_nesting_failed": "execute_nesting فشل:\n",
   "preview_document_recompute_failed_before_export": "فشل إعادة حساب الوثيقة المسبقة قبل الصادرة:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "فشلت في تحويل المواد إلى ورقة تصميم الجزء CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "فشلت في تحويل المواد إلى ورقة تصميم الجزء CLI:\n",
   "part_row_d_has_no_preview_object_name": "Part الصف %d لا يحتوي على اسم كائن البداية.\n",
   "preview_object_not_found_s": "لم يتم العثور على كائن المشاهدة الأولية: %s\n",
   "exporting_s_with_current_placement_s": "تصدير \"%s\" مع Placement الحالية: %s\n",

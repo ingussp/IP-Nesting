@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "미리보기 문서는 발견되지 않았습니다: %s\n",
   "execute_nesting_failed": "execute_nesting 실패:\n",
   "preview_document_recompute_failed_before_export": "미리보기 문서 재회정 작업은 수출 전에 실패했습니다:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "재료가 CLI 부품의 배열에 변환되지 않은 재료 표:\n",
+  "failed_to_convert_material_to_cli_sheet": "재료가 CLI 부품의 배열에 변환되지 않은 재료 표:\n",
   "part_row_d_has_no_preview_object_name": "부분 줄 %d에는 미리보기 객체 이름이 없습니다.\n",
   "preview_object_not_found_s": "미리보기 객체는 발견되지 않았습니다: %s\n",
   "exporting_s_with_current_placement_s": "수출%s\" 전류 Placement: %s\n",

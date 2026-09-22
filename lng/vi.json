@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Tài liệu xem trước không tìm thấy: %s\n",
   "execute_nesting_failed": "execute_nesting thất bại:\n",
   "preview_document_recompute_failed_before_export": "Việc tính lại tài liệu xem trước đã thất bại trước khi xuất khẩu:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Không chuyển đổi vật liệu thành sắp xếp của các bộ phận CLI Bảng vật liệu:\n",
+  "failed_to_convert_material_to_cli_sheet": "Không chuyển đổi vật liệu thành sắp xếp của các bộ phận CLI Bảng vật liệu:\n",
   "part_row_d_has_no_preview_object_name": "Phần hàng %d không có tên đối tượng xem trước.\n",
   "preview_object_not_found_s": "Đối tượng xem trước không tìm thấy: %s\n",
   "exporting_s_with_current_placement_s": "Xuất khẩu%s\" với dòng điện Placement: %s\n",

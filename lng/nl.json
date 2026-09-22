@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Voorbeelddocument niet gevonden: %s\n",
   "execute_nesting_failed": "execute_nesting: mislukt:\n",
   "preview_document_recompute_failed_before_export": "Herberekenen van voorbeelddocument vóór export mislukt:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Omzetten van materiaal naar een plaat voor de nesting-CLI mislukt:\n",
+  "failed_to_convert_material_to_cli_sheet": "Omzetten van materiaal naar een plaat voor de nesting-CLI mislukt:\n",
   "part_row_d_has_no_preview_object_name": "Onderdeelrij %d heeft geen naam voor het voorbeeldobject.\n",
   "preview_object_not_found_s": "Voorbeeldobject niet gevonden: %s\n",
   "exporting_s_with_current_placement_s": "'%s' exporteren met huidige Placement: %s\n",

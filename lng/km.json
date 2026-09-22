@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "ឯកសារអាណត្តិមុនមិនត្រូវបានរកឃើញ: %s\n",
   "execute_nesting_failed": "execute_nesting មិនអាច:\n",
   "preview_document_recompute_failed_before_export": "ការព្យាបាលឯកសារអាណត្តិមុនមិនបានសម្រេចមុនពេលនាំចេញ:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "មិនអាចបម្លែងវត្ថុទៅជាការរៀបចំនៃផ្នែក CLI ផ្ទាំងវត្ថុតាង:\n",
+  "failed_to_convert_material_to_cli_sheet": "មិនអាចបម្លែងវត្ថុទៅជាការរៀបចំនៃផ្នែក CLI ផ្ទាំងវត្ថុតាង:\n",
   "part_row_d_has_no_preview_object_name": "ផ្នែក %d row គ្មានឈ្មោះរបស់វត្ថុអង្អែល។\n",
   "preview_object_not_found_s": "ការមើលមុនរបស់វត្ថុមិនត្រូវបានរកឃើញ: %s\n",
   "exporting_s_with_current_placement_s": "ការនាំចេញ%s\" ជាមួយនឹងការបំពាក់ Placement: %s\n",

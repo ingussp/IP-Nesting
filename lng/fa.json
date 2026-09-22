@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "سند پیش نمایش یافت نشد: %s\n",
   "execute_nesting_failed": "execute_nesting شکست خورد:\n",
   "preview_document_recompute_failed_before_export": "بازتعداد اسناد پیش نمایش قبل از صادرات شکست خورده:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "در حال تبدیل مواد به ترتیب قطعات CLI ورق مواد:\n",
+  "failed_to_convert_material_to_cli_sheet": "در حال تبدیل مواد به ترتیب قطعات CLI ورق مواد:\n",
   "part_row_d_has_no_preview_object_name": "خط %d قسمت هیچ نام شی پیش نمایش ندارد.\n",
   "preview_object_not_found_s": "پیش نمایش: %s\n",
   "exporting_s_with_current_placement_s": "صادرات%s\" با جریان Placement: %s\n",

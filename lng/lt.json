@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Pradinis dokumentas nerado: %s\n",
   "execute_nesting_failed": "execute_nesting nesėkmė:\n",
   "preview_document_recompute_failed_before_export": "Prieš eksportuojant išankstinio dokumento atkurimas nesulaužęs:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Neįjungtas į CLI dalių materialų išdėstymą:\n",
+  "failed_to_convert_material_to_cli_sheet": "Neįjungtas į CLI dalių materialų išdėstymą:\n",
   "part_row_d_has_no_preview_object_name": "Šalis eilutė %d neturi išankstinio objekto pavadinimo.\n",
   "preview_object_not_found_s": "Išankstinio objekto nemaišymas: %s\n",
   "exporting_s_with_current_placement_s": "Eksportuoti%s\" su dabartiniu Placement: %s\n",

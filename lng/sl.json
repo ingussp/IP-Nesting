@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Preverilni dokument ni bil na voljo: %s\n",
   "execute_nesting_failed": "execute_nesting ni uspelo:\n",
   "preview_document_recompute_failed_before_export": "Predhodno preverjanje dokumenta je bilo pred izvozom neuspešno:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Če ni mogoče spremeniti materiala v postavitev delov CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Če ni mogoče spremeniti materiala v postavitev delov CLI:\n",
   "part_row_d_has_no_preview_object_name": "V vrstici %d del ni imena predhodnega predmeta.\n",
   "preview_object_not_found_s": "Predvidni predmet ni bil na voljo: %s\n",
   "exporting_s_with_current_placement_s": "Izvoz%s\" z tekočim Placement: %s\n",

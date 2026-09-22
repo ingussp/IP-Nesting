@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "පෙරදසුන ලේඛනය සොයාගත නොහැකි: %s\n",
   "execute_nesting_failed": "execute_nesting අසාර්ථකයි:\n",
   "preview_document_recompute_failed_before_export": "ප් රදර්ශන ලේඛනය නැවත ගණනය කිරීමේ අසාර්ථකත්වය:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "CLI කොටස්වල තැන්පතු වලට ද් රව් ය පරිවර්තනය කිරීමට අසමත් වූ ද්රව්ය:\n",
+  "failed_to_convert_material_to_cli_sheet": "CLI කොටස්වල තැන්පතු වලට ද් රව් ය පරිවර්තනය කිරීමට අසමත් වූ ද්රව්ය:\n",
   "part_row_d_has_no_preview_object_name": "%d කොටසේ පේළියේ පෙරදසුන වස්තුවේ නම නැහැ.\n",
   "preview_object_not_found_s": "පෙරදසුන වස්තුවක් සොයාගත නොහැකි: %s\n",
   "exporting_s_with_current_placement_s": "අපනයනය%s' ධාරාත්මකව Placement: %s\n",

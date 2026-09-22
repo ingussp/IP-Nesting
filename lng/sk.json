@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Predbežný dokument nenašiel: %s\n",
   "execute_nesting_failed": "execute_nesting zlyhal:\n",
   "preview_document_recompute_failed_before_export": "Predbežný dokument rekomputácia sa pred vývozom nevydavala:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Nepremenovaný materiál na usporiadanie častí CLI list materiálu:\n",
+  "failed_to_convert_material_to_cli_sheet": "Nepremenovaný materiál na usporiadanie častí CLI list materiálu:\n",
   "part_row_d_has_no_preview_object_name": "Časť riadok %d nemá názov predbežného objektu.\n",
   "preview_object_not_found_s": "Predbežný objekt nenašiel: %s\n",
   "exporting_s_with_current_placement_s": "Vývoz%s\" s prúdom Placement: %s\n",

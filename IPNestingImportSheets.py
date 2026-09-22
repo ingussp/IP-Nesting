@@ -83,7 +83,7 @@ def import_nesting_sheets(export_path, import_path):
 
     Only the first contour is drawn, normalized to its minimum XY and
     translated by placement x/y. Placement rotation and holes are ignored.
-    This helper does not consume the current Deepnest parts[].points format.
+    This helper does not consume the current nesting CLI parts[].points format.
     """
     try:
         if not os.path.exists(export_path):

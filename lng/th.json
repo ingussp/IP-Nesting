@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "เอกสารสํารวจไม่ได้พบ: %s\n",
   "execute_nesting_failed": "execute_nesting ล้มเหลว:\n",
   "preview_document_recompute_failed_before_export": "การคิดเลขเอกสารสํารวจล้มเหลว ก่อนการส่งออก:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "ไม่สามารถแปลงวัสดุเป็นการจัดตั้งของส่วน CLI กระดาษวัณฑ์:\n",
+  "failed_to_convert_material_to_cli_sheet": "ไม่สามารถแปลงวัสดุเป็นการจัดตั้งของส่วน CLI กระดาษวัณฑ์:\n",
   "part_row_d_has_no_preview_object_name": "ภาคแถว %d ไม่มีชื่อของวัตถุการดูก่อนหน้า\n",
   "preview_object_not_found_s": "อุปกรณ์การดูก่อนหน้านี้ไม่ได้พบ: %s\n",
   "exporting_s_with_current_placement_s": "การส่งออก%s\" กับการใช้ไฟฟ้า Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Eelvaate dokument ei leitud: %s\n",
   "execute_nesting_failed": "execute_nesting ei õnnestunud:\n",
   "preview_document_recompute_failed_before_export": "Eeldakirja ümberarvutamine enne ekspordi ebaõnnestub:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Materjali ümberkujundamine osade paigaldamiseks CLI materjalilehe:\n",
+  "failed_to_convert_material_to_cli_sheet": "Materjali ümberkujundamine osade paigaldamiseks CLI materjalilehe:\n",
   "part_row_d_has_no_preview_object_name": "Osa rida %d ei ole esivaate objektide nime.\n",
   "preview_object_not_found_s": "Eeldusobjekt ei leitud: %s\n",
   "exporting_s_with_current_placement_s": "Ekspordi%s\" koos vooluga Placement: %s\n",

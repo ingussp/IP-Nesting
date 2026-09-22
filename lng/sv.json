@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Förhandsdokument hittades inte: %s\n",
   "execute_nesting_failed": "execute_nesting misslyckades:\n",
   "preview_document_recompute_failed_before_export": "Omräkning av förhandsdokumentet misslyckades före export:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Om inte material omvandlas till en uppsättning av delar CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Om inte material omvandlas till en uppsättning av delar CLI:\n",
   "part_row_d_has_no_preview_object_name": "Del rad %d har inget förhandsobjektnamn.\n",
   "preview_object_not_found_s": "Förhandsföreställningsaktivitet: %s\n",
   "exporting_s_with_current_placement_s": "Export%s\" med ström Placement: %s\n",

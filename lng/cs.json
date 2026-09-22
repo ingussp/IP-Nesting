@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Předchozí dokument neobjeven: %s\n",
   "execute_nesting_failed": "execute_nesting selhal:\n",
   "preview_document_recompute_failed_before_export": "Předchozí výpočet dokladu zpráva selhal před vývozem:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Neúspěšný při přeměně materiálu na uspořádání částí CLI list materiálu:\n",
+  "failed_to_convert_material_to_cli_sheet": "Neúspěšný při přeměně materiálu na uspořádání částí CLI list materiálu:\n",
   "part_row_d_has_no_preview_object_name": "Řádek %d části nemá název předchozího objektu.\n",
   "preview_object_not_found_s": "Předchozí objekt nalezen: %s\n",
   "exporting_s_with_current_placement_s": "Vývoz%s\" s přímým Placement: %s\n",

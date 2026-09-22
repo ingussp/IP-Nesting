@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "پیش نظارہ دستاویز نہیں ملی: %s\n",
   "execute_nesting_failed": "execute_nesting ناکام:\n",
   "preview_document_recompute_failed_before_export": "برآمد سے پہلے پیش نظارہ دستاویز کا دوبارہ حساب ناکام:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "مواد کو حصوں CLI شیٹ کے انتظام میں تبدیل کرنے میں ناکام:\n",
+  "failed_to_convert_material_to_cli_sheet": "مواد کو حصوں CLI شیٹ کے انتظام میں تبدیل کرنے میں ناکام:\n",
   "part_row_d_has_no_preview_object_name": "حصہ صف %d میں پیش نظارہ اعتراض کا نام نہیں ہے.\n",
   "preview_object_not_found_s": "پیش نظارہ اعتراض نہیں ملا: %s\n",
   "exporting_s_with_current_placement_s": "برآمد%s' موجودہ Placement: %s\n",

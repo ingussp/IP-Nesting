@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ön görünüm belgesi bulunamadı: %s\n",
   "execute_nesting_failed": "execute_nesting başarısız oldu:\n",
   "preview_document_recompute_failed_before_export": "Önbellek belgesinin yeniden hesaplanması ihracattan önce başarısız oldu:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Malzemeyi parçaların düzenlenmesine dönüştüremedi CLI malzeme levhası:\n",
+  "failed_to_convert_material_to_cli_sheet": "Malzemeyi parçaların düzenlenmesine dönüştüremedi CLI malzeme levhası:\n",
   "part_row_d_has_no_preview_object_name": "Bölüm satır %d'de ön görünüm nesnesinin adı yoktur.\n",
   "preview_object_not_found_s": "Önbellek nesnesi bulunamadı: %s\n",
   "exporting_s_with_current_placement_s": "Dışarıya aktarma%s\" akımlı Placement: %s\n",

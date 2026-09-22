@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Hindi natagpuan ang preview document: %s\n",
   "execute_nesting_failed": "execute_nesting ay nabigo:\n",
   "preview_document_recompute_failed_before_export": "Nagkaroon ng hindi na-compute ang preview document bago i-export:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Hindi na mai-convert ang materyal sa pag-arrange ng mga bahagi CLI sheet ng materyal:\n",
+  "failed_to_convert_material_to_cli_sheet": "Hindi na mai-convert ang materyal sa pag-arrange ng mga bahagi CLI sheet ng materyal:\n",
   "part_row_d_has_no_preview_object_name": "Ang bahagi ng linya %d ay walang pangalan ng bagay sa preview.\n",
   "preview_object_not_found_s": "Preview object hindi natagpuan: %s\n",
   "exporting_s_with_current_placement_s": "Pag-export%s' na may kasalukuyang Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ennakkoasiakirja ei löytynyt: %s\n",
   "execute_nesting_failed": "execute_nesting epäonnistunut:\n",
   "preview_document_recompute_failed_before_export": "Näytä-asiakirjan uudelleenlaskelu epäonnistui ennen vientiä:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Jos materiaali ei ole muunnettu osia CLI järjestykseen, materiaalilevy:\n",
+  "failed_to_convert_material_to_cli_sheet": "Jos materiaali ei ole muunnettu osia CLI järjestykseen, materiaalilevy:\n",
   "part_row_d_has_no_preview_object_name": "Osassa %d ei ole esiesityksen kohteen nimeä.\n",
   "preview_object_not_found_s": "Ennakkoratkaisu ei löytynyt: %s\n",
   "exporting_s_with_current_placement_s": "Vientiä%s\" virran kanssa Placement: %s\n",

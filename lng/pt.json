@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Documento de antevisão não encontrado: %s\n",
   "execute_nesting_failed": "execute_nesting falhou:\n",
   "preview_document_recompute_failed_before_export": "O documento de antevisão falhou antes da exportação:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Não conseguiram converter o material em arranjo das partes CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Não conseguiram converter o material em arranjo das partes CLI:\n",
   "part_row_d_has_no_preview_object_name": "A linha %d da parte não tem nome do objeto de pré-visualização.\n",
   "preview_object_not_found_s": "Objeto de visualização não encontrado: %s\n",
   "exporting_s_with_current_placement_s": "Exportação%s\" com corrente Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Документ предпросмотра не найден: %s\n",
   "execute_nesting_failed": "execute_nesting не удалось:\n",
   "preview_document_recompute_failed_before_export": "Не удалось пересчитать документ предпросмотра перед экспортом:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Не удалось преобразовать материал в лист для CLI раскладки:\n",
+  "failed_to_convert_material_to_cli_sheet": "Не удалось преобразовать материал в лист для CLI раскладки:\n",
   "part_row_d_has_no_preview_object_name": "В строке детали %d не указано имя объекта предпросмотра.\n",
   "preview_object_not_found_s": "Объект предпросмотра не найден: %s\n",
   "exporting_s_with_current_placement_s": "Экспорт \"%s\" с текущим Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Əvvəlcədən göstərilən sənəd tapılmadı: %s\n",
   "execute_nesting_failed": "execute_nesting uğursuz oldu:\n",
   "preview_document_recompute_failed_before_export": "Əvvəlcədən göstərilən sənədlərin yenidən hesablanması ixracdan əvvəl uğursuz oldu:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Materialı CLI hissəsinin düzəlişinə çevirməyən material lövhəsi:\n",
+  "failed_to_convert_material_to_cli_sheet": "Materialı CLI hissəsinin düzəlişinə çevirməyən material lövhəsi:\n",
   "part_row_d_has_no_preview_object_name": "%d-ci hissənin sətirində əvvəlcədən obyekt adı yoxdur.\n",
   "preview_object_not_found_s": "Əvvəlcədən baxış obyekti tapılmadı: %s\n",
   "exporting_s_with_current_placement_s": "\"%s\" nəqliyyat vasitəsi ilə ixrac edilən Placement: %s\n",

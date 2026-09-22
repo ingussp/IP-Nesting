@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Documentul de previzualizare nu a fost găsit: %s\n",
   "execute_nesting_failed": "execute_nesting: eșuat:\n",
   "preview_document_recompute_failed_before_export": "Recalcularea documentului de previzualizare înainte de export a eșuat:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Conversia materialului într-o placă pentru CLI-ul de așezare a eșuat:\n",
+  "failed_to_convert_material_to_cli_sheet": "Conversia materialului într-o placă pentru CLI-ul de așezare a eșuat:\n",
   "part_row_d_has_no_preview_object_name": "Rândul piesei %d nu are nume de obiect de previzualizare.\n",
   "preview_object_not_found_s": "Obiectul de previzualizare nu a fost găsit: %s\n",
   "exporting_s_with_current_placement_s": "Se exportă '%s' cu Placement curent: %s\n",

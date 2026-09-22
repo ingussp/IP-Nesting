@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Előzetes dokumentum nem talált: %s\n",
   "execute_nesting_failed": "execute_nesting nem sikerült:\n",
   "preview_document_recompute_failed_before_export": "Előzetes előzetes dokumentum újraegyezése export előtt nem sikerült:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "A CLI alkatrészek felrendezéséhez nem átalakított anyag:\n",
+  "failed_to_convert_material_to_cli_sheet": "A CLI alkatrészek felrendezéséhez nem átalakított anyag:\n",
   "part_row_d_has_no_preview_object_name": "A %d rész sorának nincs előzetes tárgy neve.\n",
   "preview_object_not_found_s": "Előzetes előkerítés nem talált: %s\n",
   "exporting_s_with_current_placement_s": "Exportálás%s\" a jelenlegi Placement: %s\n",

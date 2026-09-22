@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "מסמך ראייה לא נמצא: %s\n",
   "execute_nesting_failed": "execute_nesting נכשל:\n",
   "preview_document_recompute_failed_before_export": "חישוב מחדש של מסמך המבחן נכשל לפני היצוא:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "לא ניתן להפוך את החומר למסדרת החלקים CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "לא ניתן להפוך את החומר למסדרת החלקים CLI:\n",
   "part_row_d_has_no_preview_object_name": "בשורה %d של החלק אין שם אובייקט הצפייה.\n",
   "preview_object_not_found_s": "פרישה לא נמצאה: %s\n",
   "exporting_s_with_current_placement_s": "\"יצוא\"%s\" עם זרימה Placement: %s\n",

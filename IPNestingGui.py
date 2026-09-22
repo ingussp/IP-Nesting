@@ -328,134 +328,6 @@ class NestingTaskPanel:
             self._on_units_changed
         )
 
-        # Nesting CLI settings (RIGHT, row 1)
-        deepnest_box = ui_widget(
-            QtGui.QGroupBox, tr('nesting_cli_settings')
-        )
-        deepnest_lay = QtGui.QVBoxLayout(
-            deepnest_box
-        )
-
-        self.deepnest_time_ratio = (
-            self.create_input_in_layout(
-                deepnest_lay,
-                tr('time_ratio'),
-                "0.5",
-                (
-                    tr('controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all')
-                )
-            )[0]
-        )
-
-        self.deepnest_population_size = (
-            self.create_input_in_layout(
-                deepnest_lay,
-                tr('population_size'),
-                "10",
-                (
-                    tr('number_of_candidate_nesting_solutions_kept_during_genetic_optimization_higher_values_can_i')
-                )
-            )[0]
-        )
-
-        self.deepnest_mutation_rate = (
-            self.create_input_in_layout(
-                deepnest_lay,
-                tr('mutation_rate'),
-                "10",
-                (
-                    tr('percentage_controlling_how_often_candidate_solutions_are_randomly_changed_during_optimizat')
-                )
-            )[0]
-        )
-
-        self.deepnest_export_sheet_boundaries = (
-            self._create_boolean_setting(
-                deepnest_lay,
-                tr('export_sheet_boundaries'),
-                False,
-                (
-                    tr('if_enabled_the_outer_boundaries_of_sheets_are_included_in_the_exported_nesting_data_enable')
-                )
-            )
-        )
-
-        self.deepnest_export_sheets_space = (
-            self._create_boolean_setting(
-                deepnest_lay,
-                tr('export_sheet_spacing'),
-                False,
-                (
-                    tr('if_enabled_an_additional_spacing_value_is_applied_between_exported_sheets_this_is_useful_w')
-                )
-            )
-        )
-
-        self.deepnest_export_sheets_space_value = (
-            self.create_input_in_layout(
-                deepnest_lay,
-                tr('sheet_spacing_value'),
-                "0.13888",
-                (
-                    tr('distance_between_exported_sheets_when_export_sheet_spacing_is_enabled_the_value_is_interpr')
-                )
-            )[0]
-        )
-
-        cfg_grid.addWidget(
-            deepnest_box,
-            1,
-            1
-        )
-
-        # Placement Strategy (RIGHT, row 2)
-        placement_box = ui_widget(
-            QtGui.QGroupBox, tr('placement_strategy')
-        )
-        placement_lay = QtGui.QVBoxLayout(
-            placement_box
-        )
-
-        self.placement_strategy = QtGui.QComboBox()
-        ui_call(self.placement_strategy, 'addItems', [
-            tr('gravity'),
-            tr('bounding_box'),
-            tr('squeeze'),
-        ])
-        self.placement_strategy.setCurrentIndex(0)
-
-        ui_call(
-            self.placement_strategy, 'setItemData', 0,
-            (
-                tr('minimize_the_width_of_the_nest_good_when_using_a_rectangular_sheet_and_the_leftover_materi')
-            ),
-            QtCore.Qt.ToolTipRole
-        )
-
-        ui_call(
-            self.placement_strategy, 'setItemData', 1,
-            (
-                tr('reduce_the_overall_rectangular_bounds_best_for_conserving_material_when_only_a_small_porti')
-            ),
-            QtCore.Qt.ToolTipRole
-        )
-
-        ui_call(
-            self.placement_strategy, 'setItemData', 2,
-            (
-                tr('reduce_the_overall_area_this_may_produce_nests_that_are_not_rectangular_best_for_irregular')
-            ),
-            QtCore.Qt.ToolTipRole
-        )
-
-        ui_call(
-            self.placement_strategy, 'setToolTip', tr('controls_how_placed_parts_are_packed_together_gravity_minimizes_nest_width_bounding_box_mi')
-        )
-
-        placement_lay.addWidget(
-            self.placement_strategy
-        )
-
         # CPU Cores (RIGHT, row 3)
         cpu_box = ui_widget(
             QtGui.QGroupBox, tr('cpu_cores')
@@ -536,7 +408,6 @@ class NestingTaskPanel:
         )
 
         cfg_grid.addWidget(units_box, 0, 1)
-        cfg_grid.addWidget(placement_box,2, 1)
         cfg_grid.addWidget(
             cpu_box,
             3,
@@ -3687,74 +3558,7 @@ class NestingTaskPanel:
         except Exception:
             return float(default_mm)
     
-    # Restore Deepnest text and boolean settings from preferences with defaults.
-    def _load_deepnest_settings(self, prefs):
-        text_fields = {
-            "DeepnestTimeRatio": (
-                self.deepnest_time_ratio,
-                "0.5"
-            ),
-            "DeepnestPopulationSize": (
-                self.deepnest_population_size,
-                "10"
-            ),
-            "DeepnestMutationRate": (
-                self.deepnest_mutation_rate,
-                "10"
-            ),
-            "DeepnestExportSheetsSpaceValue": (
-                self.deepnest_export_sheets_space_value,
-                "0.13888"
-            ),
-        }
-
-        for key, data in text_fields.items():
-            widget, default = data
-
-            try:
-                ui_call(
-                    widget, 'setText', str(
-                        prefs.GetString(
-                            key,
-                            default
-                        )
-                    )
-                )
-            except Exception:
-                ui_call(
-                    widget, 'setText', default
-                )
-
-        boolean_fields = {
-            "DeepnestExportWithSheetBoundaries": (
-                self.deepnest_export_sheet_boundaries,
-                False
-            ),
-            "DeepnestExportWithSheetsSpace": (
-                self.deepnest_export_sheets_space,
-                False
-            ),
-        }
-
-        for key, data in boolean_fields.items():
-            widget, default = data
-
-            try:
-                value = prefs.GetBool(
-                    key,
-                    bool(default)
-                )
-
-                widget.setCurrentIndex(
-                    1 if value else 0
-                )
-
-            except Exception:
-                widget.setCurrentIndex(
-                    1 if default else 0
-                )
-    
-    # Restore dimensions, display units, strategy, CPU selection and nesting CLI settings.
+    # Restore dimensions, display units, CPU selection and nesting CLI settings.
     def _load_settings_from_prefs(self):
         self.display_units = "mm"
         p = self._prefs()
@@ -3767,14 +3571,7 @@ class NestingTaskPanel:
                 self.spacing,
                 self.res,
                 self.units_combo,
-                self.placement_strategy,
                 self.cpu_cores_combo,
-                self.deepnest_export_sheet_boundaries,
-                self.deepnest_export_sheets_space,
-                self.deepnest_export_sheets_space_value,
-                self.deepnest_time_ratio,
-                self.deepnest_population_size,
-                self.deepnest_mutation_rate,
             ]
             for w in widgets:
                 try:
@@ -3893,12 +3690,6 @@ class NestingTaskPanel:
                 )
             )
             
-            self._load_deepnest_settings(p)
-            
-            try:
-                self.placement_strategy.setCurrentIndex(int(p.GetInt("PlacementStrategyIndex",self.placement_strategy.currentIndex())))
-            except Exception:
-                pass
             try:
                 saved_cpu_cores = int(
                     p.GetInt(
@@ -3936,52 +3727,7 @@ class NestingTaskPanel:
                     pass
             self._update_dimension_labels()
     
-    # Persist the Deepnest text and boolean widget values.
-    def _save_deepnest_settings(self, prefs):
-        text_fields = {
-            "DeepnestTimeRatio": (
-                self.deepnest_time_ratio
-            ),
-            "DeepnestPopulationSize": (
-                self.deepnest_population_size
-            ),
-            "DeepnestMutationRate": (
-                self.deepnest_mutation_rate
-            ),
-            "DeepnestExportSheetsSpaceValue": (
-                self.deepnest_export_sheets_space_value
-            ),
-        }
-
-        for key, widget in text_fields.items():
-            try:
-                prefs.SetString(
-                    key,
-                    widget.text().strip()
-                )
-            except Exception:
-                pass
-
-        boolean_fields = {
-            "DeepnestExportWithSheetBoundaries": (
-                self.deepnest_export_sheet_boundaries
-            ),
-            "DeepnestExportWithSheetsSpace": (
-                self.deepnest_export_sheets_space
-            ),
-        }
-
-        for key, widget in boolean_fields.items():
-            try:
-                prefs.SetBool(
-                    key,
-                    widget.currentIndex() == 1
-                )
-            except Exception:
-                pass
-    
-    # Persist canonical dimensions, display units, strategy, CPU selection and Deepnest
-    # settings.
+    # Persist canonical dimensions, display units and CPU selection.
     def _save_settings_to_prefs(self):
         p = self._prefs()
 
@@ -4026,13 +3772,6 @@ class NestingTaskPanel:
                 self.display_units
             )
 
-            p.SetInt(
-                "PlacementStrategyIndex",
-                int(
-                    self.placement_strategy.currentIndex()
-                )
-            )
-
             try:
                 p.SetInt(
                     "CpuCores",
@@ -4045,8 +3784,6 @@ class NestingTaskPanel:
                     "CpuCores",
                     1
                 )
-                
-            self._save_deepnest_settings(p)
 
         except Exception:
             App.Console.PrintError(
@@ -4180,38 +3917,11 @@ class NestingTaskPanel:
 
             # combos
             try:
-                self.placement_strategy.currentIndexChanged.connect(self._save_settings_to_prefs)
-            except Exception:
-                pass
-            try:
                 self.cpu_cores_combo.currentIndexChanged.connect(
                     self._save_settings_to_prefs
                 )
             except Exception:
                 pass
-                
-            for widget in [
-                self.deepnest_export_sheet_boundaries,
-                self.deepnest_export_sheets_space,
-                self.deepnest_export_sheets_space_value,
-                self.deepnest_time_ratio,
-                self.deepnest_population_size,
-                self.deepnest_mutation_rate,
-            ]:
-                try:
-                    if isinstance(
-                        widget,
-                        QtGui.QComboBox
-                    ):
-                        widget.currentIndexChanged.connect(
-                            self._save_settings_to_prefs
-                        )
-                    else:
-                        widget.editingFinished.connect(
-                            self._save_settings_to_prefs
-                        )
-                except Exception:
-                    pass
         except Exception:
             pass
             
@@ -4438,7 +4148,7 @@ class NestingTaskPanel:
         """
         Normalize the rotation count field.
 
-        The value represents the number of allowed Deepnest rotation states,
+        The value represents the number of allowed nesting CLI rotation states,
         not a comma-separated list of angles.
         """
         try:
@@ -4453,9 +4163,8 @@ class NestingTaskPanel:
             # Accept decimal-looking input but store an integer.
             rotations = int(float(value))
 
-            # Keep the existing broad range for now.
-            # The Deepnest maximum can be restricted later.
-            rotations = max(1, min(5000, rotations))
+            # The nesting CLI supports 1..3600 rotations.
+            rotations = max(1, min(3600, rotations))
 
             return str(rotations)
 

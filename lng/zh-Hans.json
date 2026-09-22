@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "未找到预览文档：%s\n",
   "execute_nesting_failed": "execute_nesting: 失败:\n",
   "preview_document_recompute_failed_before_export": "导出前重新计算预览文档失败：\n",
-  "failed_to_convert_material_to_deepnest_sheet": "无法将材料转换为排样 CLI 板材：\n",
+  "failed_to_convert_material_to_cli_sheet": "无法将材料转换为排样 CLI 板材：\n",
   "part_row_d_has_no_preview_object_name": "零件行 %d 没有预览对象名称。\n",
   "preview_object_not_found_s": "未找到预览对象：%s\n",
   "exporting_s_with_current_placement_s": "正在使用当前 Placement 导出“%s”：%s\n",

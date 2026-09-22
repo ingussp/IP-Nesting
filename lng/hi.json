@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "पूर्वावलोकन दस्तावेज नहीं मिला: %s\n",
   "execute_nesting_failed": "execute_nesting विफल रहाः:\n",
   "preview_document_recompute_failed_before_export": "पूर्वावलोकन दस्तावेज़ निर्यात से पहले पुनः गणना विफलः:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "सामग्री को भागों CLI की व्यवस्था में परिवर्तित करने में विफल सामग्री शीटः:\n",
+  "failed_to_convert_material_to_cli_sheet": "सामग्री को भागों CLI की व्यवस्था में परिवर्तित करने में विफल सामग्री शीटः:\n",
   "part_row_d_has_no_preview_object_name": "भाग पंक्ति %d में पूर्वावलोकन वस्तु का नाम नहीं है।\n",
   "preview_object_not_found_s": "पूर्वावलोकन वस्तु नहीं मिलीः %s\n",
   "exporting_s_with_current_placement_s": "निर्यात%s' के साथ वर्तमान Placement: %s\n",

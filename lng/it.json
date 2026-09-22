@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Documento di anteprima non trovato: %s\n",
   "execute_nesting_failed": "execute_nesting: non riuscito:\n",
   "preview_document_recompute_failed_before_export": "Ricalcolo del documento di anteprima prima dell'esportazione non riuscito:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Conversione del materiale in foglio per la CLI di nesting non riuscita:\n",
+  "failed_to_convert_material_to_cli_sheet": "Conversione del materiale in foglio per la CLI di nesting non riuscita:\n",
   "part_row_d_has_no_preview_object_name": "La riga della parte %d non ha un nome di oggetto di anteprima.\n",
   "preview_object_not_found_s": "Oggetto di anteprima non trovato: %s\n",
   "exporting_s_with_current_placement_s": "Esportazione di '%s' con Placement corrente: %s\n",

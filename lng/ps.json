@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "د مخکینی سند نه موندل شوی: %s\n",
   "execute_nesting_failed": "execute_nesting ناکام شو:\n",
   "preview_document_recompute_failed_before_export": "د صادراتو دمخه د مخکښ سند بیا محاسبه ناکام شوه:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "د موادو د برخو CLI بڼې ترتیب کولو کې پاتې راغلي:\n",
+  "failed_to_convert_material_to_cli_sheet": "د موادو د برخو CLI بڼې ترتیب کولو کې پاتې راغلي:\n",
   "part_row_d_has_no_preview_object_name": "د %d برخه کې د مخکښو شیانو نوم نشته.\n",
   "preview_object_not_found_s": "د مخکښو کتلو اعتراض نه دی موندل شوی: %s\n",
   "exporting_s_with_current_placement_s": "د صادراتو په اړه%sد اوسني Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Dokumentazzjoni ta' previżjoni mhux miġbura: %s\n",
   "execute_nesting_failed": "execute_nesting fallit:\n",
   "preview_document_recompute_failed_before_export": "Il-kompjuter tal-previżjoni tad-dokument ma għiex kapaċi qabel l-esportazzjoni:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Mhux kapaċi jikkonverti l-materjal għal arranġament ta' partijiet CLI pjanċa tal-materjal:\n",
+  "failed_to_convert_material_to_cli_sheet": "Mhux kapaċi jikkonverti l-materjal għal arranġament ta' partijiet CLI pjanċa tal-materjal:\n",
   "part_row_d_has_no_preview_object_name": "Il-part row %d ma għandha l-ebda isem ta' oġġett ta' preview.\n",
   "preview_object_not_found_s": "Oġġett ta ' previżjoni mhux miġbur: %s\n",
   "exporting_s_with_current_placement_s": "L-esportazzjoni%s\" b'kurrent Placement: %s\n",

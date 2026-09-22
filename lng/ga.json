@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ní fhaightear doiciméad réamhshocraithe: %s\n",
   "execute_nesting_failed": "execute_nesting mí-fhillte:\n",
   "preview_document_recompute_failed_before_export": "Ní raibh an t-údarreacht ar an gcláir réamhshocraithe ag feidhmiú roimh onnmhairí:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Ní fhéadfar an t-ábhar a thiontú go seastachán na n-ardáin CLI duilleag ábhair:\n",
+  "failed_to_convert_material_to_cli_sheet": "Ní fhéadfar an t-ábhar a thiontú go seastachán na n-ardáin CLI duilleag ábhair:\n",
   "part_row_d_has_no_preview_object_name": "Ní bhfuil ainm aon ábhar réamhbhreathnú ag an rann %d.\n",
   "preview_object_not_found_s": "Ardaitheoir: %s\n",
   "exporting_s_with_current_placement_s": "Éireacht%s' le sruth Placement: %s\n",

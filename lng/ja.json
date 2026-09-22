@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "プレビュー文書が見つかりませんでした: %s\n",
   "execute_nesting_failed": "execute_nesting 失敗:\n",
   "preview_document_recompute_failed_before_export": "プレビュー文書の復元計算は輸出前に失敗した:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "材料をパーツレイアウトCLIシートに変換できなかった:\n",
+  "failed_to_convert_material_to_cli_sheet": "材料をパーツレイアウトCLIシートに変換できなかった:\n",
   "part_row_d_has_no_preview_object_name": "Part 行 %d には,前見オブジェクト名称はありません.\n",
   "preview_object_not_found_s": "プレビューオブジェクトが見つかりませんでした: %s\n",
   "exporting_s_with_current_placement_s": "\"%s\"を輸出する,現在の Placement: %s\n",

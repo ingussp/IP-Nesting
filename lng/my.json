@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "ရှေ့ပြေးစာရွက်စာတမ်း မတွေ့ရသေး - %s\n",
   "execute_nesting_failed": "execute_nesting ကျရှုံးခဲ့ပါတယ်:\n",
   "preview_document_recompute_failed_before_export": "ရှေ့ပြေးစာရွက်စာတမ်း ပြန်လည်တွက်ချက်မှု မပြီးမီ တင်ပို့ခြင်း:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "ပစ္စည်းကို အစိတ်အပိုင်း CLI အပိုင်းများအတွက် စီစဉ်ထားသည့်နေရာသို့ မပြောင်းနိုင်သော ပစ္စည်းများ:\n",
+  "failed_to_convert_material_to_cli_sheet": "ပစ္စည်းကို အစိတ်အပိုင်း CLI အပိုင်းများအတွက် စီစဉ်ထားသည့်နေရာသို့ မပြောင်းနိုင်သော ပစ္စည်းများ:\n",
   "part_row_d_has_no_preview_object_name": "အပိုင်းတန်း %d မှာ ရှေ့ရှုမှုပစ္စည်းအမည်မရှိပါ။\n",
   "preview_object_not_found_s": "ရှေ့ရှုမှု ပစ္စည်းမတွေ့ရသေး: %s\n",
   "exporting_s_with_current_placement_s": "တင်ပို့ခြင်း%s\" current နဲ့ Placement: %s\n",

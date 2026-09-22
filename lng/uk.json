@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Документ попереднього перегляду не знайдено: %s\n",
   "execute_nesting_failed": "execute_nesting не вдалося:\n",
   "preview_document_recompute_failed_before_export": "Передвигляд документа перерахувати не вдалося до експорту:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Невстановлено перетворення матеріалу на положення частин CLI листок матеріалу:\n",
+  "failed_to_convert_material_to_cli_sheet": "Невстановлено перетворення матеріалу на положення частин CLI листок матеріалу:\n",
   "part_row_d_has_no_preview_object_name": "У ряді %d частини немає назви об'єкта попереднього перегляду.\n",
   "preview_object_not_found_s": "Предварийний об'єкт не знайдено: %s\n",
   "exporting_s_with_current_placement_s": "Експорт%s\" з поточним Placement: %s\n",

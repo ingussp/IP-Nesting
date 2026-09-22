@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "প্রাকদর্শন নথি পাওয়া যায়নিঃ %s\n",
   "execute_nesting_failed": "execute_nesting ব্যর্থঃ:\n",
   "preview_document_recompute_failed_before_export": "প্রিভিউ ডকুমেন্ট পুনরায় গণনা করা রপ্তানি আগে ব্যর্থঃ:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "উপাদানগুলি CLI অংশগুলির বিন্যাসগুলিতে রূপান্তর করতে ব্যর্থ:\n",
+  "failed_to_convert_material_to_cli_sheet": "উপাদানগুলি CLI অংশগুলির বিন্যাসগুলিতে রূপান্তর করতে ব্যর্থ:\n",
   "part_row_d_has_no_preview_object_name": "পার্ট রোল %d এর কোন প্রিভিউ অবজেক্ট নাম নেই।\n",
   "preview_object_not_found_s": "প্রিভিউ অবজেক্ট পাওয়া যায়নিঃ %s\n",
   "exporting_s_with_current_placement_s": "রপ্তানি%s' বর্তমানের সাথে Placement: %s\n",

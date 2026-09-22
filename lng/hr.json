@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ne pronađen prevodni dokument: %s\n",
   "execute_nesting_failed": "execute_nesting nije uspio:\n",
   "preview_document_recompute_failed_before_export": "Prethodno izračunavanje dokumenta nije uspjelo prije izvoza:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Neposposrednjavanje materijala u raspored dijelova CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Neposposrednjavanje materijala u raspored dijelova CLI:\n",
   "part_row_d_has_no_preview_object_name": "U redu %d nema imena predoglednog objekta.\n",
   "preview_object_not_found_s": "Predvidni objekt nije pronađen: %s\n",
   "exporting_s_with_current_placement_s": "Izvoz%s\" s strujom Placement: %s\n",

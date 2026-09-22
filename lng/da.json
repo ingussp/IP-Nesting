@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Forretningsdokument ikke fundet: %s\n",
   "execute_nesting_failed": "execute_nesting mislykkedes:\n",
   "preview_document_recompute_failed_before_export": "Forhåndskontroldokumenter, som ikke er blevet opregnet før eksport:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Uden at omdanne materiale til placering af dele CLI:\n",
+  "failed_to_convert_material_to_cli_sheet": "Uden at omdanne materiale til placering af dele CLI:\n",
   "part_row_d_has_no_preview_object_name": "Del række %d har ingen forbillede objektnavn.\n",
   "preview_object_not_found_s": "Forhåndsvisning: %s\n",
   "exporting_s_with_current_placement_s": "Eksport%s\" med strøm Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Алдын ала қарау құжаты табылмады: %s\n",
   "execute_nesting_failed": "execute_nesting қатесі:\n",
   "preview_document_recompute_failed_before_export": "Экспортқа дейін алдын ала қарау құжатын қайта есептеу сәтсіз болды:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Материалды CLI бөлшектердің орналасуына айналдырмаған материал:\n",
+  "failed_to_convert_material_to_cli_sheet": "Материалды CLI бөлшектердің орналасуына айналдырмаған материал:\n",
   "part_row_d_has_no_preview_object_name": "%d бөлімнің жолында алдын ала қарау объектісінің атауы жоқ.\n",
   "preview_object_not_found_s": "Бастапқы көрініс нысан табылмады: %s\n",
   "exporting_s_with_current_placement_s": "Экспорт%s\" токпен Placement: %s\n",

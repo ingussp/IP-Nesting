@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ko'rib chiqish hujjati topilmadi: %s\n",
   "execute_nesting_failed": "execute_nesting muvaffaqiyatsiz tugadi:\n",
   "preview_document_recompute_failed_before_export": "Ko'rib chiqish hujjatini eksport qilishdan oldin qayta hisoblash muvaffaqiyatsiz tugadi:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Materialni qismlar CLI material varaqasining joylashuviga aylantirolmagan:\n",
+  "failed_to_convert_material_to_cli_sheet": "Materialni qismlar CLI material varaqasining joylashuviga aylantirolmagan:\n",
   "part_row_d_has_no_preview_object_name": "%d qismining oldindan ko'rish ob'ekti nomi mavjud emas.\n",
   "preview_object_not_found_s": "Koʻrib chiqish obʼekti topilmadi: %s\n",
   "exporting_s_with_current_placement_s": "Eksport qilish%s\" joriy Placement: %s\n",

@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Ҳуҷҷати пешакӣ ёфт нашуд: %s\n",
   "execute_nesting_failed": "execute_nesting ба даст наовардааст:\n",
   "preview_document_recompute_failed_before_export": "Пеш аз содирот, ҳисобкунии ҳуҷҷати пешакӣ ноком шуд:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Маводиро ба тартиби қисмҳои CLI табдил дода натавонистааст:\n",
+  "failed_to_convert_material_to_cli_sheet": "Маводиро ба тартиби қисмҳои CLI табдил дода натавонистааст:\n",
   "part_row_d_has_no_preview_object_name": "Сатри қисми %d номи объекти пешнамоишро надорад.\n",
   "preview_object_not_found_s": "Мавзӯи пешнамоиш ёфт нашуд: %s\n",
   "exporting_s_with_current_placement_s": "Содироти \"%s\" бо ҷорӣ Placement: %s\n",

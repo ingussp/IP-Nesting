@@ -54,7 +54,7 @@
   "preview_document_not_found_s": "Προεπισκόπηση δεν βρέθηκε: %s\n",
   "execute_nesting_failed": "execute_nesting απέτυχε:\n",
   "preview_document_recompute_failed_before_export": "Η επαναξολογήση του εγγράφου προεπισκόπησης απέτυχε πριν από την εξαγωγή:\n",
-  "failed_to_convert_material_to_deepnest_sheet": "Αν δεν μετατρέπεται υλικό σε διάταξη των μερών CLI φύλλο υλικού:\n",
+  "failed_to_convert_material_to_cli_sheet": "Αν δεν μετατρέπεται υλικό σε διάταξη των μερών CLI φύλλο υλικού:\n",
   "part_row_d_has_no_preview_object_name": "Η σειρά %d του μέρους δεν έχει όνομα αντικειμένου προεπισκόπησης.\n",
   "preview_object_not_found_s": "Προεπισκόπηση αντικειμένου δεν βρέθηκε: %s\n",
   "exporting_s_with_current_placement_s": "Εξαγωγές%s\" με ρεύμα Placement: %s\n",
