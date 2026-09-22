@@ -100,6 +100,14 @@ class LanguageTests(unittest.TestCase):
                     self.assertEqual(en[key].count('\n'), translated[key].count('\n'), key)
                     self.assertEqual(en[key].count('<b>'), translated[key].count('<b>'), key)
                     self.assertEqual(en[key].count('</b>'), translated[key].count('</b>'), key)
+                    self.assertEqual(re.findall(r'\(\*[^)]*\)', en[key]),
+                                     re.findall(r'\(\*[^)]*\)', translated[key]), key)
+                    tokens = [token for token in self.module._percent.findall(en[key]) if token != '%%']
+                    if tokens:
+                        arguments = tuple('example' if token.endswith('s') else 1 for token in tokens)
+                        # Exercise the formatting, including stray percent characters
+                        # that would not be caught by comparing token lists alone.
+                        translated[key] % arguments
                 if code != 'en':
                     self.assertGreaterEqual(sum(en[key] != translated[key] for key in en), 5,
                                             'Core UI vocabulary must be translated')
@@ -109,6 +117,48 @@ class LanguageTests(unittest.TestCase):
                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == 'tr':
                     if n.args and isinstance(n.args[0], ast.Constant):
                         self.assertIn(n.args[0].value, en, (path.name, n.lineno))
+
+    # A full key set is insufficient: the old bootstrap copied hundreds of
+    # English values into otherwise structurally valid catalogs.
+    def test_no_untranslated_messages(self):
+        en = json.loads((ROOT / 'lng/en.json').read_text(encoding='utf-8'))
+        invariant = {
+            's', 's_344808', 's_cd3af8', 's_s', 's_s_265fc5', 's_s_d9cd37',
+            'shape_area_s', 'shape_volume_s', 'shape_isnull_s', 'typeid_s',
+            'x_s_y_s', 'x_s_y_s_z_s', 'x_s_y_s_z_s_b630f9', 'common.ok',
+        }
+        # These are valid cognates, not untranslated sentences.
+        cognates = {
+            'material': {'az', 'de', 'es', 'pt', 'ro', 'sl', 'sv', 'uz'},
+            'rotations': {'fr'}, 'common.no': {'es', 'it'},
+            'name_s': {'de'}, 'version_s': {'da', 'de', 'sv', 'fr'},
+            'label_s': {'nl', 'id', 'ms'}, 's_points': {'fr'},
+            'perimeter.label': {'ms'},
+            'base_s_rotation_s': {'fr'},
+        }
+        for code, _ in self.module.LANGUAGES:
+            if code == 'en':
+                continue
+            translated = json.loads((ROOT / 'lng' / (code + '.json')).read_text(encoding='utf-8'))
+            unchanged = [key for key in en
+                         if translated[key] == en[key] and key not in invariant
+                         and code not in cognates.get(key, set())]
+            with self.subTest(language=code):
+                self.assertEqual(unchanged, [], 'Untranslated English message(s)')
+                self.assertFalse(any('⁇' in value or re.search(r'9876\d{2}', value)
+                                     for value in translated.values()),
+                                 'Unresolved translation token')
+
+    # Keep the current captions as well as legacy captions available without
+    # loading all language catalogs during normal workbench startup.
+    def test_current_perimeter_aliases_match_catalogs(self):
+        aliases = json.loads((ROOT / 'lng/perimeters.json').read_text(encoding='utf-8'))
+        for code, _ in self.module.LANGUAGES:
+            catalog = json.loads((ROOT / 'lng' / (code + '.json')).read_text(encoding='utf-8'))
+            with self.subTest(language=code):
+                self.assertEqual(aliases[code], {key: catalog[key] for key in (
+                    'perimeter.with_grain', 'perimeter.without_grain',
+                    'perimeter.border', 'perimeter.label')})
 
     # The controls visible in the main panel must not silently fall back to
     # English in any selected catalog.
@@ -153,7 +203,12 @@ class LanguageTests(unittest.TestCase):
         self.assertIn('Detaļas ar tekstūras virzienu', labels)
         self.assertIn('木目方向ありの部品', labels)
         self.assertIn('ชิ้นงานที่มีทิศทางเสี้ยน', labels)
+        self.assertIn('Тело (Направление волокон)', labels)
+        self.assertIn('Детали с направлением волокон', labels)
         self.assertNotIn('Detaļas bez tekstūras virziena', labels)
+        borders = self.module.perimeter_object_labels('Parts with grain direction', 'border')
+        self.assertIn('Тело (Направление волокон) Направление волокон', borders)
+        self.assertIn('Детали с направлением волокон Контур', borders)
 
     # PySide may emit triggered() without the optional bool; selecting must still work.
     def test_language_action_without_bool(self):
