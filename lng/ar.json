@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "الميزانية بالثواني لكل جولة تحسين timed/continuous.",
   "trials": "المحاولات:",
   "trials_tooltip": "عدد استراتيجيات التوضيع المستقلة (1..4).",
-  "per_part_rotations_only": "تدوير كل جزء على حدة فقط:",
-  "per_part_rotations_only_tooltip": "استخدام قاعدة التدوير الخاصة بكل جزء وتجاهل شبكة التدوير العامة.",
-  "global_rotations": "التدويرات العامة:",
-  "global_rotations_tooltip": "عدد الاتجاهات المنتظمة العامة (1..3600)، يستخدم فقط عندما يكون تدوير كل جزء معطلاً.",
   "resolution_mm_per_px": "الدقة (مم/بكسل):",
   "resolution_mm_per_px_tooltip": "حجم بكسل الصورة النقطية بالمليمتر. القيم الأصغر تزيد الدقة والذاكرة.",
   "bitmap_search_step_px": "خطوة البحث (بكسل):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "تمكين تسريع OpenCL GPU عند توفره.",
   "gpu_device": "جهاز GPU:",
   "gpu_device_tooltip": "فهرس جهاز OpenCL؛ -1 يختار GPU منفصلاً تلقائياً.",
-  "gpu_fallback_to_cpu": "الرجوع إلى CPU:",
-  "gpu_fallback_to_cpu_tooltip": "المتابعة على CPU إذا فشل تشغيل GPU أو تنفيذه.",
   "gpu_batch_size": "حجم الدفعة:",
   "gpu_batch_size_tooltip": "الحد الأقصى للمرشحين في كل دفعة GPU (256..262144)."
 }

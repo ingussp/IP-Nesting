@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Bajet dalam saat untuk setiap pusingan pengoptimuman timed/continuous.",
   "trials": "Percubaan:",
   "trials_tooltip": "Bilangan strategi penempatan bebas (1..4).",
-  "per_part_rotations_only": "Putaran setiap bahagian sahaja:",
-  "per_part_rotations_only_tooltip": "Gunakan peraturan putaran sendiri setiap bahagian dan abaikan grid putaran global.",
-  "global_rotations": "Putaran global:",
-  "global_rotations_tooltip": "Bilangan orientasi seragam global (1..3600), digunakan hanya apabila putaran setiap bahagian dimatikan.",
   "resolution_mm_per_px": "Resolusi (mm/px):",
   "resolution_mm_per_px_tooltip": "Saiz piksel bitmap dalam milimeter. Nilai lebih kecil meningkatkan ketepatan dan memori.",
   "bitmap_search_step_px": "Langkah carian (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "Dayakan pecutan OpenCL GPU apabila tersedia.",
   "gpu_device": "Peranti GPU:",
   "gpu_device_tooltip": "Indeks peranti OpenCL; -1 memilih GPU diskret secara automatik.",
-  "gpu_fallback_to_cpu": "Jatuh balik ke CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Teruskan pada CPU jika permulaan atau pelaksanaan GPU gagal.",
   "gpu_batch_size": "Saiz kelompok:",
   "gpu_batch_size_tooltip": "Maksimum calon setiap kelompok GPU (256..262144)."
 }

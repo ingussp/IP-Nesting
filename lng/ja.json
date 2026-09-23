@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "各 timed/continuous 最適化ラウンドの予算（秒）。",
   "trials": "試行回数:",
   "trials_tooltip": "独立した配置戦略の数 (1..4)。",
-  "per_part_rotations_only": "パーツごとの回転のみ:",
-  "per_part_rotations_only_tooltip": "各パーツ独自の回転ルールを使用し、全体の回転グリッドを無視します。",
-  "global_rotations": "全体の回転:",
-  "global_rotations_tooltip": "全体の均一な向きの数 (1..3600)。パーツごとの回転がオフのときのみ使用。",
   "resolution_mm_per_px": "解像度 (mm/px):",
   "resolution_mm_per_px_tooltip": "ビットマップのピクセルサイズ（ミリメートル）。小さい値は精度とメモリを増やします。",
   "bitmap_search_step_px": "検索ステップ (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "利用可能な場合に OpenCL GPU アクセラレーションを有効にします。",
   "gpu_device": "GPU デバイス:",
   "gpu_device_tooltip": "OpenCL デバイスインデックス。 -1 は自動で個別 GPU を選択します。",
-  "gpu_fallback_to_cpu": "CPU へフォールバック:",
-  "gpu_fallback_to_cpu_tooltip": "GPU の起動や実行が失敗した場合に CPU で続行します。",
   "gpu_batch_size": "バッチサイズ:",
   "gpu_batch_size_tooltip": "GPU バッチあたりの最大候補数 (256..262144)。"
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "প্রতিটি timed/continuous অপ্টিমাইজেশন রাউন্ডের জন্য সেকেন্ডে বাজেট।",
   "trials": "প্রচেষ্টা:",
   "trials_tooltip": "স্বাধীন স্থাপন কৌশলের সংখ্যা (1..4)।",
-  "per_part_rotations_only": "শুধু প্রতি অংশের ঘূর্ণন:",
-  "per_part_rotations_only_tooltip": "প্রতিটি অংশের নিজস্ব ঘূর্ণন নিয়ম ব্যবহার করুন এবং গ্লোবাল ঘূর্ণন গ্রিড উপেক্ষা করুন।",
-  "global_rotations": "গ্লোবাল ঘূর্ণন:",
-  "global_rotations_tooltip": "গ্লোবাল অভিন্ন অভিমুখের সংখ্যা (1..3600), কেবল প্রতি অংশের ঘূর্ণন বন্ধ থাকলে ব্যবহৃত হয়।",
   "resolution_mm_per_px": "রেজোলিউশন (mm/px):",
   "resolution_mm_per_px_tooltip": "মিলিমিটারে বিটম্যাপ পিক্সেলের আকার। ছোট মান নির্ভুলতা ও মেমোরি বাড়ায়।",
   "bitmap_search_step_px": "অনুসন্ধান ধাপ (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "উপলব্ধ হলে OpenCL GPU ত্বরণ সক্রিয় করুন।",
   "gpu_device": "GPU ডিভাইস:",
   "gpu_device_tooltip": "OpenCL ডিভাইস সূচক; -1 স্বয়ংক্রিয়ভাবে একটি ডিসক্রিট GPU নির্বাচন করে।",
-  "gpu_fallback_to_cpu": "CPU-তে ফিরে যান:",
-  "gpu_fallback_to_cpu_tooltip": "GPU শুরু বা কার্যকর করা ব্যর্থ হলে CPU-তে চালিয়ে যান।",
   "gpu_batch_size": "ব্যাচ আকার:",
   "gpu_batch_size_tooltip": "প্রতি GPU ব্যাচে সর্বাধিক প্রার্থী (256..262144)।"
 }

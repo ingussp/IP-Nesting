@@ -999,15 +999,12 @@ def build_nesting_config(
     time_limit_seconds=0.0,
     continuous_round_seconds=30.0,
     trials=2,
-    per_part_rotations_only=True,
-    rotations=4,
     resolution=1.0,
     step=1,
     curve_tolerance=0.3,
     cache_rejects=True,
     gpu_enabled=False,
     gpu_device=-1,
-    gpu_fallback_to_cpu=True,
     gpu_batch_size=65536,
     threads=1,
     spacing=0.0,
@@ -1018,7 +1015,6 @@ def build_nesting_config(
         mode = "first"
 
     trials = _coerce_int(trials, 2, 1, 4)
-    rotations = _coerce_int(rotations, 4, 1, 3600)
     resolution = _coerce_number(resolution, 1.0, lo=1e-6)
     step = _coerce_int(step, 1, 1, 100000)
     curve = _coerce_number(curve_tolerance, 0.3, lo=0.0, hi=1000000.0)
@@ -1045,8 +1041,6 @@ def build_nesting_config(
     config = {
         "algorithm": "bitmap",
         "mode": mode,
-        "perPartRotationsOnly": bool(per_part_rotations_only),
-        "rotations": rotations,
         "resolution": resolution,
         "threads": threads,
         "trials": trials,
@@ -1061,7 +1055,7 @@ def build_nesting_config(
         "gpu": {
             "enabled": bool(gpu_enabled),
             "device": gpu_device,
-            "fallbackToCpu": bool(gpu_fallback_to_cpu),
+            "fallbackToCpu": True,
             "batchSize": gpu_batch,
         },
     }
@@ -1100,6 +1094,16 @@ def _read_combo_text(panel, attr, default):
 def _read_combo_int(panel, attr, default):
     try:
         return int(_read_combo_text(panel, attr, default))
+    except Exception:
+        return int(default)
+
+
+# Read one panel combo box's item data as an int, falling back to default.
+def _read_combo_data_int(panel, attr, default):
+    try:
+        widget = getattr(panel, attr, None)
+        value = widget.currentData() if widget is not None else None
+        return int(value if value is not None else default)
     except Exception:
         return int(default)
 
@@ -1190,19 +1194,12 @@ def execute_nesting(panel):
             panel, "round_seconds_edit", 30.0
         )
         trials = _read_combo_int(panel, "trials_combo", 2)
-        per_part_rotations_only = _read_combo_bool(
-            panel, "per_part_combo", True
-        )
-        rotations = _read_line_edit_int(panel, "rotations_edit", 4)
         resolution = _read_line_edit_float(panel, "resolution_edit", 1.0)
         step = _read_line_edit_int(panel, "step_edit", 1)
         curve_tolerance = _read_line_edit_float(panel, "curve_edit", 0.3)
         cache_rejects = _read_combo_bool(panel, "cache_combo", True)
         gpu_enabled = _read_combo_bool(panel, "gpu_enabled_combo", False)
-        gpu_device = _read_line_edit_int(panel, "gpu_device_edit", -1)
-        gpu_fallback_to_cpu = _read_combo_bool(
-            panel, "gpu_fallback_combo", True
-        )
+        gpu_device = _read_combo_data_int(panel, "gpu_device_combo", -1)
         gpu_batch_size = _read_line_edit_int(panel, "gpu_batch_edit", 65536)
 
         config = build_nesting_config(
@@ -1210,15 +1207,12 @@ def execute_nesting(panel):
             time_limit_seconds=time_limit_seconds,
             continuous_round_seconds=continuous_round_seconds,
             trials=trials,
-            per_part_rotations_only=per_part_rotations_only,
-            rotations=rotations,
             resolution=resolution,
             step=step,
             curve_tolerance=curve_tolerance,
             cache_rejects=cache_rejects,
             gpu_enabled=gpu_enabled,
             gpu_device=gpu_device,
-            gpu_fallback_to_cpu=gpu_fallback_to_cpu,
             gpu_batch_size=gpu_batch_size,
             threads=threads,
             spacing=spacing,

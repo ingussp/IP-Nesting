@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Budget in Sekunden für jede timed/continuous Optimierungsrunde.",
   "trials": "Versuche:",
   "trials_tooltip": "Anzahl unabhängiger Platzierungsstrategien (1..4).",
-  "per_part_rotations_only": "Nur Rotation pro Teil:",
-  "per_part_rotations_only_tooltip": "Eigene Rotationsregel jedes Teils verwenden und das globale Rotationsraster ignorieren.",
-  "global_rotations": "Globale Rotationen:",
-  "global_rotations_tooltip": "Globale gleichmäßige Orientierungsanzahl (1..3600), nur bei deaktivierter Teilrotation.",
   "resolution_mm_per_px": "Auflösung (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmap-Pixelgröße in Millimetern. Kleinere Werte erhöhen Präzision und Speicher.",
   "bitmap_search_step_px": "Suchschritt (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "OpenCL-GPU-Beschleunigung aktivieren, sofern verfügbar.",
   "gpu_device": "GPU-Gerät:",
   "gpu_device_tooltip": "OpenCL-Geräteindex; -1 wählt automatisch eine dedizierte GPU.",
-  "gpu_fallback_to_cpu": "Zurückfallen auf CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Auf CPU fortfahren, wenn GPU-Start oder -Ausführung fehlschlägt.",
   "gpu_batch_size": "Batchgröße:",
   "gpu_batch_size_tooltip": "Maximale Kandidaten pro GPU-Batch (256..262144)."
 }

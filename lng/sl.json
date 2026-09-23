@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Proračun v sekundah za vsak krog timed/continuous optimizacije.",
   "trials": "Poskusi:",
   "trials_tooltip": "Število neodvisnih strategij postavitve (1..4).",
-  "per_part_rotations_only": "Samo vrtenje po delu:",
-  "per_part_rotations_only_tooltip": "Uporabi lastno pravilo vrtenja vsakega dela in prezri globalno mrežo vrtenja.",
-  "global_rotations": "Globalna vrtenja:",
-  "global_rotations_tooltip": "Globalno število enakomernih orientacij (1..3600), uporabljeno samo, ko je vrtenje po delu izklopljeno.",
   "resolution_mm_per_px": "Ločljivost (mm/px):",
   "resolution_mm_per_px_tooltip": "Velikost bitmapnega piksla v milimetrih. Manjše vrednosti povečajo natančnost in pomnilnik.",
   "bitmap_search_step_px": "Korak iskanja (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "Omogoči OpenCL GPU pospešitev, ko je na voljo.",
   "gpu_device": "Naprava GPU:",
   "gpu_device_tooltip": "Indeks naprave OpenCL; -1 samodejno izbere diskretni GPU.",
-  "gpu_fallback_to_cpu": "Povratek na CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Nadaljuj na CPU, če zagon ali izvajanje GPU ne uspe.",
   "gpu_batch_size": "Velikost paketa:",
   "gpu_batch_size_tooltip": "Največ kandidatov na paket GPU (256..262144)."
 }

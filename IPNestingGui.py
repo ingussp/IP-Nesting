@@ -68,11 +68,9 @@ class NestingTaskPanel:
     CLI_TEXT_SETTINGS = (
         ("time_limit_edit", "TimeLimitSeconds", "0"),
         ("round_seconds_edit", "ContinuousRoundSeconds", "30"),
-        ("rotations_edit", "GlobalRotations", "4"),
         ("resolution_edit", "Resolution", "1.0"),
         ("step_edit", "SearchStepPx", "1"),
         ("curve_edit", "CurveTolerance", "0.3"),
-        ("gpu_device_edit", "GpuDevice", "-1"),
         ("gpu_batch_edit", "GpuBatchSize", "65536"),
     )
     CLI_COMBO_SETTINGS = (
@@ -80,10 +78,8 @@ class NestingTaskPanel:
         ("trials_combo", "Trials", "2"),
     )
     CLI_BOOL_SETTINGS = (
-        ("per_part_combo", "PerPartRotationsOnly", True),
         ("cache_combo", "CacheRejects", True),
         ("gpu_enabled_combo", "GpuEnabled", False),
-        ("gpu_fallback_combo", "GpuFallbackToCpu", True),
     )
 
     # Synchronize preview selection with table rows and unregister when the table is destroyed.
@@ -1657,20 +1653,6 @@ class NestingTaskPanel:
             tr('trials_tooltip'),
         )
 
-        self.per_part_combo = self._create_boolean_setting(
-            lay,
-            tr('per_part_rotations_only'),
-            True,
-            tr('per_part_rotations_only_tooltip'),
-        )
-
-        self.rotations_edit, _ = self.create_input_in_layout(
-            lay,
-            tr('global_rotations'),
-            "4",
-            tr('global_rotations_tooltip'),
-        )
-
         self.resolution_edit, _ = self.create_input_in_layout(
             lay,
             tr('resolution_mm_per_px'),
@@ -1711,19 +1693,18 @@ class NestingTaskPanel:
             tr('gpu_enabled_tooltip'),
         )
 
-        self.gpu_device_edit, _ = self.create_input_in_layout(
-            lay,
-            tr('gpu_device'),
-            "-1",
-            tr('gpu_device_tooltip'),
-        )
-
-        self.gpu_fallback_combo = self._create_boolean_setting(
-            lay,
-            tr('gpu_fallback_to_cpu'),
-            True,
-            tr('gpu_fallback_to_cpu_tooltip'),
-        )
+        # GPU device dropdown: "Auto" (-1) followed by locally detected GPUs.
+        gpu_device_row = QtGui.QHBoxLayout()
+        gpu_device_label = ui_widget(QtGui.QLabel, tr('gpu_device'))
+        self.gpu_device_combo = QtGui.QComboBox()
+        self.gpu_device_combo.addItem("Auto", -1)
+        for device_index, device_label in self._detect_gpu_devices():
+            self.gpu_device_combo.addItem(device_label, device_index)
+        ui_call(self.gpu_device_combo, 'setToolTip', tr('gpu_device_tooltip'))
+        ui_call(gpu_device_label, 'setToolTip', tr('gpu_device_tooltip'))
+        gpu_device_row.addWidget(gpu_device_label)
+        gpu_device_row.addWidget(self.gpu_device_combo)
+        lay.addLayout(gpu_device_row)
 
         self.gpu_batch_edit, _ = self.create_input_in_layout(
             lay,
@@ -1781,6 +1762,40 @@ class NestingTaskPanel:
                 )
             except Exception:
                 return 1
+
+    # Return locally detected OpenCL GPU devices as (index, label) pairs.
+    # The nesting CLI enumerates devices with `--list-gpus`; an empty list
+    # means no GPU was found, leaving only the automatic "-1" entry.
+    def _detect_gpu_devices(self):
+        try:
+            executable = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "nesting-cli",
+                "clinesting.exe",
+            )
+            if not os.path.isfile(executable):
+                return []
+            output = subprocess.check_output(
+                [executable, "--list-gpus"],
+                stderr=subprocess.STDOUT,
+                timeout=15,
+            )
+            if isinstance(output, bytes):
+                output = output.decode("utf-8", errors="replace")
+            devices = []
+            for line in output.splitlines():
+                line = line.strip()
+                if not line or ":" not in line:
+                    continue
+                index_text, _, rest = line.partition(":")
+                try:
+                    index = int(index_text.strip())
+                except ValueError:
+                    continue
+                devices.append((index, rest.strip() or line))
+            return devices
+        except Exception:
+            return []
 
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
@@ -3747,6 +3762,7 @@ class NestingTaskPanel:
                 self.res,
                 self.units_combo,
                 self.cpu_cores_combo,
+                self.gpu_device_combo,
             ]
             for w in widgets:
                 try:
@@ -3925,6 +3941,15 @@ class NestingTaskPanel:
                 except Exception:
                     pass
 
+            # Restore the GPU device selection by index (defaults to Auto = -1).
+            try:
+                saved_gpu_device = int(p.GetInt("GpuDevice", -1))
+                index = self.gpu_device_combo.findData(saved_gpu_device)
+                if index >= 0:
+                    self.gpu_device_combo.setCurrentIndex(index)
+            except Exception:
+                pass
+
 
         finally:
             for w in widgets:
@@ -4019,6 +4044,13 @@ class NestingTaskPanel:
                     p.SetBool(key, widget.currentIndex() == 1)
                 except Exception:
                     pass
+
+            # Persist the GPU device by index (Auto = -1).
+            try:
+                gpu_device = self.gpu_device_combo.currentData()
+                p.SetInt("GpuDevice", int(gpu_device if gpu_device is not None else -1))
+            except Exception:
+                pass
 
         except Exception:
             App.Console.PrintError(
@@ -4153,6 +4185,13 @@ class NestingTaskPanel:
             # combos
             try:
                 self.cpu_cores_combo.currentIndexChanged.connect(
+                    self._save_settings_to_prefs
+                )
+            except Exception:
+                pass
+
+            try:
+                self.gpu_device_combo.currentIndexChanged.connect(
                     self._save_settings_to_prefs
                 )
             except Exception:

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Budget in seconden voor elke timed/continuous optimalisatieronde.",
   "trials": "Pogingen:",
   "trials_tooltip": "Aantal onafhankelijke plaatsingsstrategieën (1..4).",
-  "per_part_rotations_only": "Alleen rotatie per onderdeel:",
-  "per_part_rotations_only_tooltip": "Gebruik de eigen rotatieregel van elk onderdeel en negeer het globale rotatieraster.",
-  "global_rotations": "Globale rotaties:",
-  "global_rotations_tooltip": "Globaal uniform oriëntatieaantal (1..3600), alleen bij uitgeschakelde rotatie per onderdeel.",
   "resolution_mm_per_px": "Resolutie (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmap-pixelgrootte in millimeters. Kleinere waarden verhogen precisie en geheugen.",
   "bitmap_search_step_px": "Zoekstap (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "OpenCL GPU-versnelling inschakelen indien beschikbaar.",
   "gpu_device": "GPU-apparaat:",
   "gpu_device_tooltip": "OpenCL-apparaatindex; -1 kiest automatisch een discrete GPU.",
-  "gpu_fallback_to_cpu": "Terugvallen op CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Ga verder op CPU als GPU-start of -uitvoering mislukt.",
   "gpu_batch_size": "Batchgrootte:",
   "gpu_batch_size_tooltip": "Maximaal aantal kandidaten per GPU-batch (256..262144)."
 }

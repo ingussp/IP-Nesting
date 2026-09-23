@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Biudžetas sekundėmis kiekvienam timed/continuous optimizavimo raundui.",
   "trials": "Bandymai:",
   "trials_tooltip": "Nepriklausomų išdėstymo strategijų skaičius (1..4).",
-  "per_part_rotations_only": "Tik kiekvienos dalies pasukimas:",
-  "per_part_rotations_only_tooltip": "Naudok kiekvienos dalies savo pasukimo taisyklę ir ignoruok globalų pasukimo tinklelį.",
-  "global_rotations": "Globalūs pasukimai:",
-  "global_rotations_tooltip": "Globalus vienodų orientacijų skaičius (1..3600), naudojamas tik išjungus dalies pasukimą.",
   "resolution_mm_per_px": "Skiriamoji geba (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmap pikselio dydis milimetrais. Mažesnės reikšmės didina tikslumą ir atmintį.",
   "bitmap_search_step_px": "Paieškos žingsnis (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "Įjungti OpenCL GPU spartinimą, kai jis prieinamas.",
   "gpu_device": "GPU įrenginys:",
   "gpu_device_tooltip": "OpenCL įrenginio indeksas; -1 automatiškai parenka diskretų GPU.",
-  "gpu_fallback_to_cpu": "Grįžti prie CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Tęsk CPU, jei GPU paleidimas ar vykdymas nepavyksta.",
   "gpu_batch_size": "Paketos dydis:",
   "gpu_batch_size_tooltip": "Didžiausias kandidatų skaičius GPU paketai (256..262144)."
 }

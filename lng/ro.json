@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Buget în secunde pentru fiecare rundă de optimizare timed/continuous.",
   "trials": "Încercări:",
   "trials_tooltip": "Număr de strategii independente de amplasare (1..4).",
-  "per_part_rotations_only": "Doar rotații pe piesă:",
-  "per_part_rotations_only_tooltip": "Folosește regula de rotație proprie fiecărei piese și ignoră grila globală.",
-  "global_rotations": "Rotații globale:",
-  "global_rotations_tooltip": "Număr global de orientări uniforme (1..3600), folosit doar cu rotația pe piesă dezactivată.",
   "resolution_mm_per_px": "Rezoluție (mm/px):",
   "resolution_mm_per_px_tooltip": "Dimensiunea pixelului bitmap în milimetri. Valorile mai mici măresc precizia și memoria.",
   "bitmap_search_step_px": "Pas de căutare (px):",
@@ -530,8 +526,6 @@
   "gpu_enabled_tooltip": "Activează accelerația OpenCL pe GPU când este disponibilă.",
   "gpu_device": "Dispozitiv GPU:",
   "gpu_device_tooltip": "Indexul dispozitivului OpenCL; -1 alege automat un GPU dedicat.",
-  "gpu_fallback_to_cpu": "Revenire la CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Continuă pe CPU dacă pornirea sau execuția GPU eșuează.",
   "gpu_batch_size": "Dimensiune lot:",
   "gpu_batch_size_tooltip": "Maximum de candidați pe lot GPU (256..262144)."
 }
