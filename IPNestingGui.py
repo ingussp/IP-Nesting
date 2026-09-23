@@ -16,7 +16,7 @@ import subprocess
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
-from IPNestingExport import execute_nesting as execute_nesting_impl
+from IPNestingExport import execute_nesting as execute_nesting_impl, normalize_rotation_text
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
@@ -4148,28 +4148,11 @@ class NestingTaskPanel:
         """
         Normalize the rotation count field.
 
-        The value represents the number of allowed nesting CLI rotation states,
-        not a comma-separated list of angles.
+        Accepts a plain rotation count (1..3600), a degree step in
+        parentheses such as "(90)", or an explicit angle list in brackets
+        such as "[45, 90]".
         """
-        try:
-            if txt is None:
-                return "1"
-
-            value = str(txt).strip()
-
-            if not value:
-                return "1"
-
-            # Accept decimal-looking input but store an integer.
-            rotations = int(float(value))
-
-            # The nesting CLI supports 1..3600 rotations.
-            rotations = max(1, min(3600, rotations))
-
-            return str(rotations)
-
-        except Exception:
-            return "1"
+        return normalize_rotation_text(txt)
 
 
     # Normalize the rotation count cell for a given data row.
