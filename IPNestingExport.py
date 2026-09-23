@@ -183,28 +183,178 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
         return []
 
 
-# Read one integer rotation count from a table item.
-def _read_rotation_count(item, default=1):
+# Parse one rotation cell value into a nesting CLI rotation rule.
+def parse_rotation_spec(text):
     """
-    Read one integer rotation count from a table item.
+    Parse one rotation cell value into a nesting CLI rotation rule.
+
+    The cell accepts three formats (0 degrees is always the start
+    orientation):
+      - plain count  "32"        -> {"rotations": 32}
+      - degree step  "(90)"      -> {"allowedAngles": [0, 90, 180, 270]}
+      - angle list   "[45, 90]"  -> {"allowedAngles": [0, 45, 90]}
+
+    Returns None for empty, incomplete or invalid input.
+    """
+    if text is None:
+        return None
+
+    value = str(text).strip()
+
+    if not value:
+        return None
+
+    # Plain integer count: a uniform orientation grid (1..3600 states).
+    if value[0] not in "([":
+        try:
+            number = float(value)
+            count = int(number)
+        except (ValueError, OverflowError):
+            return None
+
+        if not math.isfinite(number) or number != count:
+            return None
+
+        return {
+            "rotations": max(1, min(3600, count))
+        }
+
+    # Parenthesized degree step: 0, step, 2*step, ... below 360.
+    if value[0] == "(":
+        if not value.endswith(")"):
+            return None
+
+        try:
+            step = float(value[1:-1].strip())
+        except (ValueError, OverflowError):
+            return None
+
+        if not math.isfinite(step) or step <= 0 or step >= 360:
+            return None
+
+        # The CLI accepts at most 3600 permitted angles per part.
+        if math.ceil(360.0 / step) > 3600:
+            return None
+
+        angles = []
+        angle = 0.0
+        while angle < 360.0 - 1e-6:
+            angles.append(round(angle, 6))
+            angle += step
+
+        return {
+            "allowedAngles": angles
+        }
+
+    # Bracketed explicit angle list with 0 always included.
+    if not value.endswith("]"):
+        return None
+
+    inner = value[1:-1].strip()
+
+    if not inner:
+        return None
+
+    angles = [0.0]
+
+    for part in inner.split(","):
+        part = part.strip()
+
+        if not part:
+            return None
+
+        try:
+            angle = float(part)
+        except (ValueError, OverflowError):
+            return None
+
+        if not math.isfinite(angle):
+            return None
+
+        angle = round(angle % 360.0, 6)
+
+        if angle not in angles:
+            angles.append(angle)
+
+    return {
+        "allowedAngles": angles
+    }
+
+
+# Read one rotation cell into a rule dict, falling back to a single state.
+def _read_rotation_rule(item):
+    """
+    Read one rotation cell into a rule dict, falling back to a single state.
     """
     try:
         if item is None:
-            return int(default)
+            return {"rotations": 1}
 
-        value = int(
-            float(
-                str(item.text()).strip()
-            )
+        rule = parse_rotation_spec(
+            str(item.text())
         )
 
-        return max(
-            1,
-            min(3600, value)
-        )
+        if rule is None:
+            return {"rotations": 1}
+
+        return rule
 
     except Exception:
-        return int(default)
+        return {"rotations": 1}
+
+
+# Characters permitted while a rotation cell is still being typed.
+_ROTATION_SPEC_CHARS = set("0123456789.,+- ()[]\t")
+
+
+# Return True when text looks like an unfinished (or ) rotation cell.
+def _is_incomplete_rotation_spec(value):
+    """Return True when text looks like an unfinished (or ) rotation cell."""
+    if not value:
+        return False
+
+    if value[0] not in "([":
+        return False
+
+    if any(ch not in _ROTATION_SPEC_CHARS for ch in value):
+        return False
+
+    closer = ")" if value[0] == "(" else "]"
+
+    return closer not in value
+
+
+# Normalize a rotation cell value for display without disrupting editing.
+def normalize_rotation_text(text):
+    """
+    Normalize a rotation cell value for display without disrupting editing.
+
+    Returns "1" for empty or invalid input, a clamped integer for a plain
+    count, the trimmed text for a valid degree step or angle list, and the
+    original text while the user is still typing a bracket or parenthesis
+    value.
+    """
+    if text is None:
+        return "1"
+
+    value = str(text)
+    stripped = value.strip()
+
+    if not stripped:
+        return "1"
+
+    rule = parse_rotation_spec(stripped)
+
+    if rule is not None:
+        if "rotations" in rule:
+            return str(rule["rotations"])
+
+        return stripped
+
+    if _is_incomplete_rotation_spec(stripped):
+        return value
+
+    return "1"
 
 
 # Read a positive deflection directly from panel.res text, without converting display units.
@@ -1029,9 +1179,8 @@ def execute_nesting(panel):
                 except Exception:
                     quantity = 1
 
-                rotations = _read_rotation_count(
-                    rotation_item,
-                    default=1
+                rotation_rule = _read_rotation_rule(
+                    rotation_item
                 )
 
                 primary_name = name_item.data(
@@ -1125,7 +1274,7 @@ def execute_nesting(panel):
                     "id": part_id,
                     "points": points,
                     "quantity": quantity,
-                    "rotations": rotations,
+                    **rotation_rule,
 
                     # Metadata consumed by the nesting CLI
                     # and by IPNestingResult.py.
