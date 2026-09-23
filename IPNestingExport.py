@@ -971,6 +971,147 @@ def _get_grain_metadata(panel, row):
 
     return metadata
 
+# Coerce a numeric value into [lo, hi], falling back to default on parse failure.
+def _coerce_number(value, default, lo=None, hi=None):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        number = float(default)
+    if not math.isfinite(number):
+        number = float(default)
+    if lo is not None and number < lo:
+        number = float(lo)
+    if hi is not None and number > hi:
+        number = float(hi)
+    return number
+
+
+# Coerce an integer value into [lo, hi], falling back to default on parse failure.
+def _coerce_int(value, default, lo, hi):
+    return int(round(_coerce_number(value, default, lo, hi)))
+
+
+# Build the nesting CLI `config` object, coercing every setting to its
+# supported range and applying mode-specific time-budget rules. Kept as a
+# pure function so it can be exercised without FreeCAD or PySide.
+def build_nesting_config(
+    mode="first",
+    time_limit_seconds=0.0,
+    continuous_round_seconds=30.0,
+    trials=2,
+    per_part_rotations_only=True,
+    rotations=4,
+    resolution=1.0,
+    step=1,
+    curve_tolerance=0.3,
+    cache_rejects=True,
+    gpu_enabled=False,
+    gpu_device=-1,
+    gpu_fallback_to_cpu=True,
+    gpu_batch_size=65536,
+    threads=1,
+    spacing=0.0,
+    sheet_margin=0.0,
+    hole_clearance=0.0,
+):
+    if mode not in ("first", "timed", "continuous"):
+        mode = "first"
+
+    trials = _coerce_int(trials, 2, 1, 4)
+    rotations = _coerce_int(rotations, 4, 1, 3600)
+    resolution = _coerce_number(resolution, 1.0, lo=1e-6)
+    step = _coerce_int(step, 1, 1, 100000)
+    curve = _coerce_number(curve_tolerance, 0.3, lo=0.0, hi=1000000.0)
+    threads = _coerce_int(threads, 1, 1, 256)
+    spacing = _coerce_number(spacing, 0.0, lo=0.0)
+    sheet_margin = _coerce_number(sheet_margin, 0.0, lo=0.0)
+    hole_clearance = _coerce_number(hole_clearance, 0.0, lo=0.0)
+
+    gpu_device = _coerce_int(gpu_device, -1, -1, 1024)
+    gpu_batch = _coerce_int(gpu_batch_size, 65536, 256, 262144)
+    round_seconds = _coerce_number(
+        continuous_round_seconds, 30.0, lo=0.01, hi=86400.0
+    )
+
+    # Timed mode needs a positive budget, first mode requires exactly zero,
+    # and continuous mode ignores timeLimitSeconds entirely.
+    if mode == "timed":
+        limit = _coerce_number(time_limit_seconds, 0.0, lo=0.0, hi=86400.0)
+        if limit <= 0.0:
+            limit = 60.0
+    else:
+        limit = 0.0
+
+    config = {
+        "algorithm": "bitmap",
+        "mode": mode,
+        "perPartRotationsOnly": bool(per_part_rotations_only),
+        "rotations": rotations,
+        "resolution": resolution,
+        "threads": threads,
+        "trials": trials,
+        "curveTolerance": curve,
+        "cacheRejects": bool(cache_rejects),
+        "bitmapSearchStepPx": step,
+        "spacing": spacing,
+        "partToSheet": sheet_margin,
+        "partToHole": hole_clearance,
+        "timeLimitSeconds": limit,
+        "continuousRoundSeconds": round_seconds,
+        "gpu": {
+            "enabled": bool(gpu_enabled),
+            "device": gpu_device,
+            "fallbackToCpu": bool(gpu_fallback_to_cpu),
+            "batchSize": gpu_batch,
+        },
+    }
+    return config
+
+# Read one panel line-edit as a float, falling back to default.
+def _read_line_edit_float(panel, attr, default):
+    try:
+        widget = getattr(panel, attr, None)
+        text = str(widget.text() if widget is not None else "").strip().replace(",", ".")
+        if not text:
+            return float(default)
+        return float(text)
+    except Exception:
+        return float(default)
+
+
+# Read one panel line-edit as an int, falling back to default.
+def _read_line_edit_int(panel, attr, default):
+    try:
+        return int(round(_read_line_edit_float(panel, attr, default)))
+    except Exception:
+        return int(default)
+
+
+# Read one panel combo box as its current text, falling back to default.
+def _read_combo_text(panel, attr, default):
+    try:
+        widget = getattr(panel, attr, None)
+        return str(widget.currentText()) if widget is not None else str(default)
+    except Exception:
+        return str(default)
+
+
+# Read one panel combo box as an int, falling back to default.
+def _read_combo_int(panel, attr, default):
+    try:
+        return int(_read_combo_text(panel, attr, default))
+    except Exception:
+        return int(default)
+
+
+# Read one False/True combo box as a boolean, falling back to default.
+def _read_combo_bool(panel, attr, default):
+    try:
+        widget = getattr(panel, attr, None)
+        return bool(widget.currentIndex() == 1) if widget is not None else bool(default)
+    except Exception:
+        return bool(default)
+
 # Write nesting CLI input.json and nesting_session.json from the panel and preview geometry.
 def execute_nesting(panel):
     """
@@ -1039,6 +1180,51 @@ def execute_nesting(panel):
             )
         except Exception:
             threads = 1
+
+        # Collect every nesting CLI search and GPU setting from the panel.
+        mode = _read_combo_text(panel, "mode_combo", "first")
+        time_limit_seconds = _read_line_edit_float(
+            panel, "time_limit_edit", 0.0
+        )
+        continuous_round_seconds = _read_line_edit_float(
+            panel, "round_seconds_edit", 30.0
+        )
+        trials = _read_combo_int(panel, "trials_combo", 2)
+        per_part_rotations_only = _read_combo_bool(
+            panel, "per_part_combo", True
+        )
+        rotations = _read_line_edit_int(panel, "rotations_edit", 4)
+        resolution = _read_line_edit_float(panel, "resolution_edit", 1.0)
+        step = _read_line_edit_int(panel, "step_edit", 1)
+        curve_tolerance = _read_line_edit_float(panel, "curve_edit", 0.3)
+        cache_rejects = _read_combo_bool(panel, "cache_combo", True)
+        gpu_enabled = _read_combo_bool(panel, "gpu_enabled_combo", False)
+        gpu_device = _read_line_edit_int(panel, "gpu_device_edit", -1)
+        gpu_fallback_to_cpu = _read_combo_bool(
+            panel, "gpu_fallback_combo", True
+        )
+        gpu_batch_size = _read_line_edit_int(panel, "gpu_batch_edit", 65536)
+
+        config = build_nesting_config(
+            mode=mode,
+            time_limit_seconds=time_limit_seconds,
+            continuous_round_seconds=continuous_round_seconds,
+            trials=trials,
+            per_part_rotations_only=per_part_rotations_only,
+            rotations=rotations,
+            resolution=resolution,
+            step=step,
+            curve_tolerance=curve_tolerance,
+            cache_rejects=cache_rejects,
+            gpu_enabled=gpu_enabled,
+            gpu_device=gpu_device,
+            gpu_fallback_to_cpu=gpu_fallback_to_cpu,
+            gpu_batch_size=gpu_batch_size,
+            threads=threads,
+            spacing=spacing,
+            sheet_margin=sheet_margin,
+            hole_clearance=hole_clearance,
+        )
 
         # Export every added sheet and offcut.
         sheets = []
@@ -1376,20 +1562,7 @@ def execute_nesting(panel):
                 "result_file": "result.json",
                 "units": "mm"
             },
-            "config": {
-                # Only the bitmap algorithm is exposed; NFP is used
-                # internally for collision checking only.
-                "algorithm": "bitmap",
-                "mode": "first",
-                # Ignore the global rotation grid; each part uses its
-                # own per-part rotation.
-                "perPartRotationsOnly": True,
-                "resolution": 1.0,
-                "threads": threads,
-                "spacing": spacing,
-                "partToSheet": sheet_margin,
-                "partToHole": hole_clearance
-            },
+            "config": config,
             "sheets": sheets,
             "parts": parts,
             "output": {

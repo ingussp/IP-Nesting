@@ -62,6 +62,30 @@ except Exception:
 
 # Coordinate nesting settings, material/part tables, preview editing and nesting CLI execution.
 class NestingTaskPanel:
+    # Nesting CLI settings exposed in the right-hand column, mapped to their
+    # preference keys and defaults. "text" entries are QLineEdit fields, "combo"
+    # entries store their current text, and "bool" entries are False/True combos.
+    CLI_TEXT_SETTINGS = (
+        ("time_limit_edit", "TimeLimitSeconds", "0"),
+        ("round_seconds_edit", "ContinuousRoundSeconds", "30"),
+        ("rotations_edit", "GlobalRotations", "4"),
+        ("resolution_edit", "Resolution", "1.0"),
+        ("step_edit", "SearchStepPx", "1"),
+        ("curve_edit", "CurveTolerance", "0.3"),
+        ("gpu_device_edit", "GpuDevice", "-1"),
+        ("gpu_batch_edit", "GpuBatchSize", "65536"),
+    )
+    CLI_COMBO_SETTINGS = (
+        ("mode_combo", "SearchMode", "first"),
+        ("trials_combo", "Trials", "2"),
+    )
+    CLI_BOOL_SETTINGS = (
+        ("per_part_combo", "PerPartRotationsOnly", True),
+        ("cache_combo", "CacheRejects", True),
+        ("gpu_enabled_combo", "GpuEnabled", False),
+        ("gpu_fallback_combo", "GpuFallbackToCpu", True),
+    )
+
     # Synchronize preview selection with table rows and unregister when the table is destroyed.
     class _SelectionObserver:
         # Store the panel reference and mark the selection observer as active.
@@ -413,6 +437,9 @@ class NestingTaskPanel:
             3,
             1
         )
+
+        # Nesting CLI search/GPU settings sit under Units (rows 1-2).
+        self._build_nesting_cli_settings(cfg_grid)
 
         # Make columns expand nicely
         try:
@@ -1559,6 +1586,154 @@ class NestingTaskPanel:
 
         return combo
     
+    # Append a labelled combo box and return it.
+    def _create_combo_setting(
+        self,
+        parent_layout,
+        label,
+        items,
+        default_index=0,
+        tooltip=""
+    ):
+        row = QtGui.QHBoxLayout()
+
+        label_widget = ui_widget(
+            QtGui.QLabel, label
+        )
+
+        combo = QtGui.QComboBox()
+        ui_call(combo, 'addItems', list(items))
+        combo.setCurrentIndex(int(default_index))
+
+        if tooltip:
+            ui_call(
+                label_widget, 'setToolTip', tooltip
+            )
+            ui_call(
+                combo, 'setToolTip', tooltip
+            )
+
+        row.addWidget(label_widget)
+        row.addWidget(combo)
+
+        parent_layout.addLayout(row)
+
+        return combo
+
+    # Build the nesting CLI settings group box shown under the Units selector.
+    def _build_nesting_cli_settings(self, cfg_grid):
+        box = ui_widget(
+            QtGui.QGroupBox, tr('nesting_cli_settings')
+        )
+        lay = QtGui.QVBoxLayout(box)
+
+        self.mode_combo = self._create_combo_setting(
+            lay,
+            tr('search_mode'),
+            ["first", "timed", "continuous"],
+            0,
+            tr('search_mode_tooltip'),
+        )
+
+        self.time_limit_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('time_limit_seconds'),
+            "0",
+            tr('time_limit_seconds_tooltip'),
+        )
+
+        self.round_seconds_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('continuous_round_seconds'),
+            "30",
+            tr('continuous_round_seconds_tooltip'),
+        )
+
+        self.trials_combo = self._create_combo_setting(
+            lay,
+            tr('trials'),
+            ["1", "2", "3", "4"],
+            1,
+            tr('trials_tooltip'),
+        )
+
+        self.per_part_combo = self._create_boolean_setting(
+            lay,
+            tr('per_part_rotations_only'),
+            True,
+            tr('per_part_rotations_only_tooltip'),
+        )
+
+        self.rotations_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('global_rotations'),
+            "4",
+            tr('global_rotations_tooltip'),
+        )
+
+        self.resolution_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('resolution_mm_per_px'),
+            "1.0",
+            tr('resolution_mm_per_px_tooltip'),
+        )
+
+        self.step_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('bitmap_search_step_px'),
+            "1",
+            tr('bitmap_search_step_px_tooltip'),
+        )
+
+        self.curve_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('curve_tolerance_mm'),
+            "0.3",
+            tr('curve_tolerance_mm_tooltip'),
+        )
+
+        self.cache_combo = self._create_boolean_setting(
+            lay,
+            tr('cache_rejects'),
+            True,
+            tr('cache_rejects_tooltip'),
+        )
+
+        # GPU acceleration section.
+        gpu_header = ui_widget(QtGui.QLabel, tr('gpu'))
+        ui_call(gpu_header, 'setStyleSheet', 'font-weight: bold;')
+        lay.addWidget(gpu_header)
+
+        self.gpu_enabled_combo = self._create_boolean_setting(
+            lay,
+            tr('gpu_enabled'),
+            False,
+            tr('gpu_enabled_tooltip'),
+        )
+
+        self.gpu_device_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('gpu_device'),
+            "-1",
+            tr('gpu_device_tooltip'),
+        )
+
+        self.gpu_fallback_combo = self._create_boolean_setting(
+            lay,
+            tr('gpu_fallback_to_cpu'),
+            True,
+            tr('gpu_fallback_to_cpu_tooltip'),
+        )
+
+        self.gpu_batch_edit, _ = self.create_input_in_layout(
+            lay,
+            tr('gpu_batch_size'),
+            "65536",
+            tr('gpu_batch_size_tooltip'),
+        )
+
+        cfg_grid.addWidget(box, 1, 1, 2, 1)
+
     # Append a labelled text input to the main panel and return the input widget.
     def create_input(self, label, default, tooltip):
         row = QtGui.QHBoxLayout()
@@ -3718,6 +3893,38 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
+            # Load nesting CLI search and GPU settings.
+            for attr, key, default in self.CLI_TEXT_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    widget.setText(str(p.GetString(key, default)))
+                except Exception:
+                    pass
+
+            for attr, key, default in self.CLI_COMBO_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    index = widget.findText(str(p.GetString(key, default)))
+                    if index >= 0:
+                        widget.setCurrentIndex(index)
+                except Exception:
+                    pass
+
+            for attr, key, default in self.CLI_BOOL_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    widget.setCurrentIndex(
+                        1 if p.GetBool(key, bool(default)) else 0
+                    )
+                except Exception:
+                    pass
+
 
         finally:
             for w in widgets:
@@ -3784,6 +3991,34 @@ class NestingTaskPanel:
                     "CpuCores",
                     1
                 )
+
+            # Persist nesting CLI search and GPU settings.
+            for attr, key, _default in self.CLI_TEXT_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    p.SetString(key, str(widget.text()).strip())
+                except Exception:
+                    pass
+
+            for attr, key, _default in self.CLI_COMBO_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    p.SetString(key, str(widget.currentText()))
+                except Exception:
+                    pass
+
+            for attr, key, _default in self.CLI_BOOL_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    p.SetBool(key, widget.currentIndex() == 1)
+                except Exception:
+                    pass
 
         except Exception:
             App.Console.PrintError(
@@ -3922,6 +4157,32 @@ class NestingTaskPanel:
                 )
             except Exception:
                 pass
+
+            # Nesting CLI text fields save when editing finishes.
+            for attr, _key, _default in self.CLI_TEXT_SETTINGS:
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    widget.editingFinished.connect(
+                        self._save_settings_to_prefs
+                    )
+                except Exception:
+                    pass
+
+            # Nesting CLI combo and boolean boxes save immediately.
+            for attr, _key, _default in (
+                self.CLI_COMBO_SETTINGS + self.CLI_BOOL_SETTINGS
+            ):
+                widget = getattr(self, attr, None)
+                if widget is None:
+                    continue
+                try:
+                    widget.currentIndexChanged.connect(
+                        self._save_settings_to_prefs
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
             

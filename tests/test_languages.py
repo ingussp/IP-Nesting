@@ -126,6 +126,7 @@ class LanguageTests(unittest.TestCase):
             's', 's_344808', 's_cd3af8', 's_s', 's_s_265fc5', 's_s_d9cd37',
             'shape_area_s', 'shape_volume_s', 'shape_isnull_s', 'typeid_s',
             'x_s_y_s', 'x_s_y_s_z_s', 'x_s_y_s_z_s_b630f9', 'common.ok',
+            'gpu',
         }
         # These are valid cognates, not untranslated sentences.
         cognates = {
