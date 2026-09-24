@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "چندگانه های صادر شده را در یک سند جداگانه برای بررسی آنچه به exe ارسال می شود، رسم کنید.",
   "material": "مواد",
   "count": "تعداد",
-  "grain": "جهت الیاف",
+  "texture": "بافت",
   "move": "جابجایی",
   "time_ratio": "نسبت زمان:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "کنترل می کند که چه مقدار از زمان قطعات موجود برای بهینه سازی استفاده می شود. ارزش های بالاتر به زمان بهینه سازی بیشتر اجازه می دهد و ممکن است نتیجه را بهبود بخشد، اما می تواند ترتیب قطعات را کند تر کند.",

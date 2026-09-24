@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "exe को भेजे गए का निरीक्षण करने के लिए एक अलग दस्तावेज़ में निर्यात बहुभुज खींचें",
   "material": "सामग्री",
   "count": "गणना",
-  "grain": "दाने की दिशा",
+  "texture": "बनावट",
   "move": "स्थानांतरित करें",
   "time_ratio": "समय अनुपात:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "यह नियंत्रित करता है कि भागों के समय की उपलब्ध व्यवस्था का कितना अनुकूलन के लिए उपयोग किया जाता है। उच्च मान अधिक अनुकूलन समय की अनुमति देते हैं और परिणाम में सुधार कर सकते हैं, लेकिन भागों की व्यवस्था को धीमा कर सकते हैं।",

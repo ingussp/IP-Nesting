@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "निर्यात गरिएको बहुभुजहरू एक अलग कागजातमा रेखाचित्र गर्नुहोस् exe लाई पठाइएको जाँच गर्न",
   "material": "सामग्री",
   "count": "गन्ती",
-  "grain": "दानाको दिशा",
+  "texture": "बनावट",
   "move": "सार्नुहोस्",
   "time_ratio": "समय अनुपात:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "भाग समयको उपलब्ध व्यवस्थाको कति मात्रा अप्टिमाइजेसनका लागि प्रयोग गरिन्छ भन्ने नियन्त्रण गर्दछ। उच्च मानहरूले अधिक अनुकूलन समय अनुमति दिन्छ र परिणाम सुधार गर्न सक्छ, तर भागहरूको व्यवस्थालाई ढिलो बनाउन सक्छ।",

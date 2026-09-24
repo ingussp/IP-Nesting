@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "គូរ polygons នាំចេញនៅក្នុងឯកសារផ្សេងគ្នាដើម្បីពិនិត្យមើលអ្វីដែលត្រូវបានផ្ញើទៅ exe",
   "material": "សម្ភារៈ",
   "count": "ចំនួន",
-  "grain": "ទិសសរសៃ",
+  "texture": "វាយនភាព",
   "move": "ផ្លាស់ទី",
   "time_ratio": "សមាមាត្រពេលវេលា:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "គ្រប់គ្រង ថា តើ ការ រៀបចំ ពេល វេលា នៃ ផ្នែក ដែល អាច ប្រើប្រាស់ បាន ប៉ុន្មាន សម្រាប់ ការ ប្រកបដោយ ប្រសិទ្ធភាព។ តម្លៃ ខ្ពស់ ជាង នេះ អនុញ្ញាត ឲ្យ មាន ពេលវេលា អភិវឌ្ឍន៍ ច្រើន ជាង នេះ ហើយ អាច បង្កើន លទ្ធផល បាន ប៉ុន្តែ អាច ធ្វើ ឲ្យ ការ រៀបចំ ផ្នែក មាន ភាព យឺតយ៉ាវ ។",

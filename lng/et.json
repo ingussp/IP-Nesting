@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Rõmida eksporditud polygonid eraldi dokumendis, et kontrollida, mis on saadetud exe",
   "material": "Materjal",
   "count": "Arv",
-  "grain": "Kiudude suund",
+  "texture": "Tekstuur",
   "move": "Liiguta",
   "time_ratio": "Aja suhe:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kontrollib, kui palju olemasolevat osade aega kasutatakse optimeerimiseks. Kõrgemad väärtused võimaldavad rohkem optimeerimise aega ja võivad parandada tulemust, kuid võivad teha osade paigaldamise aeglasemaks.",

@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Nacrtajte izvožene poligone u odvojeni dokument za provjeru onoga što je poslat na exe",
   "material": "Materijal",
   "count": "Broj",
-  "grain": "Smjer vlakana",
+  "texture": "Tekstura",
   "move": "Premjesti",
   "time_ratio": "Omjer vremena:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kontrolira koliko se dostupnog aranžmana dijelova vremena koristi za optimizaciju. Visoke vrijednosti omogućavaju više vremena optimizacije i mogu poboljšati rezultat, ali mogu usporiti raspored dijelova.",

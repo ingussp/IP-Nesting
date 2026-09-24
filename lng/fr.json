@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Dessiner les polygones exportés dans un document séparé pour examiner les données transmises à l'exécutable",
   "material": "Matériau",
   "count": "Quantité",
-  "grain": "Fil",
+  "texture": "Texture",
   "move": "Déplacer",
   "time_ratio": "Part du temps :",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Part du temps disponible consacrée à l'optimisation de l'imbrication. Une valeur élevée permet davantage d'optimisation et peut améliorer le résultat, mais ralentir le calcul.",

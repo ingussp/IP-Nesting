@@ -266,7 +266,7 @@ class NestingTaskPanel:
         ui_call(self.offcuts_table, 'setHorizontalHeaderLabels', [
             tr('material'),
             tr('count'),
-            tr('grain'),
+            tr('texture'),
             tr('move'),
         ])
         ui_call(self.offcuts_table.horizontalHeaderItem(1), 'setToolTip', tr('number_of_sheets_or_offcuts'))
@@ -278,23 +278,28 @@ class NestingTaskPanel:
         self.offcuts_table.itemChanged.connect(self.offcut_controller.on_offcut_count_changed)
         self.offcuts_table.setMinimumHeight(200)
 
-        # Column sizing
+        # Column sizing: Material stretches with the window; Count/Texture/Move
+        # auto-fit their (possibly longer translated) headers with a fixed
+        # minimum width and never stretch.
         try:
             header = self.offcuts_table.horizontalHeader()
+            header.setMinimumSectionSize(48)
             if hasattr(header, "setSectionResizeMode"):
                 header.setSectionResizeMode(0, QtGui.QHeaderView.Stretch)
-                header.setSectionResizeMode(1, QtGui.QHeaderView.Fixed)
-                header.setSectionResizeMode(2, QtGui.QHeaderView.Fixed)
+                header.setSectionResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(3, QtGui.QHeaderView.ResizeToContents)
             else:
                 header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-                header.setResizeMode(1, QtGui.QHeaderView.Fixed)
-                header.setResizeMode(2, QtGui.QHeaderView.Fixed)
+                header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+                header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+                header.setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
         except Exception:
             pass
         try:
             self.offcuts_table.setColumnWidth(0, 220)  # Material
             self.offcuts_table.setColumnWidth(1, 65)   # Count
-            self.offcuts_table.setColumnWidth(2, 70)   # Grain
+            self.offcuts_table.setColumnWidth(2, 80)   # Texture
             self.offcuts_table.setColumnWidth(3, 70)   # Move
         except Exception:
             pass

@@ -136,6 +136,7 @@ class LanguageTests(unittest.TestCase):
             'label_s': {'nl', 'id', 'ms'}, 's_points': {'fr'},
             'perimeter.label': {'ms'},
             'base_s_rotation_s': {'fr'},
+            'texture': {'fr', 'it'},
         }
         for code, _ in self.module.LANGUAGES:
             if code == 'en':
@@ -167,7 +168,7 @@ class LanguageTests(unittest.TestCase):
         en = json.loads((ROOT / 'lng/en.json').read_text(encoding='utf-8'))
         visible = {
             'sheet_settings', 'sheet_margin_mm', 'part_spacing_mm',
-            'sheet_offcut_materials', 'material', 'count', 'grain', 'move',
+            'sheet_offcut_materials', 'material', 'count', 'texture', 'move',
             'add', 'show', 'remove', 'general_parameters',
             'boundary_resolution_mm', 'units', 'nesting_cli_settings',
             'time_ratio', 'population_size', 'mutation_rate',

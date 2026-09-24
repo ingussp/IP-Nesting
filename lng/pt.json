@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Desenhar polígonos exportados em um documento separado para inspecionar o que é enviado para o exe",
   "material": "Material",
   "count": "Contagem",
-  "grain": "Direção do veio",
+  "texture": "Textura",
   "move": "Mover",
   "time_ratio": "Rácio de tempo:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Controla a quantidade de tempo de peças disponível utilizada para a otimização. Valores mais elevados permitem mais tempo de otimização e podem melhorar o resultado, mas podem tornar o arranjo de peças mais lento.",

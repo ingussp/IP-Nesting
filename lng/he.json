@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "צייר פוליגונים שנשלחו במסמך נפרד כדי לבדוק מה נשלח ל- exe",
   "material": "חומר",
   "count": "מספר",
-  "grain": "כיוון הסיבים",
+  "texture": "מרקם",
   "move": "העבר",
   "time_ratio": "יחס זמן:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "שולט בכמה מהארגון הזמין של זמן החלקים משמש לקידום אופטימיזציה. ערכים גבוהים יותר מאפשרים זמן אופטימיזציה רב יותר ועשויים לשפר את התוצאה, אך יכולים להפוך את סידור החלקים לאט יותר.",

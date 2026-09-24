@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Exportierte Polygone in einem separaten Dokument zeichnen, um die an die EXE gesendeten Daten zu prüfen",
   "material": "Material",
   "count": "Anzahl",
-  "grain": "Faser",
+  "texture": "Textur",
   "move": "Verschieben",
   "time_ratio": "Zeitanteil:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Bestimmt den Anteil der verfügbaren Verschachtelungszeit für die Optimierung. Höhere Werte erlauben mehr Optimierungszeit und können das Ergebnis verbessern, aber die Berechnung verlängern.",

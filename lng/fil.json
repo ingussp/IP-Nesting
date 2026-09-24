@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Iguhit ang mga iniluwas na poligono sa hiwalay na dokumento upang siyasatin ang ipinapadala sa programang EXE",
   "material": "Materyal",
   "count": "Bilang",
-  "grain": "Direksyon ng hibla",
+  "texture": "Tekstura",
   "move": "Ilipat",
   "time_ratio": "Ratio ng oras:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kinokontrol kung gaano karaming magagamit na pagkakasunud-sunod ng mga bahagi ng oras ay ginagamit para sa pag-optimize. Ang mas mataas na halaga ay nagpapahintulot sa mas maraming oras ng pag-optimize at maaaring mapabuti ang resulta, ngunit maaaring maging mas mabagal ang pagkakasunud-sunod ng mga bahagi.",

@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "এক্সএক্সএক্সকে যা পাঠানো হয়েছে তা পরীক্ষা করার জন্য একটি পৃথক নথিতে এক্সপোর্ট করা বহুভুজগুলি আঁকুন",
   "material": "উপাদান",
   "count": "সংখ্যা",
-  "grain": "শস্যের দিক",
+  "texture": "টেক্সচার",
   "move": "সরান",
   "time_ratio": "সময় অনুপাত:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "অপ্টিমাইজেশনের জন্য উপলব্ধ অংশের সময়ের কতটুকু ব্যবহার করা হয় তা নিয়ন্ত্রণ করে। উচ্চতর মানগুলি আরও বেশি অপ্টিমাইজেশন সময় দেয় এবং ফলাফলটি উন্নত করতে পারে, তবে অংশগুলির বিন্যাসকে ধীর করে তুলতে পারে।",

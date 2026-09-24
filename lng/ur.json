@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "ایک علیحدہ دستاویز میں برآمد کثیرالاضلاع ڈرائنگ کیا ہے کہ exe کو بھیجا جاتا ہے کیا چیک کرنے کے لئے",
   "material": "مواد",
   "count": "تعداد",
-  "grain": "ریشے کی سمت",
+  "texture": "بناوٹ",
   "move": "منتقل کریں",
   "time_ratio": "وقت کا تناسب:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "کنٹرول کرتا ہے کہ اجزاء کے وقت کی دستیاب ترتیب میں سے کتنا زیادہ اصلاح کے لئے استعمال کیا جاتا ہے۔ اعلی اقدار زیادہ اصلاح کے وقت کی اجازت دیتے ہیں اور نتائج کو بہتر بنا سکتے ہیں، لیکن حصوں کی ترتیب کو سست کر سکتے ہیں.",

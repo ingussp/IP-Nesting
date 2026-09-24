@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "在单独的文档中绘制导出的多边形，以检查传给可执行文件的数据",
   "material": "材料",
   "count": "数量",
-  "grain": "纹理",
+  "texture": "纹理",
   "move": "移动",
   "time_ratio": "时间比例：",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "控制可用排样时间中用于优化的比例。较高的值允许更多优化时间，可能改善结果，但也可能减慢排样。",

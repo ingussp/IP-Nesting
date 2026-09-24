@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "د صادر شوي کثیرګونیو په جلا سند کې رسم کړئ ترڅو وګورئ چې څه چې exe ته لیږل کیږي",
   "material": "مواد",
   "count": "شمېر",
-  "grain": "د فایبر لوری",
+  "texture": "بافت",
   "move": "لېږدول",
   "time_ratio": "د وخت نسبت:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "دا کنټرول کوي چې د برخو د وخت موجود ترتیب څومره د مطلوب کولو لپاره کارول کیږي. لوړې ارزښتونه د اصلاح کولو ډیر وخت ته اجازه ورکوي او ممکن پایلې ته وده ورکړي ، مګر کولی شي د برخو ترتیب ورو کړي.",
