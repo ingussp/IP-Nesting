@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU מופעל:",
   "gpu_enabled_tooltip": "הפעל האצת OpenCL על GPU כשהיא זמינה.",
   "gpu_device": "התקן GPU:",
-  "gpu_device_tooltip": "אינדקס התקן OpenCL; -1 בוחר GPU נפרד אוטומטית.",
+  "gpu_device_tooltip": "בחר את התקן ה-OpenCL לשימוש, או Auto כדי לתת ל-Nesting CLI לבחור את הטוב ביותר.",
   "gpu_batch_size": "גודל אצווה:",
   "gpu_batch_size_tooltip": "מספר מרבי של מועמדים לאצוות GPU (256..262144)."
 }

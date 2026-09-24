@@ -525,7 +525,7 @@
   "gpu_enabled": "Bật GPU:",
   "gpu_enabled_tooltip": "Bật tăng tốc OpenCL GPU khi khả dụng.",
   "gpu_device": "Thiết bị GPU:",
-  "gpu_device_tooltip": "Chỉ số thiết bị OpenCL; -1 tự động chọn GPU rời.",
+  "gpu_device_tooltip": "Chọn thiết bị OpenCL cần dùng hoặc Auto để Nesting CLI tự chọn thiết bị tốt nhất.",
   "gpu_batch_size": "Kích thước lô:",
   "gpu_batch_size_tooltip": "Số ứng viên tối đa mỗi lô GPU (256..262144)."
 }

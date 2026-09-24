@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU etkin:",
   "gpu_enabled_tooltip": "Kullanılabilir olduğunda OpenCL GPU hızlandırmayı etkinleştir.",
   "gpu_device": "GPU cihazı:",
-  "gpu_device_tooltip": "OpenCL cihaz dizini; -1 otomatik olarak ayrı bir GPU seçer.",
+  "gpu_device_tooltip": "Kullanılacak OpenCL cihazını seçin veya Nesting CLI'nin en iyisini seçmesi için Auto'yu seçin.",
   "gpu_batch_size": "Yığın boyutu:",
   "gpu_batch_size_tooltip": "GPU yığını başına maksimum aday (256..262144)."
 }

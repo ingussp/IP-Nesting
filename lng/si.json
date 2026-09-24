@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU සක්‍රීය:",
   "gpu_enabled_tooltip": "ලබා ගත හැකි විට OpenCL GPU ත්වරණය සක්‍රීය කරන්න.",
   "gpu_device": "GPU උපාංගය:",
-  "gpu_device_tooltip": "OpenCL උපාංග දර්ශකය; -1 ස්වයංක්‍රීයව විවික්ත GPU එකක් තෝරයි.",
+  "gpu_device_tooltip": "භාවිතා කළ යුතු OpenCL උපාංගය තෝරන්න, නැතහොත් හොඳම දේ තෝරා ගැනීමට Nesting CLI හට Auto තෝරන්න.",
   "gpu_batch_size": "කණ්ඩායම් ප්‍රමාණය:",
   "gpu_batch_size_tooltip": "GPU කණ්ඩායමකට උපරිම අපේක්ෂකයන් (256..262144)."
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU omogočen:",
   "gpu_enabled_tooltip": "Omogoči OpenCL GPU pospešitev, ko je na voljo.",
   "gpu_device": "Naprava GPU:",
-  "gpu_device_tooltip": "Indeks naprave OpenCL; -1 samodejno izbere diskretni GPU.",
+  "gpu_device_tooltip": "Izberite napravo OpenCL za uporabo ali Auto, da Nesting CLI izbere najboljšo.",
   "gpu_batch_size": "Velikost paketa:",
   "gpu_batch_size_tooltip": "Največ kandidatov na paket GPU (256..262144)."
 }

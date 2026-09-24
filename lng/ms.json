@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU didayakan:",
   "gpu_enabled_tooltip": "Dayakan pecutan OpenCL GPU apabila tersedia.",
   "gpu_device": "Peranti GPU:",
-  "gpu_device_tooltip": "Indeks peranti OpenCL; -1 memilih GPU diskret secara automatik.",
+  "gpu_device_tooltip": "Pilih peranti OpenCL yang akan digunakan, atau Auto untuk membiarkan Nesting CLI memilih yang terbaik.",
   "gpu_batch_size": "Saiz kelompok:",
   "gpu_batch_size_tooltip": "Maksimum calon setiap kelompok GPU (256..262144)."
 }

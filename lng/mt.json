@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU attivat:",
   "gpu_enabled_tooltip": "Attiva l-aċċellerazzjoni OpenCL GPU meta disponibbli.",
   "gpu_device": "Apparat GPU:",
-  "gpu_device_tooltip": "Indiċi tal-apparat OpenCL; -1 jagħżel GPU diskreta awtomatikament.",
+  "gpu_device_tooltip": "Agħżel l-apparat OpenCL li tuża, jew Auto biex tħalli lil Nesting CLI jagħżel l-aħjar wieħed.",
   "gpu_batch_size": "Daqs tal-lott:",
   "gpu_batch_size_tooltip": "Massimu ta' kandidati għal kull lott GPU (256..262144)."
 }

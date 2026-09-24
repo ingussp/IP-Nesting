@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU aktiv:",
   "gpu_enabled_tooltip": "Mövcud olduqda OpenCL GPU sürətləndirilməsini aktivləşdir.",
   "gpu_device": "GPU cihazı:",
-  "gpu_device_tooltip": "OpenCL cihaz indeksi; -1 avtomatik olaraq diskret GPU seçir.",
+  "gpu_device_tooltip": "İstifadə ediləcək OpenCL qurğusunu seçin və ya ən yaxşısını Nesting CLI seçməsi üçün Auto seçin.",
   "gpu_batch_size": "Partiya ölçüsü:",
   "gpu_batch_size_tooltip": "Hər GPU partiyası üçün maksimum namizəd (256..262144)."
 }

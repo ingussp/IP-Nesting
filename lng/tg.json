@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU фаъол:",
   "gpu_enabled_tooltip": "Вақте дастрас аст, суръатбахшии OpenCL GPU-ро фаъол кунед.",
   "gpu_device": "Дастгоҳи GPU:",
-  "gpu_device_tooltip": "Индекси дастгоҳи OpenCL; -1 ба таври худкор GPU-и ҷудогонаро интихоб мекунад.",
+  "gpu_device_tooltip": "Дастгоҳи OpenCL-и истифодашавандаро интихоб кунед ё Auto-ро интихоб кунед, то Nesting CLI беҳтаринашро интихоб кунад.",
   "gpu_batch_size": "Андозаи батч:",
   "gpu_batch_size_tooltip": "Ҳадди аксари номзадҳо барои ҳар батчи GPU (256..262144)."
 }

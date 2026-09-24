@@ -525,7 +525,7 @@
   "gpu_enabled": "启用 GPU:",
   "gpu_enabled_tooltip": "可用时启用 OpenCL GPU 加速。",
   "gpu_device": "GPU 设备:",
-  "gpu_device_tooltip": "OpenCL 设备索引；-1 自动选择独立 GPU。",
+  "gpu_device_tooltip": "选择要使用的 OpenCL 设备，或选择 Auto 让排样 CLI 选择最佳设备。",
   "gpu_batch_size": "批次大小:",
   "gpu_batch_size_tooltip": "每个 GPU 批次的最大候选数（256..262144）。"
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU সক্রিয়:",
   "gpu_enabled_tooltip": "উপলব্ধ হলে OpenCL GPU ত্বরণ সক্রিয় করুন।",
   "gpu_device": "GPU ডিভাইস:",
-  "gpu_device_tooltip": "OpenCL ডিভাইস সূচক; -1 স্বয়ংক্রিয়ভাবে একটি ডিসক্রিট GPU নির্বাচন করে।",
+  "gpu_device_tooltip": "ব্যবহারের জন্য OpenCL ডিভাইসটি বেছে নিন, অথবা সেরাটি বেছে নিতে Nesting CLI-কে Auto দিন।",
   "gpu_batch_size": "ব্যাচ আকার:",
   "gpu_batch_size_tooltip": "প্রতি GPU ব্যাচে সর্বাধিক প্রার্থী (256..262144)।"
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU 사용:",
   "gpu_enabled_tooltip": "가능한 경우 OpenCL GPU 가속을 활성화합니다.",
   "gpu_device": "GPU 장치:",
-  "gpu_device_tooltip": "OpenCL 장치 인덱스; -1은 자동으로 개별 GPU를 선택합니다.",
+  "gpu_device_tooltip": "사용할 OpenCL 장치를 선택하거나 Auto를 선택하여 Nesting CLI가 가장 좋은 장치를 선택하도록 합니다.",
   "gpu_batch_size": "배치 크기:",
   "gpu_batch_size_tooltip": "GPU 배치당 최대 후보 수 (256..262144)."
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU ενεργοποιημένο:",
   "gpu_enabled_tooltip": "Ενεργοποίηση OpenCL GPU επιτάχυνσης όταν είναι διαθέσιμη.",
   "gpu_device": "Συσκευή GPU:",
-  "gpu_device_tooltip": "Δείκτης συσκευής OpenCL· -1 επιλέγει αυτόματα διακριτή GPU.",
+  "gpu_device_tooltip": "Επιλέξτε τη συσκευή OpenCL που θα χρησιμοποιηθεί ή Auto για να αφήσετε το Nesting CLI να επιλέξει την καλύτερη.",
   "gpu_batch_size": "Μέγεθος παρτίδας:",
   "gpu_batch_size_tooltip": "Μέγιστος αριθμός υποψηφίων ανά παρτίδα GPU (256..262144)."
 }

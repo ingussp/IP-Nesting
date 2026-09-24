@@ -59,7 +59,6 @@ class BuildNestingConfigTests(unittest.TestCase):
         self.assertEqual(config['gpu'], {
             'enabled': False,
             'device': -1,
-            'fallbackToCpu': True,
             'batchSize': 65536,
         })
 
@@ -78,7 +77,7 @@ class BuildNestingConfigTests(unittest.TestCase):
         )
         self.assertEqual(
             set(config['gpu']),
-            {'enabled', 'device', 'fallbackToCpu', 'batchSize'}
+            {'enabled', 'device', 'batchSize'}
         )
 
     # First and continuous modes always export a zero time budget.

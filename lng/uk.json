@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU увімкнено:",
   "gpu_enabled_tooltip": "Увімкнути прискорення OpenCL GPU, якщо доступно.",
   "gpu_device": "Пристрій GPU:",
-  "gpu_device_tooltip": "Індекс пристрою OpenCL; -1 автоматично вибирає дискретний GPU.",
+  "gpu_device_tooltip": "Виберіть пристрій OpenCL для використання або Auto, щоб Nesting CLI вибрав найкращий.",
   "gpu_batch_size": "Розмір пакета:",
   "gpu_batch_size_tooltip": "Максимум кандидатів на пакет GPU (256..262144)."
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU қосулы:",
   "gpu_enabled_tooltip": "Қолжетімді болғанда OpenCL GPU жеделдетуін қос.",
   "gpu_device": "GPU құрылғысы:",
-  "gpu_device_tooltip": "OpenCL құрылғы индексі; -1 дискретті GPU-ды автоматты таңдайды.",
+  "gpu_device_tooltip": "Қолданылатын OpenCL құрылғысын таңдаңыз немесе ең жақсысын Nesting CLI таңдауы үшін Auto таңдаңыз.",
   "gpu_batch_size": "Пакет өлшемі:",
   "gpu_batch_size_tooltip": "Әр GPU пакетіне ең көп үміткер (256..262144)."
 }

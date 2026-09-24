@@ -525,7 +525,7 @@
   "gpu_enabled": "เปิดใช้งาน GPU:",
   "gpu_enabled_tooltip": "เปิดใช้งานการเร่งความเร็ว OpenCL GPU เมื่อมี",
   "gpu_device": "อุปกรณ์ GPU:",
-  "gpu_device_tooltip": "ดัชนีอุปกรณ์ OpenCL; -1 เลือก GPU แยกอัตโนมัติ",
+  "gpu_device_tooltip": "เลือกอุปกรณ์ OpenCL ที่จะใช้ หรือเลือก Auto เพื่อให้ Nesting CLI เลือกอุปกรณ์ที่ดีที่สุด",
   "gpu_batch_size": "ขนาดชุด:",
   "gpu_batch_size_tooltip": "จำนวนผู้สมัครสูงสุดต่อชุด GPU (256..262144)"
 }

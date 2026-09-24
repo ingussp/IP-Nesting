@@ -1055,7 +1055,6 @@ def build_nesting_config(
         "gpu": {
             "enabled": bool(gpu_enabled),
             "device": gpu_device,
-            "fallbackToCpu": True,
             "batchSize": gpu_batch,
         },
     }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU ingeschakeld:",
   "gpu_enabled_tooltip": "OpenCL GPU-versnelling inschakelen indien beschikbaar.",
   "gpu_device": "GPU-apparaat:",
-  "gpu_device_tooltip": "OpenCL-apparaatindex; -1 kiest automatisch een discrete GPU.",
+  "gpu_device_tooltip": "Kies het te gebruiken OpenCL-apparaat, of Auto om nesting-CLI de beste te laten kiezen.",
   "gpu_batch_size": "Batchgrootte:",
   "gpu_batch_size_tooltip": "Maximaal aantal kandidaten per GPU-batch (256..262144)."
 }

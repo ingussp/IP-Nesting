@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU diaktifkan:",
   "gpu_enabled_tooltip": "Aktifkan akselerasi OpenCL GPU bila tersedia.",
   "gpu_device": "Perangkat GPU:",
-  "gpu_device_tooltip": "Indeks perangkat OpenCL; -1 otomatis memilih GPU diskret.",
+  "gpu_device_tooltip": "Pilih perangkat OpenCL yang akan digunakan, atau Auto agar Nesting CLI memilih yang terbaik.",
   "gpu_batch_size": "Ukuran batch:",
   "gpu_batch_size_tooltip": "Maksimum kandidat per batch GPU (256..262144)."
 }

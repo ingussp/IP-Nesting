@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU įjungtas:",
   "gpu_enabled_tooltip": "Įjungti OpenCL GPU spartinimą, kai jis prieinamas.",
   "gpu_device": "GPU įrenginys:",
-  "gpu_device_tooltip": "OpenCL įrenginio indeksas; -1 automatiškai parenka diskretų GPU.",
+  "gpu_device_tooltip": "Pasirinkite naudotiną OpenCL įrenginį arba Auto, kad Nesting CLI parinktų geriausią.",
   "gpu_batch_size": "Paketos dydis:",
   "gpu_batch_size_tooltip": "Didžiausias kandidatų skaičius GPU paketai (256..262144)."
 }

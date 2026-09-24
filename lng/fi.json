@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU käytössä:",
   "gpu_enabled_tooltip": "Ota OpenCL GPU-kiihdytys käyttöön, kun se on saatavilla.",
   "gpu_device": "GPU-laite:",
-  "gpu_device_tooltip": "OpenCL-laitteen indeksi; -1 valitsee automaattisesti erillisen GPU:n.",
+  "gpu_device_tooltip": "Valitse käytettävä OpenCL-laite tai Auto, jolloin Nesting CLI valitsee parhaan.",
   "gpu_batch_size": "Erän koko:",
   "gpu_batch_size_tooltip": "Enimmäismäärä ehdokkaita GPU-erää kohti (256..262144)."
 }

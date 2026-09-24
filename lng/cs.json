@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU povoleno:",
   "gpu_enabled_tooltip": "Povolit OpenCL GPU akceleraci, je-li dostupná.",
   "gpu_device": "GPU zařízení:",
-  "gpu_device_tooltip": "Index OpenCL zařízení; -1 vybere diskrétní GPU automaticky.",
+  "gpu_device_tooltip": "Vyberte zařízení OpenCL, které se má použít, nebo Auto, aby Nesting CLI vybral nejlepší.",
   "gpu_batch_size": "Velikost dávky:",
   "gpu_batch_size_tooltip": "Maximální počet kandidátů na dávku GPU (256..262144)."
 }

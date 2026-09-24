@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU aktiviert:",
   "gpu_enabled_tooltip": "OpenCL-GPU-Beschleunigung aktivieren, sofern verfügbar.",
   "gpu_device": "GPU-Gerät:",
-  "gpu_device_tooltip": "OpenCL-Geräteindex; -1 wählt automatisch eine dedizierte GPU.",
+  "gpu_device_tooltip": "Wählen Sie das zu verwendende OpenCL-Gerät oder Auto, damit Nesting CLI das beste Gerät wählt.",
   "gpu_batch_size": "Batchgröße:",
   "gpu_batch_size_tooltip": "Maximale Kandidaten pro GPU-Batch (256..262144)."
 }

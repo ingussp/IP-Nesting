@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU सक्षम:",
   "gpu_enabled_tooltip": "उपलब्ध होने पर OpenCL GPU त्वरण सक्षम करें।",
   "gpu_device": "GPU डिवाइस:",
-  "gpu_device_tooltip": "OpenCL डिवाइस सूचकांक; -1 स्वतः एक अलग GPU चुनता है।",
+  "gpu_device_tooltip": "उपयोग के लिए OpenCL डिवाइस चुनें, या सर्वश्रेष्ठ चुनने के लिए Nesting CLI को Auto चुनें।",
   "gpu_batch_size": "बैच आकार:",
   "gpu_batch_size_tooltip": "प्रति GPU बैच अधिकतम उम्मीदवार (256..262144)।"
 }

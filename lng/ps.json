@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU فعال:",
   "gpu_enabled_tooltip": "کله چې شتون ولري OpenCL GPU سرعت فعال کړئ.",
   "gpu_device": "GPU وسیله:",
-  "gpu_device_tooltip": "د OpenCL وسیلې شاخص؛ -1 په اتوماتيک ډول جلا GPU غوره کوي.",
+  "gpu_device_tooltip": "د کارولو لپاره د OpenCL وسیله وټاکئ، یا Auto وټاکئ ترڅو Nesting CLI غوره یوه وټاکي.",
   "gpu_batch_size": "د بست اندازه:",
   "gpu_batch_size_tooltip": "په هر GPU بست کې اعظمي نوماندان (256..262144)."
 }

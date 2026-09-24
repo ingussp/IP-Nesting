@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU włączone:",
   "gpu_enabled_tooltip": "Włącz przyspieszanie OpenCL na GPU, gdy jest dostępne.",
   "gpu_device": "Urządzenie GPU:",
-  "gpu_device_tooltip": "Indeks urządzenia OpenCL; -1 automatycznie wybiera dedykowane GPU.",
+  "gpu_device_tooltip": "Wybierz urządzenie OpenCL do użycia lub Auto, aby Nesting CLI wybrało najlepsze.",
   "gpu_batch_size": "Rozmiar partii:",
   "gpu_batch_size_tooltip": "Maksymalna liczba kandydatów na partię GPU (256..262144)."
 }

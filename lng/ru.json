@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU включён:",
   "gpu_enabled_tooltip": "Включить ускорение OpenCL GPU, если доступно.",
   "gpu_device": "Устройство GPU:",
-  "gpu_device_tooltip": "Индекс устройства OpenCL; -1 автоматически выбирает дискретный GPU.",
+  "gpu_device_tooltip": "Выберите используемое устройство OpenCL или Auto, чтобы CLI раскладки выбрал лучшее.",
   "gpu_batch_size": "Размер пакета:",
   "gpu_batch_size_tooltip": "Максимум кандидатов на пакет GPU (256..262144)."
 }

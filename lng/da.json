@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU aktiveret:",
   "gpu_enabled_tooltip": "Aktivér OpenCL GPU-acceleration, når den er tilgængelig.",
   "gpu_device": "GPU-enhed:",
-  "gpu_device_tooltip": "OpenCL-enhedsindeks; -1 vælger automatisk en dedikeret GPU.",
+  "gpu_device_tooltip": "Vælg den OpenCL-enhed, der skal bruges, eller Auto for at lade Nesting CLI vælge den bedste.",
   "gpu_batch_size": "Batchstørrelse:",
   "gpu_batch_size_tooltip": "Maksimalt antal kandidater pr. GPU-batch (256..262144)."
 }

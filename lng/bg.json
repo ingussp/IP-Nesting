@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU активиран:",
   "gpu_enabled_tooltip": "Активирай OpenCL GPU ускорение, когато е налично.",
   "gpu_device": "GPU устройство:",
-  "gpu_device_tooltip": "Индекс на OpenCL устройство; -1 избира дискретно GPU автоматично.",
+  "gpu_device_tooltip": "Изберете OpenCL устройството за използване или Auto, за да оставите Nesting CLI да избере най-доброто.",
   "gpu_batch_size": "Размер на пакета:",
   "gpu_batch_size_tooltip": "Максимален брой кандидати на GPU пакет (256..262144)."
 }

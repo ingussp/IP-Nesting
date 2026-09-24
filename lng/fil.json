@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU pinagana:",
   "gpu_enabled_tooltip": "Paganahin ang OpenCL GPU acceleration kapag available.",
   "gpu_device": "GPU na device:",
-  "gpu_device_tooltip": "Index ng OpenCL device; -1 ay awtomatikong pumipili ng discrete GPU.",
+  "gpu_device_tooltip": "Piliin ang OpenCL device na gagamitin, o Auto para hayaan ang Nesting CLI na pumili ng pinakamahusay.",
   "gpu_batch_size": "Laki ng batch:",
   "gpu_batch_size_tooltip": "Pinakamataas na kandidato bawat GPU batch (256..262144)."
 }

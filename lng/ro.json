@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU activat:",
   "gpu_enabled_tooltip": "Activează accelerația OpenCL pe GPU când este disponibilă.",
   "gpu_device": "Dispozitiv GPU:",
-  "gpu_device_tooltip": "Indexul dispozitivului OpenCL; -1 alege automat un GPU dedicat.",
+  "gpu_device_tooltip": "Alegeți dispozitivul OpenCL de utilizat sau Auto pentru a lăsa CLI-ul de așezare să aleagă cel mai bun.",
   "gpu_batch_size": "Dimensiune lot:",
   "gpu_batch_size_tooltip": "Maximum de candidați pe lot GPU (256..262144)."
 }

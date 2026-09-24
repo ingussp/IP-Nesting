@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU lubatud:",
   "gpu_enabled_tooltip": "Luba OpenCL GPU-kiirendus, kui see on saadaval.",
   "gpu_device": "GPU-seade:",
-  "gpu_device_tooltip": "OpenCL-seadme indeks; -1 valib automaatselt diskreetse GPU.",
+  "gpu_device_tooltip": "Valige kasutatav OpenCL-seade või Auto, et lasta Nesting CLI-l valida parim.",
   "gpu_batch_size": "Partii suurus:",
   "gpu_batch_size_tooltip": "Maksimaalne kandidaatide arv GPU-partii kohta (256..262144)."
 }

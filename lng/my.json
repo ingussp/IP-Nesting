@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU ဖွင့်ထား:",
   "gpu_enabled_tooltip": "ရရှိနိုင်သည့်အခါ OpenCL GPU အရှိန်မြှင့်မှုကို ဖွင့်ပါ။",
   "gpu_device": "GPU စက်:",
-  "gpu_device_tooltip": "OpenCL စက်အညွှန်း; -1 သည် သီးခြား GPU ကို အလိုအလျောက်ရွေးသည်။",
+  "gpu_device_tooltip": "အသုံးပြုမည့် OpenCL စက်ကို ရွေးပါ သို့မဟုတ် Auto ကိုရွေးပြီး Nesting CLI မှ အကောင်းဆုံးကို ရွေးစေပါ။",
   "gpu_batch_size": "အသုတ်အရွယ်အစား:",
   "gpu_batch_size_tooltip": "GPU အသုတ်တစ်ခုစီအတွက် အများဆုံးကိုယ်စားလှယ်လောင်းများ (256..262144)။"
 }

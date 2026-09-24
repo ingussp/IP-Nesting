@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU cumasaithe:",
   "gpu_enabled_tooltip": "Cumasaigh luasghéarú OpenCL GPU nuair atá sé ar fáil.",
   "gpu_device": "Gléas GPU:",
-  "gpu_device_tooltip": "Innéacs gléis OpenCL; roghnaíonn -1 GPU scoite go huathoibríoch.",
+  "gpu_device_tooltip": "Roghnaigh an gléas OpenCL le húsáid, nó Auto chun ligean do Nesting CLI an ceann is fearr a roghnú.",
   "gpu_batch_size": "Méid baisc:",
   "gpu_batch_size_tooltip": "Uasmhéid iarrthóirí in aghaidh baisc GPU (256..262144)."
 }

@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU yoqilgan:",
   "gpu_enabled_tooltip": "Mavjud bo'lganda OpenCL GPU tezlatishini yoqing.",
   "gpu_device": "GPU qurilmasi:",
-  "gpu_device_tooltip": "OpenCL qurilma indeksi; -1 avtomatik ravishda alohida GPU tanlaydi.",
+  "gpu_device_tooltip": "Foydalaniladigan OpenCL qurilmasini tanlang yoki eng yaxshisini Nesting CLI tanlashi uchun Auto ni tanlang.",
   "gpu_batch_size": "Partiya hajmi:",
   "gpu_batch_size_tooltip": "GPU partiyasiga maksimal nomzodlar (256..262144)."
 }

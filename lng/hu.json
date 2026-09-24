@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU engedélyezve:",
   "gpu_enabled_tooltip": "OpenCL GPU-gyorsítás engedélyezése, ha elérhető.",
   "gpu_device": "GPU-eszköz:",
-  "gpu_device_tooltip": "OpenCL-eszközindex; -1 automatikusan diszkrét GPU-t választ.",
+  "gpu_device_tooltip": "Válassza ki a használandó OpenCL-eszközt, vagy Auto, hogy a Nesting CLI válassza ki a legjobbat.",
   "gpu_batch_size": "Kötegméret:",
   "gpu_batch_size_tooltip": "Maximális jelöltek száma GPU-kötegenként (256..262144)."
 }

@@ -11,6 +11,7 @@ import math
 import traceback
 import time
 import re
+import shutil
 import tempfile
 import subprocess
 import Part
@@ -1763,17 +1764,34 @@ class NestingTaskPanel:
             except Exception:
                 return 1
 
+    # Locate the bundled nesting CLI executable, falling back to one on PATH.
+    def _nesting_cli_executable(self):
+        candidates = [
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "nesting-cli",
+                "clinesting.exe",
+            ),
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "clinesting.exe",
+            ),
+        ]
+        for candidate in candidates:
+            if os.path.isfile(candidate):
+                return candidate
+        try:
+            return shutil.which("clinesting")
+        except Exception:
+            return None
+
     # Return locally detected OpenCL GPU devices as (index, label) pairs.
     # The nesting CLI enumerates devices with `--list-gpus`; an empty list
     # means no GPU was found, leaving only the automatic "-1" entry.
     def _detect_gpu_devices(self):
         try:
-            executable = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "nesting-cli",
-                "clinesting.exe",
-            )
-            if not os.path.isfile(executable):
+            executable = self._nesting_cli_executable()
+            if not executable:
                 return []
             output = subprocess.check_output(
                 [executable, "--list-gpus"],
@@ -1792,11 +1810,47 @@ class NestingTaskPanel:
                     index = int(index_text.strip())
                 except ValueError:
                     continue
-                devices.append((index, rest.strip() or line))
+                label = rest.strip() or line
+                devices.append((index, label))
             return devices
         except Exception:
             return []
 
+    # Re-enumerate GPU devices and repopulate the device dropdown, keeping the
+    # current selection when it is still available.
+    def _refresh_gpu_devices(self):
+        combo = getattr(self, "gpu_device_combo", None)
+        if combo is None:
+            return
+        try:
+            previous = combo.currentData()
+        except Exception:
+            previous = None
+        try:
+            combo.blockSignals(True)
+            combo.clear()
+            combo.addItem("Auto", -1)
+            for device_index, device_label in self._detect_gpu_devices():
+                combo.addItem(device_label, device_index)
+            if previous is not None:
+                index = combo.findData(previous)
+                if index >= 0:
+                    combo.setCurrentIndex(index)
+        finally:
+            try:
+                combo.blockSignals(False)
+            except Exception:
+                pass
+
+    # Re-enumerate GPU devices when the user enables GPU acceleration, so the
+    # dropdown reflects the cards available on this machine.
+    def _on_gpu_enabled_changed(self, _index):
+        try:
+            combo = getattr(self, "gpu_enabled_combo", None)
+            if combo is not None and combo.currentIndex() == 1:
+                self._refresh_gpu_devices()
+        except Exception:
+            pass
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
     # Timer callback - delegates to grain controller.
@@ -4193,6 +4247,15 @@ class NestingTaskPanel:
             try:
                 self.gpu_device_combo.currentIndexChanged.connect(
                     self._save_settings_to_prefs
+                )
+            except Exception:
+                pass
+
+            # Refresh the GPU device list when acceleration is enabled so the
+            # dropdown reflects the cards available on this machine.
+            try:
+                self.gpu_enabled_combo.currentIndexChanged.connect(
+                    self._on_gpu_enabled_changed
                 )
             except Exception:
                 pass

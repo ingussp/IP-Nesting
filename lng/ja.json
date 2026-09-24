@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU 有効:",
   "gpu_enabled_tooltip": "利用可能な場合に OpenCL GPU アクセラレーションを有効にします。",
   "gpu_device": "GPU デバイス:",
-  "gpu_device_tooltip": "OpenCL デバイスインデックス。 -1 は自動で個別 GPU を選択します。",
+  "gpu_device_tooltip": "使用する OpenCL デバイスを選択するか、Auto を選択して Nesting CLI に最適なものを選ばせます。",
   "gpu_batch_size": "バッチサイズ:",
   "gpu_batch_size_tooltip": "GPU バッチあたりの最大候補数 (256..262144)。"
 }

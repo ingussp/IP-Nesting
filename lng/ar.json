@@ -525,7 +525,7 @@
   "gpu_enabled": "تمكين GPU:",
   "gpu_enabled_tooltip": "تمكين تسريع OpenCL GPU عند توفره.",
   "gpu_device": "جهاز GPU:",
-  "gpu_device_tooltip": "فهرس جهاز OpenCL؛ -1 يختار GPU منفصلاً تلقائياً.",
+  "gpu_device_tooltip": "اختر جهاز OpenCL المطلوب استخدامه، أو اختر Auto لترك CLI التعشيش يختار الأنسب.",
   "gpu_batch_size": "حجم الدفعة:",
   "gpu_batch_size_tooltip": "الحد الأقصى للمرشحين في كل دفعة GPU (256..262144)."
 }

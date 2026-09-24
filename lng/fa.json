@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU فعال:",
   "gpu_enabled_tooltip": "شتاب OpenCL روی GPU را در صورت موجود بودن فعال کن.",
   "gpu_device": "دستگاه GPU:",
-  "gpu_device_tooltip": "شاخص دستگاه OpenCL؛ -1 به طور خودکار GPU مجزا انتخاب می‌کند.",
+  "gpu_device_tooltip": "دستگاه OpenCL مورد استفاده را انتخاب کنید یا Auto را انتخاب کنید تا Nesting CLI بهترین را برگزیند.",
   "gpu_batch_size": "اندازه دسته:",
   "gpu_batch_size_tooltip": "حداکثر نامزدها در هر دسته GPU (256..262144)."
 }

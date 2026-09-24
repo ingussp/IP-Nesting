@@ -525,7 +525,7 @@
   "gpu_enabled": "GPU فعال:",
   "gpu_enabled_tooltip": "دستیاب ہونے پر OpenCL GPU ایکسلریشن فعال کریں۔",
   "gpu_device": "GPU آلہ:",
-  "gpu_device_tooltip": "OpenCL آلہ اشاریہ؛ -1 خودکار طور پر ایک علیحدہ GPU منتخب کرتا ہے۔",
+  "gpu_device_tooltip": "استعمال کے لیے OpenCL آلہ منتخب کریں، یا بہترین منتخب کرنے کے لیے Nesting CLI کو Auto دیں۔",
   "gpu_batch_size": "بیچ سائز:",
   "gpu_batch_size_tooltip": "فی GPU بیچ زیادہ سے زیادہ امیدوار (256..262144)۔"
 }
