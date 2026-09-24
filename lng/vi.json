@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Hình vẽ nhiều giác xuất khẩu trong một tài liệu riêng để kiểm tra những gì được gửi đến exe",
   "material": "Vật liệu",
   "count": "Số đếm",
-  "grain": "Hướng thớ",
+  "texture": "Kết cấu",
   "move": "Di chuyển",
   "time_ratio": "Tỷ lệ thời gian:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kiểm soát số lượng thời gian phụ tùng có sẵn được sử dụng để tối ưu hóa. Giá trị cao hơn cho phép thời gian tối ưu hóa nhiều hơn và có thể cải thiện kết quả, nhưng có thể làm cho sự sắp xếp của các bộ phận chậm hơn.",

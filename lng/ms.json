@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Lukiskan poligon yang dieksport dalam dokumen berasingan untuk memeriksa apa yang dihantar ke exe",
   "material": "Bahan",
   "count": "Bilangan",
-  "grain": "Arah ira",
+  "texture": "Tekstur",
   "move": "Gerak",
   "time_ratio": "Nisbah masa:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Mengendalikan berapa banyak susunan masa bahagian yang tersedia digunakan untuk pengoptimuman. Nilai yang lebih tinggi membolehkan lebih banyak masa pengoptimuman dan boleh meningkatkan hasil, tetapi boleh membuat susunan bahagian lebih perlahan.",

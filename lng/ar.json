@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "رسم المتعددات المصدرة في وثيقة منفصلة للتفتيش على ما يتم إرساله إلى exe",
   "material": "المادة",
   "count": "العدد",
-  "grain": "اتجاه الألياف",
+  "texture": "الملمس",
   "move": "نقل",
   "time_ratio": "نسبة الوقت:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "يسيطر على كمية التخطيط المتاحة لفترة الأجزاء تستخدم لتحسينها. تسمح قيم أعلى بفترة تحسين أكبر ويمكن أن تحسن النتيجة، ولكن يمكن أن تجعل ترتيب الأجزاء أبطأ.",

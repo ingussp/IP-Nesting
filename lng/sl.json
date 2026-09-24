@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Naredite izvožene poligone v ločen dokument, da preverite, kaj je poslano na exe",
   "material": "Material",
   "count": "Število",
-  "grain": "Smer vlaken",
+  "texture": "Tekstura",
   "move": "Premakni",
   "time_ratio": "Časovno razmerje:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Upravlja, koliko razpoložljivega urejanja delovnega časa se uporablja za optimizacijo. višje vrednosti omogočajo več časa za optimizacijo in lahko izboljšajo rezultat, vendar lahko pospešujejo urejanje delov.",

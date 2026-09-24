@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Resa exporterade polygoner i ett separat dokument för att kontrollera vad som skickas till exe",
   "material": "Material",
   "count": "Antal",
-  "grain": "Fiberriktning",
+  "texture": "Textur",
   "move": "Flytta",
   "time_ratio": "Tidsförhållande:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kontrollerar hur mycket av det tillgängliga arrangemanget av deltid används för optimering. Högre värden tillåter mer optimeringstid och kan förbättra resultatet, men kan göra arrangemang av delar långsammare.",

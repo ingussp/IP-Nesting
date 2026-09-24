@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "exe에 전송되는 것을 확인하기 위해 다른 문서에서 수출된 다각형을 그려보세요",
   "material": "재료",
   "count": "개수",
-  "grain": "결 방향",
+  "texture": "질감",
   "move": "이동",
   "time_ratio": "시간 비율:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "사용 가능한 부품 시간 배열의 어느 정도가 최적화를 위해 사용된다는 것을 제어합니다. 더 높은 값은 더 많은 최적화 시간을 허용하고 결과를 향상시킬 수 있지만 부품의 배열을 느리게 만들 수 있습니다.",

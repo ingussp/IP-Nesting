@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Készítsen egy külön dokumentumban exportált többszögeket, hogy megvizsgálhassák, mit küld az exe-hez",
   "material": "Anyag",
   "count": "Darab",
-  "grain": "Szálirány",
+  "texture": "Textúra",
   "move": "Áthelyezés",
   "time_ratio": "Időarány:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Ellenőrzi, hogy a rendelkezésre álló alkatrészek időtartamának mennyit használnak optimalizálásra. A magasabb értékek több optimalizációs időt biztosítanak, és javíthatják az eredményt, de lassabban rendezhetik a részek elrendezését.",

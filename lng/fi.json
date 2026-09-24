@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Piirrä vietyjä moninkertaisia eri asiakirjassa tarkistamaan, mitä lähetetään exe:lle",
   "material": "Materiaali",
   "count": "Lukumäärä",
-  "grain": "Syysuunta",
+  "texture": "Tekstuuri",
   "move": "Siirrä",
   "time_ratio": "Aikasuhde:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Hallitaan, kuinka paljon käytettävissä olevaa osiaikaa käytetään optimointiin. Korkeat arvot antavat enemmän optimointiaikaa ja voivat parantaa tulosta, mutta voivat hidastaa osien järjestelyä.",

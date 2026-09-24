@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Rysuj wyeksportowane wielokątniki w oddzielnym dokumencie, aby sprawdzić, co jest wysłane do exe",
   "material": "Materiał",
   "count": "Liczba",
-  "grain": "Kierunek włókien",
+  "texture": "Tekstura",
   "move": "Przenieś",
   "time_ratio": "Stosunek czasu:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Kontrola, ile dostępnego czasu części jest wykorzystywane do optymalizacji. Wyższe wartości umożliwiają więcej czasu optymalizacji i mogą poprawić wynik, ale mogą spowolnić układ części.",

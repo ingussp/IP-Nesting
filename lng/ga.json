@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Déan an t-iarscríbhinn a leanas a chur ar fáil:",
   "material": "Ábhar",
   "count": "Líon",
-  "grain": "Treo snáithíní",
+  "texture": "Uigeacht",
   "move": "Bog",
   "time_ratio": "Cóimheas ama:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Rialaíonn sé cé mhéad den ordú atá ar fáil de chuid ama a úsáidtear le haghaidh uathoibriú. Ligeann luachanna níos airde níos mó ama optimization agus d'fhéadfadh sé an toradh a fheabhsú, ach d'fhéadfadh sé ordú páirteanna a dhéanamh níos moille.",

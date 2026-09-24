@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Exported poligons එක වෙනම document එකක් තුල ඇඳගෙන exe එකට යවන දේ පරීක්ෂා කරන්න",
   "material": "ද්‍රව්‍ය",
   "count": "ගණන",
-  "grain": "තන්තු දිශාව",
+  "texture": "වයනය",
   "move": "ගෙන යන්න",
   "time_ratio": "කාල අනුපාතය:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "උපරිමකරණය සඳහා ලබා ගත හැකි කොටස් කාලය කොපමණ ප් රමාණයක් භාවිතා කරන්නේද යන්න පාලනය කරයි. ඉහළ අගයන් වැඩි ප් රශස්තිකරණ කාලයකට ඉඩ සලසන අතර ප් රති result ලය වැඩි දියුණු කළ හැකි නමුත් කොටස් සංවිධානය මන්දගාමී කළ හැකිය.",

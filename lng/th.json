@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "วาดโพลิกอนที่ส่งออกในเอกสารแยกเพื่อดูข้อมูลที่จะส่งให้ไฟล์ปฏิบัติการ",
   "material": "วัสดุ",
   "count": "จำนวน",
-  "grain": "ทิศทางเสี้ยน",
+  "texture": "พื้นผิว",
   "move": "ย้าย",
   "time_ratio": "อัตราส่วนเวลา:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "ปฏิบัติการควบคุมว่าการจัดตั้งของเวลาส่วนที่มีอยู่มากแค่ไหนจะใช้เพื่อการอุดมสมรรถนะ ค่านิยมที่สูงกว่าจะให้เวลาอุดมสมบูรณ์มากขึ้น และอาจปรับปรุงผลสําเร็จได้ แต่สามารถทําให้การจัดตั้งของชิ้นส่วนช้าขึ้น",

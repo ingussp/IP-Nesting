@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "Teken geëxporteerde veelhoeken in een apart document om te bekijken wat naar het uitvoerbare bestand wordt gestuurd",
   "material": "Materiaal",
   "count": "Aantal",
-  "grain": "Nerf",
+  "texture": "Textuur",
   "move": "Verplaatsen",
   "time_ratio": "Tijdverhouding:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "Bepaalt hoeveel van de beschikbare nestingtijd aan optimalisatie wordt besteed. Hogere waarden geven meer optimalisatietijd en kunnen het resultaat verbeteren, maar nesting vertragen.",

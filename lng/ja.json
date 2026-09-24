@@ -133,7 +133,7 @@
   "draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe": "エクスポートしたポリゴンを別ドキュメントに描画し、実行ファイルに送る内容を確認します。",
   "material": "材料",
   "count": "数",
-  "grain": "木目方向",
+  "texture": "テクスチャ",
   "move": "移動",
   "time_ratio": "時間比:",
   "controls_how_much_of_the_available_nesting_time_is_used_for_optimization_higher_values_all": "パーツの時間配置が最適化に使用される量を制御する. より高い値が最適化時間を増やし,結果を改善する可能性がありますが,部品の配置を遅らせる可能性があります.",
