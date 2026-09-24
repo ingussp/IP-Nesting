@@ -66,8 +66,8 @@
     "perimeter.label": "%s Etiket"
   },
   "et": {
-    "perimeter.with_grain": "Valgusrünnid",
-    "perimeter.without_grain": "Valgusvõimsus",
+    "perimeter.with_grain": "Detailid kiudude suunaga",
+    "perimeter.without_grain": "Detailid ilma kiudude suunata",
     "perimeter.border": "%s Piirjoon",
     "perimeter.label": "%s Silt"
   },
@@ -78,8 +78,8 @@
     "perimeter.label": "%s Etiketa"
   },
   "fi": {
-    "perimeter.with_grain": "Valmistuvat osat",
-    "perimeter.without_grain": "Muut osat",
+    "perimeter.with_grain": "Osat syysuunnalla",
+    "perimeter.without_grain": "Osat ilman syysuuntaa",
     "perimeter.border": "%s Ääriviiva",
     "perimeter.label": "%s Tunniste"
   },
@@ -102,20 +102,20 @@
     "perimeter.label": "%s लेबल"
   },
   "hu": {
-    "perimeter.with_grain": "Főszálból készült alkatrészek",
-    "perimeter.without_grain": "Főszálból készült alkatrészek",
+    "perimeter.with_grain": "Alkatrészek száliránnyal",
+    "perimeter.without_grain": "Alkatrészek szálirány nélkül",
     "perimeter.border": "%s Körvonal",
     "perimeter.label": "%s Felirat"
   },
   "ga": {
-    "perimeter.with_grain": "De chuid le treoir uasteorainne",
-    "perimeter.without_grain": "Cinntí agus cnámha",
+    "perimeter.with_grain": "Páirteanna le treo snáithíní",
+    "perimeter.without_grain": "Páirteanna gan treo snáithíní",
     "perimeter.border": "%s Imlíne",
     "perimeter.label": "%s Lipéad"
   },
   "kk": {
-    "perimeter.with_grain": "Көмiрмен бағытталатын бөлшектер",
-    "perimeter.without_grain": "Көмiрмен бағытталмаған бөлшектер",
+    "perimeter.with_grain": "Талшық бағытымен бөлшектер",
+    "perimeter.without_grain": "Талшық бағытынсыз бөлшектер",
     "perimeter.border": "%s Контур",
     "perimeter.label": "%s Жазу"
   },
@@ -210,8 +210,8 @@
     "perimeter.label": "%s Oznaka"
   },
   "sv": {
-    "perimeter.with_grain": "Världsblandningar",
-    "perimeter.without_grain": "Andra delar utan fibrriktning",
+    "perimeter.with_grain": "Delar med fiberriktning",
+    "perimeter.without_grain": "Delar utan fiberriktning",
     "perimeter.border": "%s Kontur",
     "perimeter.label": "%s Etikett"
   },
@@ -241,7 +241,7 @@
   },
   "uz": {
     "perimeter.with_grain": "Fiber yo'nalishidagi qismlar",
-    "perimeter.without_grain": "Issiqlik qismlari",
+    "perimeter.without_grain": "Fiber yo'nalishisiz qismlar",
     "perimeter.border": "%s Kontur",
     "perimeter.label": "%s Yozuv"
   },
