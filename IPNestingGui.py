@@ -268,7 +268,6 @@ class NestingTaskPanel:
         self._dimension_values_mm = {
             "sheet_margin": 5.0,
             "spacing": 6.0,
-            "boundary_resolution": 0.1,
         }
 
         # NEW: offcuts model
@@ -384,18 +383,6 @@ class NestingTaskPanel:
         off_btns.addStretch()
         offcut_lay.addLayout(off_btns)
 
-        # General Parameters (LEFT, row 2)  (shifted down by 1)
-        general_box = ui_widget(QtGui.QGroupBox, tr('general_parameters'))
-        general_lay = QtGui.QVBoxLayout(general_box)
-        self.res, self.res_label = (
-            self.create_input_in_layout(
-                general_lay,
-                tr('boundary_resolution_mm'),
-                "0.1",
-                tr('maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c')
-            )
-        )
-
         # Display Units (RIGHT, row 0)
         units_box = ui_widget(QtGui.QGroupBox, tr('units'))
         units_lay = QtGui.QVBoxLayout(units_box)
@@ -487,12 +474,6 @@ class NestingTaskPanel:
             0,
             2,
             1
-        )
-
-        cfg_grid.addWidget(
-            general_box,
-            3,
-            0
         )
 
         cfg_grid.addWidget(units_box, 0, 1)
@@ -3714,8 +3695,7 @@ class NestingTaskPanel:
 
         return float(value_mm)
 
-    # Normalize canonical dimension values stored in mm. Boundary resolution is kept to two
-    # decimal places.
+    # Normalize canonical dimension values stored in mm.
     def _normalize_dimension_mm(
         self,
         key,
@@ -3723,12 +3703,8 @@ class NestingTaskPanel:
     ):
         """
         Normalize canonical dimension values stored in mm.
-        Boundary resolution is kept to two decimal places.
         """
         value_mm = float(value_mm)
-
-        if key == "boundary_resolution":
-            return round(value_mm, 2)
 
         return value_mm
     
@@ -3740,9 +3716,6 @@ class NestingTaskPanel:
         if line_edit is self.spacing:
             return "spacing"
 
-        if line_edit is self.res:
-            return "boundary_resolution"
-
         return None
     
     # Return all dimension QLineEdit fields in the main panel.
@@ -3753,7 +3726,6 @@ class NestingTaskPanel:
         return [
             self.sheet_margin,
             self.spacing,
-            self.res,
         ]
 
     # Read one dimension field and return mm.
@@ -3803,7 +3775,7 @@ class NestingTaskPanel:
         finally:
             line_edit.blockSignals(False)
 
-    # Refresh margin, spacing and boundary-resolution labels with the display units.
+    # Refresh margin and spacing labels with the display units.
     def _update_dimension_labels(self):
         suffix = (
             "inch"
@@ -3817,10 +3789,6 @@ class NestingTaskPanel:
 
         ui_call(
             self.spacing_label, 'setText', tr('part_spacing_s') % suffix
-        )
-
-        ui_call(
-            self.res_label, 'setText', tr('boundary_resolution_s') % suffix
         )
     
     # Change display units using canonical mm values.
@@ -3938,7 +3906,6 @@ class NestingTaskPanel:
             widgets = [
                 self.sheet_margin,
                 self.spacing,
-                self.res,
                 self.units_combo,
                 self.cpu_cores_combo,
                 self.gpu_device_combo,
@@ -3975,18 +3942,6 @@ class NestingTaskPanel:
             except Exception:
                 spacing_mm = 6.0
 
-            try:
-                boundary_resolution_mm = float(
-                    str(
-                        p.GetString(
-                            "BoundaryResolution",
-                            "0.1"
-                        )
-                    ).replace(",", ".")
-                )
-            except Exception:
-                boundary_resolution_mm = 0.1
-
             self._dimension_values_mm = {
                 "sheet_margin": (
                     self._normalize_dimension_mm(
@@ -4000,12 +3955,6 @@ class NestingTaskPanel:
                         spacing_mm
                     )
                 ),
-                "boundary_resolution": (
-                    self._normalize_dimension_mm(
-                        "boundary_resolution",
-                        boundary_resolution_mm
-                    )
-                ),
             }
             
             sheet_margin_mm = (
@@ -4017,12 +3966,6 @@ class NestingTaskPanel:
             spacing_mm = (
                 self._dimension_values_mm[
                     "spacing"
-                ]
-            )
-
-            boundary_resolution_mm = (
-                self._dimension_values_mm[
-                    "boundary_resolution"
                 ]
             )
 
@@ -4051,12 +3994,6 @@ class NestingTaskPanel:
             ui_call(
                 self.spacing, 'setText', self._format_dimension(
                     spacing_mm
-                )
-            )
-
-            ui_call(
-                self.res, 'setText', self._format_dimension(
-                    boundary_resolution_mm
                 )
             )
             
@@ -4160,24 +4097,6 @@ class NestingTaskPanel:
                 ]
             )
 
-            boundary_resolution_mm = (
-                self._normalize_dimension_mm(
-                    "boundary_resolution",
-                    self._dimension_values_mm[
-                        "boundary_resolution"
-                    ]
-                )
-            )
-
-            self._dimension_values_mm[
-                "boundary_resolution"
-            ] = boundary_resolution_mm
-
-            p.SetString(
-                "BoundaryResolution",
-                "%.2f" % boundary_resolution_mm
-            )
-
             p.SetString(
                 "DisplayUnits",
                 self.display_units
@@ -4278,14 +4197,11 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
 
-    # Return the stored canonical boundary resolution in millimetres, defaulting to 0.1.
+    # Return the fixed boundary resolution in millimetres. The value is no
+    # longer user-configurable: it is pinned to 0.01 so that rounded geometry
+    # is exported as a fine polygon that closely matches the original part.
     def get_boundary_resolution_mm(self):
-        return float(
-            self._dimension_values_mm.get(
-                "boundary_resolution",
-                0.1
-            )
-        )
+        return 0.01
 
     # Normalize one field and update its canonical mm value.
     def _normalize_decimal_field(self, line_edit):
@@ -4342,7 +4258,6 @@ class NestingTaskPanel:
             for le in [
                 self.sheet_margin,
                 self.spacing,
-                self.res,
             ]:
                 try:
                     le.editingFinished.connect(

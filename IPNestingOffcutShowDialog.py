@@ -1736,7 +1736,7 @@ class OffcutMaterialsController(object):
                     self.panel.get_boundary_resolution_mm()
                 )
             except Exception:
-                boundary_resolution = 0.1
+                boundary_resolution = 0.01
 
             boundary_resolution = max(
                 0.001,
