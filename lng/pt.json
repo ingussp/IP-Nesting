@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Orçamento em segundos para cada ronda de otimização timed/continuous.",
   "trials": "Tentativas:",
   "trials_tooltip": "Número de estratégias de posicionamento independentes (1..4).",
-  "per_part_rotations_only": "Apenas rotações por peça:",
-  "per_part_rotations_only_tooltip": "Usar a regra de rotação própria de cada peça e ignorar a grelha global.",
-  "global_rotations": "Rotações globais:",
-  "global_rotations_tooltip": "Número global de orientações uniformes (1..3600), usado só com rotação por peça desativada.",
   "resolution_mm_per_px": "Resolução (mm/px):",
   "resolution_mm_per_px_tooltip": "Tamanho do píxel bitmap em milímetros. Valores menores aumentam precisão e memória.",
   "bitmap_search_step_px": "Passo de pesquisa (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU ativada:",
   "gpu_enabled_tooltip": "Ativar aceleração OpenCL por GPU quando disponível.",
   "gpu_device": "Dispositivo GPU:",
-  "gpu_device_tooltip": "Índice do dispositivo OpenCL; -1 escolhe automaticamente uma GPU dedicada.",
-  "gpu_fallback_to_cpu": "Recuar para CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Continuar na CPU se o arranque ou a execução da GPU falhar.",
+  "gpu_device_tooltip": "Escolha o dispositivo OpenCL a usar ou Auto para deixar o Nesting CLI escolher o melhor.",
   "gpu_batch_size": "Tamanho do lote:",
   "gpu_batch_size_tooltip": "Máximo de candidatos por lote de GPU (256..262144)."
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Әрбір timed/continuous оңтайландыру раундына секундпен бюджет.",
   "trials": "Әрекеттер:",
   "trials_tooltip": "Тәуелсіз орналастыру стратегияларының саны (1..4).",
-  "per_part_rotations_only": "Тек әр бөлікке айналдыру:",
-  "per_part_rotations_only_tooltip": "Әр бөліктің өз айналдыру ережесін қолдан және жаһандық айналдыру торын елеме.",
-  "global_rotations": "Жаһандық айналдырулар:",
-  "global_rotations_tooltip": "Жаһандық біркелкі бағдарлар саны (1..3600), тек әр бөлік айналдыруы өшірулі болғанда.",
   "resolution_mm_per_px": "Ажыратымдылық (mm/px):",
   "resolution_mm_per_px_tooltip": "Миллиметрдегі bitmap пиксель өлшемі. Кіші мәндер дәлдік пен жадты арттырады.",
   "bitmap_search_step_px": "Іздеу қадамы (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU қосулы:",
   "gpu_enabled_tooltip": "Қолжетімді болғанда OpenCL GPU жеделдетуін қос.",
   "gpu_device": "GPU құрылғысы:",
-  "gpu_device_tooltip": "OpenCL құрылғы индексі; -1 дискретті GPU-ды автоматты таңдайды.",
-  "gpu_fallback_to_cpu": "CPU-ға қайту:",
-  "gpu_fallback_to_cpu_tooltip": "GPU іске қосылуы немесе орындалуы сәтсіз болса, CPU-да жалғастыр.",
+  "gpu_device_tooltip": "Қолданылатын OpenCL құрылғысын таңдаңыз немесе ең жақсысын Nesting CLI таңдауы үшін Auto таңдаңыз.",
   "gpu_batch_size": "Пакет өлшемі:",
   "gpu_batch_size_tooltip": "Әр GPU пакетіне ең көп үміткер (256..262144)."
 }

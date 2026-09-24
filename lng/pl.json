@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Budżet w sekundach dla każdej rundy optymalizacji timed/continuous.",
   "trials": "Próby:",
   "trials_tooltip": "Liczba niezależnych strategii rozmieszczania (1..4).",
-  "per_part_rotations_only": "Tylko obroty na część:",
-  "per_part_rotations_only_tooltip": "Użyj własnej reguły obrotu każdej części i ignoruj globalną siatkę obrotów.",
-  "global_rotations": "Obroty globalne:",
-  "global_rotations_tooltip": "Globalna jednolita liczba orientacji (1..3600), używana tylko przy wyłączonych obrotach na część.",
   "resolution_mm_per_px": "Rozdzielczość (mm/px):",
   "resolution_mm_per_px_tooltip": "Rozmiar piksela bitmapy w milimetrach. Mniejsze wartości zwiększają precyzję i pamięć.",
   "bitmap_search_step_px": "Krok wyszukiwania (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU włączone:",
   "gpu_enabled_tooltip": "Włącz przyspieszanie OpenCL na GPU, gdy jest dostępne.",
   "gpu_device": "Urządzenie GPU:",
-  "gpu_device_tooltip": "Indeks urządzenia OpenCL; -1 automatycznie wybiera dedykowane GPU.",
-  "gpu_fallback_to_cpu": "Przełącz na CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Kontynuuj na CPU, jeśli uruchomienie lub wykonanie GPU nie powiedzie się.",
+  "gpu_device_tooltip": "Wybierz urządzenie OpenCL do użycia lub Auto, aby Nesting CLI wybrało najlepsze.",
   "gpu_batch_size": "Rozmiar partii:",
   "gpu_batch_size_tooltip": "Maksymalna liczba kandydatów na partię GPU (256..262144)."
 }

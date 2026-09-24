@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "각 timed/continuous 최적화 라운드의 초 단위 예산.",
   "trials": "시도 횟수:",
   "trials_tooltip": "독립적인 배치 전략의 수 (1..4).",
-  "per_part_rotations_only": "부품별 회전만:",
-  "per_part_rotations_only_tooltip": "각 부품의 자체 회전 규칙을 사용하고 전역 회전 그리드를 무시합니다.",
-  "global_rotations": "전역 회전:",
-  "global_rotations_tooltip": "전역 균일 방향 수 (1..3600), 부품별 회전이 꺼져 있을 때만 사용.",
   "resolution_mm_per_px": "해상도 (mm/px):",
   "resolution_mm_per_px_tooltip": "비트맵 픽셀 크기(밀리미터). 작은 값일수록 정밀도와 메모리가 증가합니다.",
   "bitmap_search_step_px": "검색 단계 (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU 사용:",
   "gpu_enabled_tooltip": "가능한 경우 OpenCL GPU 가속을 활성화합니다.",
   "gpu_device": "GPU 장치:",
-  "gpu_device_tooltip": "OpenCL 장치 인덱스; -1은 자동으로 개별 GPU를 선택합니다.",
-  "gpu_fallback_to_cpu": "CPU로 폴백:",
-  "gpu_fallback_to_cpu_tooltip": "GPU 시작 또는 실행이 실패하면 CPU에서 계속합니다.",
+  "gpu_device_tooltip": "사용할 OpenCL 장치를 선택하거나 Auto를 선택하여 Nesting CLI가 가장 좋은 장치를 선택하도록 합니다.",
   "gpu_batch_size": "배치 크기:",
   "gpu_batch_size_tooltip": "GPU 배치당 최대 후보 수 (256..262144)."
 }

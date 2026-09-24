@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Budget i sekunder for hver timed/continuous optimeringsrunde.",
   "trials": "Forsøg:",
   "trials_tooltip": "Antal uafhængige placeringsstrategier (1..4).",
-  "per_part_rotations_only": "Kun rotation pr. del:",
-  "per_part_rotations_only_tooltip": "Brug hver dels egen rotationsregel og ignorer det globale rotationsgitter.",
-  "global_rotations": "Globale rotationer:",
-  "global_rotations_tooltip": "Globalt ensartet orienteringsantal (1..3600), bruges kun når rotation pr. del er slået fra.",
   "resolution_mm_per_px": "Opløsning (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmap-pixelstørrelse i millimeter. Mindre værdier øger præcision og hukommelse.",
   "bitmap_search_step_px": "Søgetrin (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU aktiveret:",
   "gpu_enabled_tooltip": "Aktivér OpenCL GPU-acceleration, når den er tilgængelig.",
   "gpu_device": "GPU-enhed:",
-  "gpu_device_tooltip": "OpenCL-enhedsindeks; -1 vælger automatisk en dedikeret GPU.",
-  "gpu_fallback_to_cpu": "Fald tilbage til CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Fortsæt på CPU, hvis GPU-start eller -kørsel fejler.",
+  "gpu_device_tooltip": "Vælg den OpenCL-enhed, der skal bruges, eller Auto for at lade Nesting CLI vælge den bedste.",
   "gpu_batch_size": "Batchstørrelse:",
   "gpu_batch_size_tooltip": "Maksimalt antal kandidater pr. GPU-batch (256..262144)."
 }

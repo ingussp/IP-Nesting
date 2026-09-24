@@ -49,8 +49,6 @@ class BuildNestingConfigTests(unittest.TestCase):
         self.assertEqual(config['timeLimitSeconds'], 0.0)
         self.assertEqual(config['continuousRoundSeconds'], 30.0)
         self.assertEqual(config['trials'], 2)
-        self.assertEqual(config['perPartRotationsOnly'], True)
-        self.assertEqual(config['rotations'], 4)
         self.assertEqual(config['resolution'], 1.0)
         self.assertEqual(config['bitmapSearchStepPx'], 1)
         self.assertEqual(config['curveTolerance'], 0.3)
@@ -61,7 +59,6 @@ class BuildNestingConfigTests(unittest.TestCase):
         self.assertEqual(config['gpu'], {
             'enabled': False,
             'device': -1,
-            'fallbackToCpu': True,
             'batchSize': 65536,
         })
 
@@ -71,7 +68,7 @@ class BuildNestingConfigTests(unittest.TestCase):
         self.assertEqual(
             set(config),
             {
-                'algorithm', 'mode', 'perPartRotationsOnly', 'rotations',
+                'algorithm', 'mode',
                 'resolution', 'threads', 'trials', 'curveTolerance',
                 'cacheRejects', 'bitmapSearchStepPx', 'spacing',
                 'partToSheet', 'partToHole', 'timeLimitSeconds',
@@ -80,7 +77,7 @@ class BuildNestingConfigTests(unittest.TestCase):
         )
         self.assertEqual(
             set(config['gpu']),
-            {'enabled', 'device', 'fallbackToCpu', 'batchSize'}
+            {'enabled', 'device', 'batchSize'}
         )
 
     # First and continuous modes always export a zero time budget.
@@ -105,7 +102,6 @@ class BuildNestingConfigTests(unittest.TestCase):
     def test_range_coercion(self):
         config = self.export.build_nesting_config(
             trials=99,
-            rotations=99999,
             resolution=0.0,
             step=0,
             curve_tolerance=-5.0,
@@ -115,7 +111,6 @@ class BuildNestingConfigTests(unittest.TestCase):
             continuous_round_seconds=0.0,
         )
         self.assertEqual(config['trials'], 4)
-        self.assertEqual(config['rotations'], 3600)
         self.assertGreater(config['resolution'], 0.0)
         self.assertEqual(config['bitmapSearchStepPx'], 1)
         self.assertEqual(config['curveTolerance'], 0.0)

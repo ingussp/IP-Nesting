@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Buiséad i soicindí do gach babhta optamaithe timed/continuous.",
   "trials": "Trialacha:",
   "trials_tooltip": "Líon na straitéisí socrúcháin neamhspleácha (1..4).",
-  "per_part_rotations_only": "Rothlú in aghaidh páirte amháin:",
-  "per_part_rotations_only_tooltip": "Úsáid riail rothlaithe gach páirte féin agus déan neamhaird den ghreille rothlaithe domhanda.",
-  "global_rotations": "Rothluithe domhanda:",
-  "global_rotations_tooltip": "Líon domhanda treoshuímh aonfhoirmeacha (1..3600), in úsáid ach amháin nuair a bhíonn rothlú in aghaidh páirte as.",
   "resolution_mm_per_px": "Taifeach (mm/px):",
   "resolution_mm_per_px_tooltip": "Méid picteilín bitmap i milliméadair. Méadaíonn luachanna níos lú cruinneas agus cuimhne.",
   "bitmap_search_step_px": "Céim chuardaigh (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU cumasaithe:",
   "gpu_enabled_tooltip": "Cumasaigh luasghéarú OpenCL GPU nuair atá sé ar fáil.",
   "gpu_device": "Gléas GPU:",
-  "gpu_device_tooltip": "Innéacs gléis OpenCL; roghnaíonn -1 GPU scoite go huathoibríoch.",
-  "gpu_fallback_to_cpu": "Titim ar ais go CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Lean ar aghaidh ar CPU má theipeann ar thosú nó ar rith GPU.",
+  "gpu_device_tooltip": "Roghnaigh an gléas OpenCL le húsáid, nó Auto chun ligean do Nesting CLI an ceann is fearr a roghnú.",
   "gpu_batch_size": "Méid baisc:",
   "gpu_batch_size_tooltip": "Uasmhéid iarrthóirí in aghaidh baisc GPU (256..262144)."
 }

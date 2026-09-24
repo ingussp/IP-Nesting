@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "प्रत्येक timed/continuous अनुकूलन राउन्डको लागि सेकेन्डमा बजेट।",
   "trials": "प्रयासहरू:",
   "trials_tooltip": "स्वतन्त्र स्थाननिर्धारण रणनीतिहरूको संख्या (1..4)।",
-  "per_part_rotations_only": "प्रति भाग घुमाउ मात्र:",
-  "per_part_rotations_only_tooltip": "प्रत्येक भागको आफ्नै घुमाउ नियम प्रयोग गर्नुहोस् र विश्वव्यापी घुमाउ ग्रिड बेवास्ता गर्नुहोस्।",
-  "global_rotations": "विश्वव्यापी घुमाउहरू:",
-  "global_rotations_tooltip": "विश्वव्यापी एकरूप अभिमुखीकरण गणना (1..3600), प्रति भाग घुमाउ बन्द हुँदा मात्र प्रयोग।",
   "resolution_mm_per_px": "रिजोल्युसन (mm/px):",
   "resolution_mm_per_px_tooltip": "मिलिमिटरमा बिटम्याप पिक्सेल आकार। साना मानहरूले परिशुद्धता र मेमोरी बढाउँछन्।",
   "bitmap_search_step_px": "खोज चरण (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU सक्षम:",
   "gpu_enabled_tooltip": "उपलब्ध हुँदा OpenCL GPU त्वरण सक्षम गर्नुहोस्।",
   "gpu_device": "GPU यन्त्र:",
-  "gpu_device_tooltip": "OpenCL यन्त्र अनुक्रमणिका; -1 ले स्वचालित रूपमा छुट्टै GPU छान्छ।",
-  "gpu_fallback_to_cpu": "CPU मा फर्कनुहोस्:",
-  "gpu_fallback_to_cpu_tooltip": "GPU सुरु वा कार्यान्वयन असफल भए CPU मा जारी राख्नुहोस्।",
+  "gpu_device_tooltip": "प्रयोग गर्न OpenCL यन्त्र छान्नुहोस्, वा उत्तम छान्न Nesting CLI लाई Auto दिनुहोस्।",
   "gpu_batch_size": "ब्याच आकार:",
   "gpu_batch_size_tooltip": "प्रति GPU ब्याच अधिकतम उम्मेदवारहरू (256..262144)।"
 }

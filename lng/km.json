@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "ថវិកាជាវិនាទីសម្រាប់ជុំបង្កើនប្រសិទ្ធភាព timed/continuous នីមួយៗ។",
   "trials": "ការសាកល្បង:",
   "trials_tooltip": "ចំនួនយុទ្ធសាស្ត្រដាក់ទីតាំងឯករាជ្យ (1..4)។",
-  "per_part_rotations_only": "ការបង្វិលក្នុងមួយផ្នែកតែប៉ុណ្ណោះ:",
-  "per_part_rotations_only_tooltip": "ប្រើច្បាប់បង្វិលផ្ទាល់ខ្លួនរបស់ផ្នែកនីមួយៗ ហើយមិនអើពើក្រឡាបង្វិលសកល។",
-  "global_rotations": "ការបង្វិលសកល:",
-  "global_rotations_tooltip": "ចំនួនទិសដៅឯកសណ្ឋានសកល (1..3600) ប្រើតែពេលការបង្វិលក្នុងមួយផ្នែកត្រូវបានបិទ។",
   "resolution_mm_per_px": "កម្រិតច្បាស់ (mm/px):",
   "resolution_mm_per_px_tooltip": "ទំហំភីកសែល bitmap ជាមីលីម៉ែត្រ។ តម្លៃតូចជាងបង្កើនភាពជាក់លាក់ និងសតិ។",
   "bitmap_search_step_px": "ជំហានស្វែងរក (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU បើក:",
   "gpu_enabled_tooltip": "បើកការបង្កើនល្បឿន OpenCL GPU នៅពេលមាន។",
   "gpu_device": "ឧបករណ៍ GPU:",
-  "gpu_device_tooltip": "លិបិក្រមឧបករណ៍ OpenCL -1 ជ្រើសរើស GPU ដាច់ដោយឡែកដោយស្វ័យប្រវត្តិ។",
-  "gpu_fallback_to_cpu": "ត្រឡប់ទៅ CPU:",
-  "gpu_fallback_to_cpu_tooltip": "បន្តនៅលើ CPU ប្រសិនបើការចាប់ផ្តើម ឬការដំណើរការ GPU បរាជ័យ។",
+  "gpu_device_tooltip": "ជ្រើសរើសឧបករណ៍ OpenCL ដែលត្រូវប្រើ ឬ Auto ដើម្បីឲ្យ Nesting CLI ជ្រើសរើសល្អបំផុត។",
   "gpu_batch_size": "ទំហំបាច់:",
   "gpu_batch_size_tooltip": "ចំនួនបេក្ខជនអតិបរមាក្នុងមួយបាច់ GPU (256..262144)។"
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Ngân sách tính bằng giây cho mỗi vòng tối ưu timed/continuous.",
   "trials": "Lần thử:",
   "trials_tooltip": "Số chiến lược sắp xếp độc lập (1..4).",
-  "per_part_rotations_only": "Chỉ xoay từng chi tiết:",
-  "per_part_rotations_only_tooltip": "Dùng quy tắc xoay riêng của từng chi tiết và bỏ qua lưới xoay toàn cục.",
-  "global_rotations": "Xoay toàn cục:",
-  "global_rotations_tooltip": "Số hướng đồng đều toàn cục (1..3600), chỉ dùng khi tắt xoay từng chi tiết.",
   "resolution_mm_per_px": "Độ phân giải (mm/px):",
   "resolution_mm_per_px_tooltip": "Kích thước pixel bitmap tính bằng milimét. Giá trị nhỏ hơn tăng độ chính xác và bộ nhớ.",
   "bitmap_search_step_px": "Bước tìm kiếm (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "Bật GPU:",
   "gpu_enabled_tooltip": "Bật tăng tốc OpenCL GPU khi khả dụng.",
   "gpu_device": "Thiết bị GPU:",
-  "gpu_device_tooltip": "Chỉ số thiết bị OpenCL; -1 tự động chọn GPU rời.",
-  "gpu_fallback_to_cpu": "Quay lại CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Tiếp tục trên CPU nếu khởi động hoặc thực thi GPU thất bại.",
+  "gpu_device_tooltip": "Chọn thiết bị OpenCL cần dùng hoặc Auto để Nesting CLI tự chọn thiết bị tốt nhất.",
   "gpu_batch_size": "Kích thước lô:",
   "gpu_batch_size_tooltip": "Số ứng viên tối đa mỗi lô GPU (256..262144)."
 }

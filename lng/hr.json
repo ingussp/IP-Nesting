@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Proračun u sekundama za svaki krug timed/continuous optimizacije.",
   "trials": "Pokušaji:",
   "trials_tooltip": "Broj neovisnih strategija raspoređivanja (1..4).",
-  "per_part_rotations_only": "Samo rotacija po dijelu:",
-  "per_part_rotations_only_tooltip": "Koristi vlastito pravilo rotacije svakog dijela i zanemari globalnu mrežu rotacije.",
-  "global_rotations": "Globalne rotacije:",
-  "global_rotations_tooltip": "Globalni broj jednolikih orijentacija (1..3600), koristi se samo kad je rotacija po dijelu isključena.",
   "resolution_mm_per_px": "Razlučivost (mm/px):",
   "resolution_mm_per_px_tooltip": "Veličina bitmap piksela u milimetrima. Manje vrijednosti povećavaju preciznost i memoriju.",
   "bitmap_search_step_px": "Korak pretraživanja (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU omogućen:",
   "gpu_enabled_tooltip": "Omogući OpenCL GPU ubrzanje kad je dostupno.",
   "gpu_device": "GPU uređaj:",
-  "gpu_device_tooltip": "Indeks OpenCL uređaja; -1 automatski odabire diskretni GPU.",
-  "gpu_fallback_to_cpu": "Povratak na CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Nastavi na CPU-u ako pokretanje ili izvođenje GPU-a ne uspije.",
+  "gpu_device_tooltip": "Odaberite OpenCL uređaj koji će se koristiti ili Auto kako bi Nesting CLI odabrao najbolji.",
   "gpu_batch_size": "Veličina serije:",
   "gpu_batch_size_tooltip": "Maksimalan broj kandidata po GPU seriji (256..262144)."
 }

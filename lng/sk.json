@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Rozpočet v sekundách pre každé kolo timed/continuous optimalizácie.",
   "trials": "Pokusy:",
   "trials_tooltip": "Počet nezávislých stratégií umiestnenia (1..4).",
-  "per_part_rotations_only": "Iba rotácia podľa dielu:",
-  "per_part_rotations_only_tooltip": "Použiť vlastné pravidlo rotácie každého dielu a ignorovať globálnu mriežku rotácie.",
-  "global_rotations": "Globálne rotácie:",
-  "global_rotations_tooltip": "Globálny počet rovnomerných orientácií (1..3600), použité iba keď je rotácia podľa dielu vypnutá.",
   "resolution_mm_per_px": "Rozlíšenie (mm/px):",
   "resolution_mm_per_px_tooltip": "Veľkosť bitmapového pixelu v milimetroch. Menšie hodnoty zvyšujú presnosť a pamäť.",
   "bitmap_search_step_px": "Krok vyhľadávania (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU povolené:",
   "gpu_enabled_tooltip": "Povoliť OpenCL GPU akceleráciu, keď je dostupná.",
   "gpu_device": "Zariadenie GPU:",
-  "gpu_device_tooltip": "Index zariadenia OpenCL; -1 automaticky vyberie diskrétny GPU.",
-  "gpu_fallback_to_cpu": "Prepnúť na CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Pokračovať na CPU, ak spustenie alebo vykonávanie GPU zlyhá.",
+  "gpu_device_tooltip": "Vyberte zariadenie OpenCL, ktoré sa má použiť, alebo Auto, aby Nesting CLI vybral najlepšie.",
   "gpu_batch_size": "Veľkosť dávky:",
   "gpu_batch_size_tooltip": "Maximum kandidátov na GPU dávku (256..262144)."
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "प्रत्येक timed/continuous अनुकूलन दौर के लिए सेकंड में बजट।",
   "trials": "प्रयास:",
   "trials_tooltip": "स्वतंत्र प्लेसमेंट रणनीतियों की संख्या (1..4)।",
-  "per_part_rotations_only": "केवल प्रति भाग घुमाव:",
-  "per_part_rotations_only_tooltip": "प्रत्येक भाग का अपना घुमाव नियम उपयोग करें और वैश्विक घुमाव ग्रिड अनदेखा करें।",
-  "global_rotations": "वैश्विक घुमाव:",
-  "global_rotations_tooltip": "वैश्विक समान अभिविन्यास संख्या (1..3600), केवल प्रति भाग घुमाव बंद होने पर उपयोग।",
   "resolution_mm_per_px": "रिज़ॉल्यूशन (mm/px):",
   "resolution_mm_per_px_tooltip": "मिलीमीटर में बिटमैप पिक्सेल आकार। छोटे मान परिशुद्धता और मेमोरी बढ़ाते हैं।",
   "bitmap_search_step_px": "खोज चरण (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU सक्षम:",
   "gpu_enabled_tooltip": "उपलब्ध होने पर OpenCL GPU त्वरण सक्षम करें।",
   "gpu_device": "GPU डिवाइस:",
-  "gpu_device_tooltip": "OpenCL डिवाइस सूचकांक; -1 स्वतः एक अलग GPU चुनता है।",
-  "gpu_fallback_to_cpu": "CPU पर वापस:",
-  "gpu_fallback_to_cpu_tooltip": "GPU आरंभ या निष्पादन विफल होने पर CPU पर जारी रखें।",
+  "gpu_device_tooltip": "उपयोग के लिए OpenCL डिवाइस चुनें, या सर्वश्रेष्ठ चुनने के लिए Nesting CLI को Auto चुनें।",
   "gpu_batch_size": "बैच आकार:",
   "gpu_batch_size_tooltip": "प्रति GPU बैच अधिकतम उम्मीदवार (256..262144)।"
 }

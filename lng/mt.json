@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Baġit f'sekondi għal kull rawnd ta' ottimizzazzjoni timed/continuous.",
   "trials": "Provi:",
   "trials_tooltip": "Numru ta' strateġiji indipendenti ta' tqegħid (1..4).",
-  "per_part_rotations_only": "Rotazzjonijiet għal kull parti biss:",
-  "per_part_rotations_only_tooltip": "Uża r-regola ta' rotazzjoni ta' kull parti u injora l-gradilja globali ta' rotazzjoni.",
-  "global_rotations": "Rotazzjonijiet globali:",
-  "global_rotations_tooltip": "Għadd globali ta' orjentazzjonijiet uniformi (1..3600), użat biss meta rotazzjoni għal kull parti tkun mitfija.",
   "resolution_mm_per_px": "Riżoluzzjoni (mm/px):",
   "resolution_mm_per_px_tooltip": "Daqs tal-pixel tal-bitmap f'millimetri. Valuri iżgħar iżidu l-preċiżjoni u l-memorja.",
   "bitmap_search_step_px": "Pass tat-tfittxija (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU attivat:",
   "gpu_enabled_tooltip": "Attiva l-aċċellerazzjoni OpenCL GPU meta disponibbli.",
   "gpu_device": "Apparat GPU:",
-  "gpu_device_tooltip": "Indiċi tal-apparat OpenCL; -1 jagħżel GPU diskreta awtomatikament.",
-  "gpu_fallback_to_cpu": "Waqa' lura għal CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Kompli fuq CPU jekk il-bidu jew l-eżekuzzjoni tal-GPU tfalli.",
+  "gpu_device_tooltip": "Agħżel l-apparat OpenCL li tuża, jew Auto biex tħalli lil Nesting CLI jagħżel l-aħjar wieħed.",
   "gpu_batch_size": "Daqs tal-lott:",
   "gpu_batch_size_tooltip": "Massimu ta' kandidati għal kull lott GPU (256..262144)."
 }

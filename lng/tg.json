@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Буҷа дар сонияҳо барои ҳар даври оптимизатсияи timed/continuous.",
   "trials": "Кӯшишҳо:",
   "trials_tooltip": "Шумораи стратегияҳои мустақили ҷойгиркунӣ (1..4).",
-  "per_part_rotations_only": "Танҳо гардиши ҳар қисм:",
-  "per_part_rotations_only_tooltip": "Қоидаи гардиши худи ҳар қисмро истифода баред ва шабакаи глобалии гардишро нодида гиред.",
-  "global_rotations": "Гардишҳои глобалӣ:",
-  "global_rotations_tooltip": "Шумораи глобалии самтҳои якхела (1..3600), танҳо вақте ки гардиши ҳар қисм хомӯш аст истифода мешавад.",
   "resolution_mm_per_px": "Ҳаллият (mm/px):",
   "resolution_mm_per_px_tooltip": "Андозаи пиксели битмап дар миллиметр. Қиматҳои хурдтар дақиқӣ ва хотираро зиёд мекунанд.",
   "bitmap_search_step_px": "Қадами ҷустуҷӯ (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU фаъол:",
   "gpu_enabled_tooltip": "Вақте дастрас аст, суръатбахшии OpenCL GPU-ро фаъол кунед.",
   "gpu_device": "Дастгоҳи GPU:",
-  "gpu_device_tooltip": "Индекси дастгоҳи OpenCL; -1 ба таври худкор GPU-и ҷудогонаро интихоб мекунад.",
-  "gpu_fallback_to_cpu": "Бозгашт ба CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Агар оғоз ё иҷрои GPU ноком шавад, дар CPU идома диҳед.",
+  "gpu_device_tooltip": "Дастгоҳи OpenCL-и истифодашавандаро интихоб кунед ё Auto-ро интихоб кунед, то Nesting CLI беҳтаринашро интихоб кунад.",
   "gpu_batch_size": "Андозаи батч:",
   "gpu_batch_size_tooltip": "Ҳадди аксари номзадҳо барои ҳар батчи GPU (256..262144)."
 }

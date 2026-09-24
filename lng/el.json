@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Προϋπολογισμός σε δευτερόλεπτα για κάθε γύρο βελτιστοποίησης timed/continuous.",
   "trials": "Δοκιμές:",
   "trials_tooltip": "Αριθμός ανεξάρτητων στρατηγικών τοποθέτησης (1..4).",
-  "per_part_rotations_only": "Μόνο περιστροφές ανά μέρος:",
-  "per_part_rotations_only_tooltip": "Χρήση του κανόνα περιστροφής κάθε μέρους και αγνόηση του καθολικού πλέγματος.",
-  "global_rotations": "Καθολικές περιστροφές:",
-  "global_rotations_tooltip": "Καθολικός αριθμός ομοιόμορφων προσανατολισμών (1..3600), μόνο όταν η περιστροφή ανά μέρος είναι απενεργοποιημένη.",
   "resolution_mm_per_px": "Ανάλυση (mm/px):",
   "resolution_mm_per_px_tooltip": "Μέγεθος εικονοστοιχείου bitmap σε χιλιοστά. Μικρότερες τιμές αυξάνουν ακρίβεια και μνήμη.",
   "bitmap_search_step_px": "Βήμα αναζήτησης (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU ενεργοποιημένο:",
   "gpu_enabled_tooltip": "Ενεργοποίηση OpenCL GPU επιτάχυνσης όταν είναι διαθέσιμη.",
   "gpu_device": "Συσκευή GPU:",
-  "gpu_device_tooltip": "Δείκτης συσκευής OpenCL· -1 επιλέγει αυτόματα διακριτή GPU.",
-  "gpu_fallback_to_cpu": "Επιστροφή σε CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Συνέχισε σε CPU αν η εκκίνηση ή η εκτέλεση GPU αποτύχει.",
+  "gpu_device_tooltip": "Επιλέξτε τη συσκευή OpenCL που θα χρησιμοποιηθεί ή Auto για να αφήσετε το Nesting CLI να επιλέξει την καλύτερη.",
   "gpu_batch_size": "Μέγεθος παρτίδας:",
   "gpu_batch_size_tooltip": "Μέγιστος αριθμός υποψηφίων ανά παρτίδα GPU (256..262144)."
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Budjetti sekunteina jokaiselle timed/continuous optimointikierrokselle.",
   "trials": "Yritykset:",
   "trials_tooltip": "Itsenäisten sijoittelustrategioiden määrä (1..4).",
-  "per_part_rotations_only": "Vain osakohtainen kierto:",
-  "per_part_rotations_only_tooltip": "Käytä jokaisen osan omaa kiertosääntöä ja ohita globaali kiertoruudukko.",
-  "global_rotations": "Globaalit kierrot:",
-  "global_rotations_tooltip": "Globaali tasainen suuntausmäärä (1..3600), käytössä vain osakohtaisen kierron ollessa pois päältä.",
   "resolution_mm_per_px": "Tarkkuus (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmap-pikselin koko millimetreinä. Pienemmät arvot lisäävät tarkkuutta ja muistia.",
   "bitmap_search_step_px": "Hakuaskel (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU käytössä:",
   "gpu_enabled_tooltip": "Ota OpenCL GPU-kiihdytys käyttöön, kun se on saatavilla.",
   "gpu_device": "GPU-laite:",
-  "gpu_device_tooltip": "OpenCL-laitteen indeksi; -1 valitsee automaattisesti erillisen GPU:n.",
-  "gpu_fallback_to_cpu": "Palaa CPU:lle:",
-  "gpu_fallback_to_cpu_tooltip": "Jatka CPU:lla, jos GPU:n käynnistys tai suoritus epäonnistuu.",
+  "gpu_device_tooltip": "Valitse käytettävä OpenCL-laite tai Auto, jolloin Nesting CLI valitsee parhaan.",
   "gpu_batch_size": "Erän koko:",
   "gpu_batch_size_tooltip": "Enimmäismäärä ehdokkaita GPU-erää kohti (256..262144)."
 }

@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "Бюджет в секунди за всеки кръг на timed/continuous оптимизация.",
   "trials": "Опити:",
   "trials_tooltip": "Брой на независими стратегии за подреждане (1..4).",
-  "per_part_rotations_only": "Само завъртане на всяка част:",
-  "per_part_rotations_only_tooltip": "Използвай собственото правило за завъртане на всяка част и игнорирай глобалната мрежа.",
-  "global_rotations": "Глобални завъртания:",
-  "global_rotations_tooltip": "Брой на глобалните равномерни ориентации (1..3600), използва се само когато завъртането на всяка част е изключено.",
   "resolution_mm_per_px": "Разделителна способност (mm/px):",
   "resolution_mm_per_px_tooltip": "Размер на битмап пиксел в милиметри. По-малките стойности увеличават точността и паметта.",
   "bitmap_search_step_px": "Стъпка на търсене (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU активиран:",
   "gpu_enabled_tooltip": "Активирай OpenCL GPU ускорение, когато е налично.",
   "gpu_device": "GPU устройство:",
-  "gpu_device_tooltip": "Индекс на OpenCL устройство; -1 избира дискретно GPU автоматично.",
-  "gpu_fallback_to_cpu": "Връщане към CPU:",
-  "gpu_fallback_to_cpu_tooltip": "Продължи на CPU, ако стартирането или изпълнението на GPU се провали.",
+  "gpu_device_tooltip": "Изберете OpenCL устройството за използване или Auto, за да оставите Nesting CLI да избере най-доброто.",
   "gpu_batch_size": "Размер на пакета:",
   "gpu_batch_size_tooltip": "Максимален брой кандидати на GPU пакет (256..262144)."
 }

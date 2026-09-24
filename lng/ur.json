@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "ہر timed/continuous اصلاحی دور کے لیے سیکنڈ میں بجٹ۔",
   "trials": "کوششیں:",
   "trials_tooltip": "آزاد جگہ دینے کی حکمت عملیوں کی تعداد (1..4)۔",
-  "per_part_rotations_only": "صرف فی حصہ گردش:",
-  "per_part_rotations_only_tooltip": "ہر حصے کا اپنا گردشی اصول استعمال کریں اور عالمی گردشی گرڈ نظر انداز کریں۔",
-  "global_rotations": "عالمی گردشیں:",
-  "global_rotations_tooltip": "عالمی یکساں رخ شمار (1..3600)، صرف اس وقت استعمال ہوتا ہے جب فی حصہ گردش بند ہو۔",
   "resolution_mm_per_px": "ریزولوشن (mm/px):",
   "resolution_mm_per_px_tooltip": "ملی میٹر میں بٹ میپ پکسل سائز۔ چھوٹی اقدار درستگی اور میموری بڑھاتی ہیں۔",
   "bitmap_search_step_px": "تلاش کا قدم (px):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "GPU فعال:",
   "gpu_enabled_tooltip": "دستیاب ہونے پر OpenCL GPU ایکسلریشن فعال کریں۔",
   "gpu_device": "GPU آلہ:",
-  "gpu_device_tooltip": "OpenCL آلہ اشاریہ؛ -1 خودکار طور پر ایک علیحدہ GPU منتخب کرتا ہے۔",
-  "gpu_fallback_to_cpu": "CPU پر واپس:",
-  "gpu_fallback_to_cpu_tooltip": "اگر GPU آغاز یا عمل ناکام ہو تو CPU پر جاری رکھیں۔",
+  "gpu_device_tooltip": "استعمال کے لیے OpenCL آلہ منتخب کریں، یا بہترین منتخب کرنے کے لیے Nesting CLI کو Auto دیں۔",
   "gpu_batch_size": "بیچ سائز:",
   "gpu_batch_size_tooltip": "فی GPU بیچ زیادہ سے زیادہ امیدوار (256..262144)۔"
 }

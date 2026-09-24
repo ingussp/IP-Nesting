@@ -513,10 +513,6 @@
   "continuous_round_seconds_tooltip": "งบประมาณเป็นวินาทีสำหรับแต่ละรอบการปรับปรุง timed/continuous",
   "trials": "การลอง:",
   "trials_tooltip": "จำนวนกลยุทธ์การวางอิสระ (1..4)",
-  "per_part_rotations_only": "หมุนเฉพาะแต่ละชิ้น:",
-  "per_part_rotations_only_tooltip": "ใช้กฎการหมุนของแต่ละชิ้นเองและไม่สนใจตารางการหมุนส่วนกลาง",
-  "global_rotations": "การหมุนส่วนกลาง:",
-  "global_rotations_tooltip": "จำนวนการวางแนวสม่ำเสมอส่วนกลาง (1..3600) ใช้เมื่อปิดการหมุนแต่ละชิ้นเท่านั้น",
   "resolution_mm_per_px": "ความละเอียด (มม./พิกเซล):",
   "resolution_mm_per_px_tooltip": "ขนาดพิกเซลบิตแมปเป็นมิลลิเมตร ค่าน้อยเพิ่มความแม่นยำและหน่วยความจำ",
   "bitmap_search_step_px": "ขั้นตอนค้นหา (พิกเซล):",
@@ -529,9 +525,7 @@
   "gpu_enabled": "เปิดใช้งาน GPU:",
   "gpu_enabled_tooltip": "เปิดใช้งานการเร่งความเร็ว OpenCL GPU เมื่อมี",
   "gpu_device": "อุปกรณ์ GPU:",
-  "gpu_device_tooltip": "ดัชนีอุปกรณ์ OpenCL; -1 เลือก GPU แยกอัตโนมัติ",
-  "gpu_fallback_to_cpu": "ถอยกลับไป CPU:",
-  "gpu_fallback_to_cpu_tooltip": "ใช้ CPU ต่อหากการเริ่มต้นหรือการทำงานของ GPU ล้มเหลว",
+  "gpu_device_tooltip": "เลือกอุปกรณ์ OpenCL ที่จะใช้ หรือเลือก Auto เพื่อให้ Nesting CLI เลือกอุปกรณ์ที่ดีที่สุด",
   "gpu_batch_size": "ขนาดชุด:",
   "gpu_batch_size_tooltip": "จำนวนผู้สมัครสูงสุดต่อชุด GPU (256..262144)"
 }
