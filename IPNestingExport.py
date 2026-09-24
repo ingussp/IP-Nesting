@@ -357,19 +357,19 @@ def normalize_rotation_text(text):
     return "1"
 
 
-# Read a positive deflection directly from panel.res text, without converting display units.
+# Read the boundary deflection in millimetres from the panel.
 def _read_boundary_deflection(panel, default=0.01):
     """
-    Read positive boundary deflection directly from panel.res text.
+    Read the boundary deflection in millimetres from the panel.
 
-    This helper does not convert display units to millimetres.
+    The value is pinned in the panel and returned as a canonical
+    millimetre value.
     """
     try:
-        if panel is None or not hasattr(panel, "res"):
+        if panel is None or not hasattr(panel, "get_boundary_resolution_mm"):
             return float(default)
 
-        txt = panel.res.text().strip()
-        value = float(txt)
+        value = float(panel.get_boundary_resolution_mm())
 
         if value <= 0.0:
             return float(default)
@@ -487,7 +487,7 @@ def _normalize_polygon(points):
 
 
 # Extract the current visible 2D outer contour from a preview object.
-def _extract_part_points(obj, deflection=0.1):
+def _extract_part_points(obj, deflection=0.01):
     """
     Extract the current visible 2D outer contour from a preview object.
 
@@ -1121,7 +1121,8 @@ def execute_nesting(panel):
     Export the panel state to the nesting CLI input.json and nesting_session.json.
 
     Returns True when both files are written, or False on failure.
-    Dimension text is currently read directly, while the payload declares mm.
+    Dimensions are read as canonical millimetre values and the payload
+    declares mm.
     """
     try:
         App.Console.PrintMessage(
@@ -1146,10 +1147,7 @@ def execute_nesting(panel):
             0.0
         )
 
-        boundary_resolution = panel.get_dimension_value_mm(
-            panel.res,
-            0.1
-        )
+        boundary_resolution = panel.get_boundary_resolution_mm()
 
         # Hole-to-part clearance. "same" reuses the part spacing;
         # "custom" uses the offcut dialog's custom clearance value
