@@ -61,11 +61,73 @@ try:
 except Exception:
     GrainPreparer = None
 
+
+class _ProportionalHeader(QtGui.QHeaderView):
+    """Horizontal header that keeps a fixed column at its width and shares the
+    remaining space between the other columns in proportion to their content
+    widths.
+
+    Qt's built-in Stretch mode splits extra space *equally*, which would make
+    short translated headers (e.g. "qty") far too wide and long ones (e.g.
+    "grain direction") too narrow. This header instead stores each stretchable
+    column's content width as a weight and redistributes the available width in
+    that ratio on every resize, while never shrinking a column below its
+    content width.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(QtCore.Qt.Horizontal, parent)
+        self._weights = {}
+        self.setStretchLastSection(False)
+
+    def set_weight(self, index, weight):
+        self._weights[int(index)] = max(int(weight), 1)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._redistribute()
+
+    def _redistribute(self):
+        if not self._weights:
+            return
+        viewport = self.width()
+        if viewport <= 0:
+            return
+        fixed = 0
+        weighted = []
+        total_weight = 0
+        for index in range(self.count()):
+            if index in self._weights:
+                weight = self._weights[index]
+                weighted.append((index, weight))
+                total_weight += weight
+            else:
+                fixed += self.sectionSize(index)
+        if not weighted or total_weight <= 0:
+            return
+        available = viewport - fixed
+        if available <= 0:
+            return
+        scale = available / total_weight
+        targets = []
+        for index, weight in weighted:
+            if scale >= 1.0:
+                targets.append([index, int(round(weight * scale))])
+            else:
+                targets.append([index, weight])
+        if scale >= 1.0:
+            leftover = available - sum(target for _, target in targets)
+            if leftover and targets:
+                targets[-1][1] += leftover
+        for index, target in targets:
+            self.resizeSection(index, target)
+
+
 # Coordinate nesting settings, material/part tables, preview editing and nesting CLI execution.
 class NestingTaskPanel:
     # Nesting CLI settings exposed in the right-hand column, mapped to their
     # preference keys and defaults. "text" entries are QLineEdit fields, "combo"
-    # entries store their current text, and "bool" entries are False/True combos.
+    # entries store their current text, and "bool" entries are No/Yes combos.
     CLI_TEXT_SETTINGS = (
         ("time_limit_edit", "TimeLimitSeconds", "0"),
         ("round_seconds_edit", "ContinuousRoundSeconds", "30"),
@@ -476,36 +538,39 @@ class NestingTaskPanel:
         # Listen for item changes (Qty edits)
         self.table.itemChanged.connect(self.on_item_changed)
 
-        # Ensure header won't auto-stretch the first column; make it fixed and set width to 250
+        # The table fills the full card width: the Body column stays fixed at
+        # 250 px, while every other column keeps a content-based minimum width
+        # (so translated headers such as "qty" remain fully visible) and grows
+        # proportionally to absorb any extra window width.
         try:
-            header = self.table.horizontalHeader()
+            self.table.setSizePolicy(
+                QtGui.QSizePolicy.Expanding,
+                QtGui.QSizePolicy.Expanding,
+            )
+        except Exception:
+            pass
+        try:
+            header = _ProportionalHeader(self.table)
+            self.table.setHorizontalHeader(header)
+
+            # Body column: fixed at 250 px (unchanged).
+            self.table.setColumnWidth(0, 250)
             if hasattr(header, "setSectionResizeMode"):
                 header.setSectionResizeMode(0, QtGui.QHeaderView.Fixed)
             else:
                 header.setResizeMode(0, QtGui.QHeaderView.Fixed)
-        except Exception:
-            pass
-        try:
-            self.table.setColumnWidth(0, 250)
-            # Set Qty column width to 40px as requested
-            self.table.setColumnWidth(1, 40)
-            
-            # Preserve the existing Rotation degree width and reuse it for Grain Direction.
-            rotation_width = self.table.columnWidth(2)
 
-            # Keep Body, Qty and Rotation degree widths unchanged.
-            self.table.setColumnWidth(0, 250)
-            self.table.setColumnWidth(1, 40)
-            self.table.setColumnWidth(2, rotation_width)
-
-            # Select for rotation: slightly wider, without unnecessary margins.
-            self.table.setColumnWidth(3, rotation_width + 20)
-
-            # Grain Direction: same width as Rotation degree.
-            self.table.setColumnWidth(4, rotation_width + 40)
-            
-            # Custom angle
-            self.table.setColumnWidth(5, rotation_width + 30)
+            # Non-body columns: measure each header's content width so the
+            # minimum stays wide enough for every translation, then grow
+            # proportionally with the window.
+            for col in range(1, self.table.columnCount()):
+                try:
+                    content_width = header.sectionSizeHint(col)
+                except Exception:
+                    content_width = 80
+                width = max(int(content_width), 40)
+                self.table.setColumnWidth(col, width)
+                header.set_weight(col, width)
         except Exception:
             pass
 
@@ -578,6 +643,7 @@ class NestingTaskPanel:
 
         self._load_settings_from_prefs()
         self._connect_settings_persistence()
+        self._update_cli_dependency_widgets()
         
         # Initialize preview document manager
         self._preview = PreviewDocManager(self)
@@ -1549,7 +1615,8 @@ class NestingTaskPanel:
 
         return edit, label_widget
     
-    # Append a labelled False/True combo box and return it.
+    # Append a labelled No/Yes combo box and return it. The stored value stays
+    # a boolean (True/False); only the visible labels are Yes/No.
     def _create_boolean_setting(
         self,
         parent_layout,
@@ -1565,8 +1632,8 @@ class NestingTaskPanel:
 
         combo = QtGui.QComboBox()
         ui_call(combo, 'addItems', [
-            tr('false'),
-            tr('true'),
+            tr('common.no'),
+            tr('common.yes'),
         ])
 
         combo.setCurrentIndex(
@@ -1637,14 +1704,14 @@ class NestingTaskPanel:
             tr('search_mode_tooltip'),
         )
 
-        self.time_limit_edit, _ = self.create_input_in_layout(
+        self.time_limit_edit, self.time_limit_label = self.create_input_in_layout(
             lay,
             tr('time_limit_seconds'),
             "0",
             tr('time_limit_seconds_tooltip'),
         )
 
-        self.round_seconds_edit, _ = self.create_input_in_layout(
+        self.round_seconds_edit, self.round_seconds_label = self.create_input_in_layout(
             lay,
             tr('continuous_round_seconds'),
             "30",
@@ -1701,18 +1768,18 @@ class NestingTaskPanel:
 
         # GPU device dropdown: "Auto" (-1) followed by locally detected GPUs.
         gpu_device_row = QtGui.QHBoxLayout()
-        gpu_device_label = ui_widget(QtGui.QLabel, tr('gpu_device'))
+        self.gpu_device_label = ui_widget(QtGui.QLabel, tr('gpu_device'))
         self.gpu_device_combo = QtGui.QComboBox()
         self.gpu_device_combo.addItem("Auto", -1)
         for device_index, device_label in self._detect_gpu_devices():
             self.gpu_device_combo.addItem(device_label, device_index)
         ui_call(self.gpu_device_combo, 'setToolTip', tr('gpu_device_tooltip'))
-        ui_call(gpu_device_label, 'setToolTip', tr('gpu_device_tooltip'))
-        gpu_device_row.addWidget(gpu_device_label)
+        ui_call(self.gpu_device_label, 'setToolTip', tr('gpu_device_tooltip'))
+        gpu_device_row.addWidget(self.gpu_device_label)
         gpu_device_row.addWidget(self.gpu_device_combo)
         lay.addLayout(gpu_device_row)
 
-        self.gpu_batch_edit, _ = self.create_input_in_layout(
+        self.gpu_batch_edit, self.gpu_batch_label = self.create_input_in_layout(
             lay,
             tr('gpu_batch_size'),
             "65536",
@@ -1856,6 +1923,50 @@ class NestingTaskPanel:
                 self._refresh_gpu_devices()
         except Exception:
             pass
+        self._update_cli_dependency_widgets()
+
+    # Enable or disable a widget, tolerating a missing or non-Qt widget.
+    @staticmethod
+    def _set_widget_enabled(widget, enabled):
+        if widget is None:
+            return
+        try:
+            widget.setEnabled(bool(enabled))
+        except Exception:
+            pass
+
+    # Keep the nesting CLI settings consistent with the selected search mode
+    # and GPU toggle. The time limit only applies to "timed" mode; the GPU
+    # device and batch size only apply when GPU acceleration is enabled.
+    def _update_cli_dependency_widgets(self):
+        # Time limit: meaningful only in "timed" mode.
+        try:
+            mode = "timed"
+            try:
+                mode = str(self.mode_combo.currentText()).strip().lower()
+            except Exception:
+                pass
+            timed_active = mode == "timed"
+            self._set_widget_enabled(self.time_limit_edit, timed_active)
+            self._set_widget_enabled(self.time_limit_label, timed_active)
+        except Exception:
+            pass
+
+        # GPU device and batch size: meaningful only when GPU is enabled.
+        try:
+            gpu_on = False
+            try:
+                combo = getattr(self, "gpu_enabled_combo", None)
+                if combo is not None:
+                    gpu_on = combo.currentIndex() == 1
+            except Exception:
+                pass
+            self._set_widget_enabled(self.gpu_device_combo, gpu_on)
+            self._set_widget_enabled(self.gpu_device_label, gpu_on)
+            self._set_widget_enabled(self.gpu_batch_edit, gpu_on)
+            self._set_widget_enabled(self.gpu_batch_label, gpu_on)
+        except Exception:
+            pass
 
     # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
     # Timer callback - delegates to grain controller.
@@ -1923,6 +2034,7 @@ class NestingTaskPanel:
             htop.setContentsMargins(5, 2, 5, 2)
             htop.setSpacing(6)
 
+            htop.addStretch()
             htop.addWidget(ui_widget(QtGui.QLabel, tr('rotate_7b41f1')))
 
             self.bulk_angle_combo = QtGui.QComboBox()
@@ -1969,6 +2081,7 @@ class NestingTaskPanel:
             hbot.setContentsMargins(5, 2, 5, 2)
             hbot.setSpacing(6)
 
+            hbot.addStretch()
             hbot.addWidget(ui_widget(QtGui.QLabel, tr('change_grain_direction')))
 
             self.bulk_grain_combo = QtGui.QComboBox()
@@ -2004,6 +2117,13 @@ class NestingTaskPanel:
             control_item2 = ui_widget(QtGui.QTableWidgetItem, "")
             control_item2.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(bottom_idx, 0, control_item2)
+
+            # Hide the row-number labels for the two control rows so the
+            # button rows show no index in the leftmost header.
+            for row in (top_idx, bottom_idx):
+                vitem = ui_widget(QtGui.QTableWidgetItem, "")
+                vitem.setFlags(QtCore.Qt.NoItemFlags)
+                self.table.setVerticalHeaderItem(row, vitem)
 
         except Exception:
             App.Console.PrintError(tr('failed_to_create_control_rows') + traceback.format_exc())
@@ -4290,6 +4410,15 @@ class NestingTaskPanel:
                     )
                 except Exception:
                     pass
+
+            # Refresh dependent controls when the search mode or GPU toggle
+            # changes so only the applicable settings stay editable.
+            try:
+                self.mode_combo.currentIndexChanged.connect(
+                    self._update_cli_dependency_widgets
+                )
+            except Exception:
+                pass
         except Exception:
             pass
             
@@ -4395,10 +4524,9 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
-            # keep UI widths stable
+            # keep the Body column fixed; the other columns already stretch
             try:
                 self.table.setColumnWidth(0, 250)
-                self.table.setColumnWidth(1, 40)
             except Exception:
                 pass
 
