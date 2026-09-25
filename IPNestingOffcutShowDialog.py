@@ -16,6 +16,50 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 MM_PER_INCH = 25.4
 
+# Orient a polygon so a Y (vertical) grain axis becomes horizontal.
+def _orient_polygon_for_grain(points, grain):
+    """
+    Return [x, y] points for a polygon oriented so its grain is horizontal.
+
+    X and None grains return the points unchanged. A Y grain is rotated 90
+    degrees clockwise so the former +Y axis maps to +X, then the polygon is
+    shifted so its minimum X and Y become 0/0. Input points may be [x, y]
+    pairs or {"x", "y"} dictionaries.
+    """
+    cleaned = []
+
+    for point in points or []:
+        try:
+            if isinstance(point, dict):
+                x = float(point.get("x", 0.0))
+                y = float(point.get("y", 0.0))
+            else:
+                x = float(point[0])
+                y = float(point[1])
+        except Exception:
+            continue
+
+        cleaned.append([x, y])
+
+    if str(grain or "None").strip().upper() == "Y":
+        cleaned = [
+            [round(y, 6), round(-x, 6)]
+            for x, y in cleaned
+        ]
+
+        if cleaned:
+            min_x = min(point[0] for point in cleaned)
+            min_y = min(point[1] for point in cleaned)
+            cleaned = [
+                [
+                    round(point[0] - min_x, 6),
+                    round(point[1] - min_y, 6),
+                ]
+                for point in cleaned
+            ]
+
+    return cleaned
+
 # Synchronize compatibility fields from user-selected contours.
 def _sync_compatibility_holes(offcut):
     """
@@ -158,14 +202,23 @@ class _OffcutPreview(QtGui.QGraphicsView):
     ):
         super(_OffcutPreview, self).__init__(parent)
 
-        self._outer = list(outer or [])
+        # Keep the unrotated geometry so grain changes can re-orient the
+        # preview without mutating the shared offcut records.
+        self._base_outer = list(outer or [])
+
+        self._outer = list(self._base_outer)
 
         self._contours = []
+        self._base_contour_polygons = []
 
         for contour in contours or []:
-            self._contours.append(
-                dict(contour)
+            copy = dict(contour)
+            polygon = list(
+                contour.get("polygon") or []
             )
+            copy["polygon"] = polygon
+            self._base_contour_polygons.append(polygon)
+            self._contours.append(copy)
 
         self._on_contour_clicked = (
             on_contour_clicked
@@ -575,75 +628,40 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 QtGui.QColor(210, 0, 0)
             )
 
-            if self._grain == "X":
-                # Horizontal arrow: left -> right.
-                y = min_y + margin_y
-                x1 = min_x + margin_x
-                x2 = max_x - margin_x
+            # The sheet is oriented so its grain always runs horizontally,
+            # therefore draw a left -> right arrow.
+            y = min_y + margin_y
+            x1 = min_x + margin_x
+            x2 = max_x - margin_x
 
-                line = self._scene.addLine(
-                    x1,
-                    y,
+            line = self._scene.addLine(
+                x1,
+                y,
+                x2,
+                y,
+                arrow_pen
+            )
+            line.setZValue(5)
+
+            head_size = max(
+                min(width, height) * 0.04,
+                1.0
+            )
+
+            head = QtGui.QPolygonF([
+                QtCore.QPointF(
                     x2,
-                    y,
-                    arrow_pen
-                )
-                line.setZValue(5)
-
-                head_size = max(
-                    min(width, height) * 0.04,
-                    1.0
-                )
-
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(
-                        x2,
-                        y
-                    ),
-                    QtCore.QPointF(
-                        x2 - head_size,
-                        y - head_size * 0.55
-                    ),
-                    QtCore.QPointF(
-                        x2 - head_size,
-                        y + head_size * 0.55
-                    ),
-                ])
-
-            else:
-                # Vertical arrow: top -> bottom.
-                x = min_x + margin_x
-                y1 = min_y + margin_y
-                y2 = max_y - margin_y
-
-                line = self._scene.addLine(
-                    x,
-                    y1,
-                    x,
-                    y2,
-                    arrow_pen
-                )
-                line.setZValue(5)
-
-                head_size = max(
-                    min(width, height) * 0.04,
-                    1.0
-                )
-
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(
-                        x,
-                        y2
-                    ),
-                    QtCore.QPointF(
-                        x - head_size * 0.55,
-                        y2 - head_size
-                    ),
-                    QtCore.QPointF(
-                        x + head_size * 0.55,
-                        y2 - head_size
-                    ),
-                ])
+                    y
+                ),
+                QtCore.QPointF(
+                    x2 - head_size,
+                    y - head_size * 0.55
+                ),
+                QtCore.QPointF(
+                    x2 - head_size,
+                    y + head_size * 0.55
+                ),
+            ])
 
             head_item = self._scene.addPolygon(
                 head,
@@ -699,7 +717,18 @@ class _OffcutPreview(QtGui.QGraphicsView):
             value = "None"
 
         self._grain = value
-        
+
+        self._outer = _orient_polygon_for_grain(
+            self._base_outer,
+            value
+        )
+
+        for index, contour in enumerate(self._contours):
+            contour["polygon"] = _orient_polygon_for_grain(
+                self._base_contour_polygons[index],
+                value
+            )
+
         self._rebuild_scene(
             preserve_view=True
         )

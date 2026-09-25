@@ -774,17 +774,61 @@ def _get_selected_material_holes(material):
     ]
 
 
+# Rotate a sheet polygon so a Y (vertical) grain axis becomes horizontal.
+def _orient_sheet_polygon(points, grain):
+    """
+    Return the polygon with a Y grain rotated so its texture runs horizontally.
+
+    X and None grains leave the polygon unchanged. A Y grain is rotated 90
+    degrees clockwise so the former +Y texture axis maps to +X, then the
+    polygon is shifted so its minimum X and Y become 0/0. Input points may be
+    [x, y] pairs or {"x", "y"} dictionaries; output is always [x, y] pairs.
+    """
+    cleaned = []
+
+    for point in points or []:
+        try:
+            if isinstance(point, dict):
+                x = float(point.get("x", 0.0))
+                y = float(point.get("y", 0.0))
+            else:
+                x = float(point[0])
+                y = float(point[1])
+        except Exception:
+            continue
+
+        cleaned.append([x, y])
+
+    if str(grain or "None").strip().upper() == "Y":
+        cleaned = [
+            [round(y, 6), round(-x, 6)]
+            for x, y in cleaned
+        ]
+
+        if cleaned:
+            min_x = min(point[0] for point in cleaned)
+            min_y = min(point[1] for point in cleaned)
+            cleaned = [
+                [
+                    round(point[0] - min_x, 6),
+                    round(point[1] - min_y, 6),
+                ]
+                for point in cleaned
+            ]
+
+    return cleaned
+
+
 # Convert one IP-Nesting material record to a nesting CLI sheet record.
 def _material_to_cli_sheet(material):
     """
     Convert one IP-Nesting material record
     to a nesting CLI sheet record.
+
+    Every sheet, including rectangular sheets, is exported as a polygon.
+    A vertical (Y) grain is rotated so the texture direction is horizontal.
     """
     material = material or {}
-
-    material_type = str(
-        material.get("type", "")
-    ).strip().lower()
 
     try:
         quantity = int(
@@ -801,21 +845,9 @@ def _material_to_cli_sheet(material):
         quantity
     )
 
-    if material_type in (
-        "rectangular",
-        "rect",
-        "sheet",
-        "rectangle"
-    ):
-        return {
-            "width": float(
-                material.get("width", 0.0)
-            ),
-            "height": float(
-                material.get("height", 0.0)
-            ),
-            "quantity": quantity
-        }
+    grain = str(
+        material.get("grain", "None") or "None"
+    ).strip().upper()
 
     outer = material.get(
         "outer"
@@ -832,6 +864,12 @@ def _material_to_cli_sheet(material):
     holes = _get_selected_material_holes(
         material
     )
+
+    outer = _orient_sheet_polygon(outer, grain)
+    holes = [
+        _orient_sheet_polygon(hole, grain)
+        for hole in holes
+    ]
 
     return {
         "points": _points_to_cli_points(
