@@ -16,16 +16,8 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 MM_PER_INCH = 25.4
 
-# Orient a polygon so a Y (vertical) grain axis becomes horizontal.
-def _orient_polygon_for_grain(points, grain):
-    """
-    Return [x, y] points for a polygon oriented so its grain is horizontal.
-
-    X and None grains return the points unchanged. A Y grain is rotated 90
-    degrees clockwise so the former +Y axis maps to +X, then the polygon is
-    shifted so its minimum X and Y become 0/0. Input points may be [x, y]
-    pairs or {"x", "y"} dictionaries.
-    """
+# Parse XY pairs or {"x", "y"} dictionaries into [x, y] pairs.
+def _clean_xy_points(points):
     cleaned = []
 
     for point in points or []:
@@ -41,24 +33,76 @@ def _orient_polygon_for_grain(points, grain):
 
         cleaned.append([x, y])
 
-    if str(grain or "None").strip().upper() == "Y":
-        cleaned = [
-            [round(y, 6), round(-x, 6)]
-            for x, y in cleaned
-        ]
+    return cleaned
 
-        if cleaned:
-            min_x = min(point[0] for point in cleaned)
-            min_y = min(point[1] for point in cleaned)
-            cleaned = [
-                [
-                    round(point[0] - min_x, 6),
-                    round(point[1] - min_y, 6),
-                ]
-                for point in cleaned
-            ]
+
+def _rotate_xy_points_90_cw(points):
+    return [
+        [round(y, 6), round(-x, 6)]
+        for x, y in points
+    ]
+
+
+def _xy_points_min(points):
+    if not points:
+        return 0.0, 0.0
+
+    return (
+        min(point[0] for point in points),
+        min(point[1] for point in points),
+    )
+
+
+def _translate_xy_points(points, offset):
+    return [
+        [
+            round(point[0] - offset[0], 6),
+            round(point[1] - offset[1], 6),
+        ]
+        for point in points
+    ]
+
+
+# Orient a polygon so a Y (vertical) grain axis becomes horizontal.
+def _orient_polygon_for_grain(points, grain, offset=None):
+    """
+    Return [x, y] points for a polygon oriented so its grain is horizontal.
+
+    X and None grains return the points unchanged. A Y grain is rotated 90
+    degrees clockwise so the former +Y axis maps to +X. When offset is given
+    it is the (min_x, min_y) translation applied to every point; otherwise the
+    polygon is shifted by its own minimum so its lower-left corner lands at
+    0/0. Input points may be [x, y] pairs or {"x", "y"} dictionaries.
+    """
+    cleaned = _clean_xy_points(points)
+
+    if str(grain or "None").strip().upper() == "Y":
+        cleaned = _rotate_xy_points_90_cw(cleaned)
+
+        if offset is None:
+            offset = _xy_points_min(cleaned)
+
+        cleaned = _translate_xy_points(cleaned, offset)
 
     return cleaned
+
+
+def _grain_offset(points, grain):
+    """
+    Return the (min_x, min_y) translation applied to a Y-grain polygon.
+
+    The offset is the minimum corner of the rotated polygon, i.e. the amount
+    by which the polygon is shifted so its lower-left corner lands at 0/0.
+    Non-Y grains return None.
+    """
+    if str(grain or "None").strip().upper() != "Y":
+        return None
+
+    return _xy_points_min(
+        _rotate_xy_points_90_cw(
+            _clean_xy_points(points)
+        )
+    )
 
 # Synchronize compatibility fields from user-selected contours.
 def _sync_compatibility_holes(offcut):
@@ -718,15 +762,22 @@ class _OffcutPreview(QtGui.QGraphicsView):
 
         self._grain = value
 
+        # Compute the outer's normalization offset once so every contour
+        # (holes) is translated by the same amount and keeps its position
+        # relative to the outer boundary instead of collapsing to the origin.
+        offset = _grain_offset(self._base_outer, value)
+
         self._outer = _orient_polygon_for_grain(
             self._base_outer,
-            value
+            value,
+            offset
         )
 
         for index, contour in enumerate(self._contours):
             contour["polygon"] = _orient_polygon_for_grain(
                 self._base_contour_polygons[index],
-                value
+                value,
+                offset
             )
 
         self._rebuild_scene(

@@ -102,6 +102,40 @@ class MaterialToCliSheetTests(unittest.TestCase):
         self.assertEqual(min(xs), 0.0)
         self.assertEqual(min(ys), 0.0)
 
+    # A Y grain rotates holes with the outer so they keep their position.
+    def test_y_grain_keeps_holes_relative_to_outer(self):
+        outer = [[0, 0], [500, 0], [500, 1000], [0, 1000]]
+        material = {
+            'type': 'dxf',
+            'grain': 'Y',
+            'outer': outer,
+            'quantity': 1,
+            'contours': [
+                {
+                    'index': 0,
+                    'polygon': outer,
+                    'is_outer': True,
+                    'selected': False,
+                },
+                {
+                    'index': 1,
+                    'polygon': [[200, 200], [300, 200], [300, 300], [200, 300]],
+                    'is_outer': False,
+                    'selected': True,
+                },
+            ],
+        }
+        sheet = self.export._material_to_cli_sheet(material)
+        self.assertEqual(len(sheet['holes']), 1)
+        hole = sheet['holes'][0]
+        xs = [p[0] for p in hole]
+        ys = [p[1] for p in hole]
+        # The hole is a 100x100 square that keeps its offset, not collapsed.
+        self.assertAlmostEqual(min(xs), 200.0)
+        self.assertAlmostEqual(min(ys), 200.0)
+        self.assertAlmostEqual(max(xs), 300.0)
+        self.assertAlmostEqual(max(ys), 300.0)
+
 
 if __name__ == '__main__':
     unittest.main()

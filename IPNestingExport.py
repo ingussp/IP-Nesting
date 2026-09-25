@@ -774,16 +774,8 @@ def _get_selected_material_holes(material):
     ]
 
 
-# Rotate a sheet polygon so a Y (vertical) grain axis becomes horizontal.
-def _orient_sheet_polygon(points, grain):
-    """
-    Return the polygon with a Y grain rotated so its texture runs horizontally.
-
-    X and None grains leave the polygon unchanged. A Y grain is rotated 90
-    degrees clockwise so the former +Y texture axis maps to +X, then the
-    polygon is shifted so its minimum X and Y become 0/0. Input points may be
-    [x, y] pairs or {"x", "y"} dictionaries; output is always [x, y] pairs.
-    """
+# Parse XY pairs or {"x", "y"} dictionaries into [x, y] pairs.
+def _clean_sheet_points(points):
     cleaned = []
 
     for point in points or []:
@@ -799,24 +791,78 @@ def _orient_sheet_polygon(points, grain):
 
         cleaned.append([x, y])
 
-    if str(grain or "None").strip().upper() == "Y":
-        cleaned = [
-            [round(y, 6), round(-x, 6)]
-            for x, y in cleaned
-        ]
+    return cleaned
 
-        if cleaned:
-            min_x = min(point[0] for point in cleaned)
-            min_y = min(point[1] for point in cleaned)
-            cleaned = [
-                [
-                    round(point[0] - min_x, 6),
-                    round(point[1] - min_y, 6),
-                ]
-                for point in cleaned
-            ]
+
+def _rotate_points_90_cw(points):
+    return [
+        [round(y, 6), round(-x, 6)]
+        for x, y in points
+    ]
+
+
+def _points_min_xy(points):
+    if not points:
+        return 0.0, 0.0
+
+    return (
+        min(point[0] for point in points),
+        min(point[1] for point in points),
+    )
+
+
+def _translate_points(points, offset):
+    return [
+        [
+            round(point[0] - offset[0], 6),
+            round(point[1] - offset[1], 6),
+        ]
+        for point in points
+    ]
+
+
+# Rotate a sheet polygon so a Y (vertical) grain axis becomes horizontal.
+def _orient_sheet_polygon(points, grain, offset=None):
+    """
+    Return the polygon with a Y grain rotated so its texture runs horizontally.
+
+    X and None grains leave the polygon unchanged. A Y grain is rotated 90
+    degrees clockwise so the former +Y texture axis maps to +X. When offset is
+    provided it is the (min_x, min_y) translation applied to every point;
+    otherwise the polygon is shifted by its own minimum so its lower-left
+    corner lands at 0/0. Input points may be [x, y] pairs or {"x", "y"}
+    dictionaries; output is always [x, y] pairs.
+    """
+    cleaned = _clean_sheet_points(points)
+
+    if str(grain or "None").strip().upper() == "Y":
+        cleaned = _rotate_points_90_cw(cleaned)
+
+        if offset is None:
+            offset = _points_min_xy(cleaned)
+
+        cleaned = _translate_points(cleaned, offset)
 
     return cleaned
+
+
+# Return the translation used to normalize a Y-grain polygon, or None.
+def _grain_offset(points, grain):
+    """
+    Return the (min_x, min_y) translation applied to a Y-grain polygon.
+
+    The offset is the minimum corner of the rotated polygon, i.e. the amount
+    by which the polygon is shifted so its lower-left corner lands at 0/0.
+    Non-Y grains return None.
+    """
+    if str(grain or "None").strip().upper() != "Y":
+        return None
+
+    return _points_min_xy(
+        _rotate_points_90_cw(
+            _clean_sheet_points(points)
+        )
+    )
 
 
 # Convert one IP-Nesting material record to a nesting CLI sheet record.
@@ -865,9 +911,14 @@ def _material_to_cli_sheet(material):
         material
     )
 
-    outer = _orient_sheet_polygon(outer, grain)
+    # Compute the outer's normalization offset once so every hole is
+    # translated by the same amount and keeps its position relative to
+    # the outer boundary instead of collapsing to the origin.
+    offset = _grain_offset(outer, grain)
+
+    outer = _orient_sheet_polygon(outer, grain, offset)
     holes = [
-        _orient_sheet_polygon(hole, grain)
+        _orient_sheet_polygon(hole, grain, offset)
         for hole in holes
     ]
 

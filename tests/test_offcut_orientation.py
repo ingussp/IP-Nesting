@@ -102,6 +102,24 @@ class OrientPolygonForGrainTests(unittest.TestCase):
                 self.export._orient_sheet_polygon(outer, grain),
             )
 
+    def test_y_grain_offset_keeps_hole_relative(self):
+        outer = [[0, 0], [500, 0], [500, 1000], [0, 1000]]
+        hole = [[200, 200], [300, 200], [300, 300], [200, 300]]
+        offset = self.offcut._grain_offset(outer, "Y")
+
+        oriented = self.offcut._orient_polygon_for_grain(
+            hole, "Y", offset
+        )
+
+        xs = [point[0] for point in oriented]
+        ys = [point[1] for point in oriented]
+
+        # The hole keeps its 100x100 size and offset, not collapsed to 0/0.
+        self.assertAlmostEqual(min(xs), 200.0)
+        self.assertAlmostEqual(min(ys), 200.0)
+        self.assertAlmostEqual(max(xs), 300.0)
+        self.assertAlmostEqual(max(ys), 300.0)
+
 
 if __name__ == '__main__':
     unittest.main()
