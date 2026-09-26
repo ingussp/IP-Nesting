@@ -16,6 +16,94 @@ import FreeCAD as App
 from PySide import QtGui, QtCore
 MM_PER_INCH = 25.4
 
+# Parse XY pairs or {"x", "y"} dictionaries into [x, y] pairs.
+def _clean_xy_points(points):
+    cleaned = []
+
+    for point in points or []:
+        try:
+            if isinstance(point, dict):
+                x = float(point.get("x", 0.0))
+                y = float(point.get("y", 0.0))
+            else:
+                x = float(point[0])
+                y = float(point[1])
+        except Exception:
+            continue
+
+        cleaned.append([x, y])
+
+    return cleaned
+
+
+def _rotate_xy_points_90_cw(points):
+    return [
+        [round(y, 6), round(-x, 6)]
+        for x, y in points
+    ]
+
+
+def _xy_points_min(points):
+    if not points:
+        return 0.0, 0.0
+
+    return (
+        min(point[0] for point in points),
+        min(point[1] for point in points),
+    )
+
+
+def _translate_xy_points(points, offset):
+    return [
+        [
+            round(point[0] - offset[0], 6),
+            round(point[1] - offset[1], 6),
+        ]
+        for point in points
+    ]
+
+
+# Orient a polygon so a Y (vertical) grain axis becomes horizontal.
+def _orient_polygon_for_grain(points, grain, offset=None):
+    """
+    Return [x, y] points for a polygon oriented so its grain is horizontal.
+
+    X and None grains return the points unchanged. A Y grain is rotated 90
+    degrees clockwise so the former +Y axis maps to +X. When offset is given
+    it is the (min_x, min_y) translation applied to every point; otherwise the
+    polygon is shifted by its own minimum so its lower-left corner lands at
+    0/0. Input points may be [x, y] pairs or {"x", "y"} dictionaries.
+    """
+    cleaned = _clean_xy_points(points)
+
+    if str(grain or "None").strip().upper() == "Y":
+        cleaned = _rotate_xy_points_90_cw(cleaned)
+
+        if offset is None:
+            offset = _xy_points_min(cleaned)
+
+        cleaned = _translate_xy_points(cleaned, offset)
+
+    return cleaned
+
+
+def _grain_offset(points, grain):
+    """
+    Return the (min_x, min_y) translation applied to a Y-grain polygon.
+
+    The offset is the minimum corner of the rotated polygon, i.e. the amount
+    by which the polygon is shifted so its lower-left corner lands at 0/0.
+    Non-Y grains return None.
+    """
+    if str(grain or "None").strip().upper() != "Y":
+        return None
+
+    return _xy_points_min(
+        _rotate_xy_points_90_cw(
+            _clean_xy_points(points)
+        )
+    )
+
 # Synchronize compatibility fields from user-selected contours.
 def _sync_compatibility_holes(offcut):
     """
@@ -158,14 +246,23 @@ class _OffcutPreview(QtGui.QGraphicsView):
     ):
         super(_OffcutPreview, self).__init__(parent)
 
-        self._outer = list(outer or [])
+        # Keep the unrotated geometry so grain changes can re-orient the
+        # preview without mutating the shared offcut records.
+        self._base_outer = list(outer or [])
+
+        self._outer = list(self._base_outer)
 
         self._contours = []
+        self._base_contour_polygons = []
 
         for contour in contours or []:
-            self._contours.append(
-                dict(contour)
+            copy = dict(contour)
+            polygon = list(
+                contour.get("polygon") or []
             )
+            copy["polygon"] = polygon
+            self._base_contour_polygons.append(polygon)
+            self._contours.append(copy)
 
         self._on_contour_clicked = (
             on_contour_clicked
@@ -575,75 +672,40 @@ class _OffcutPreview(QtGui.QGraphicsView):
                 QtGui.QColor(210, 0, 0)
             )
 
-            if self._grain == "X":
-                # Horizontal arrow: left -> right.
-                y = min_y + margin_y
-                x1 = min_x + margin_x
-                x2 = max_x - margin_x
+            # The sheet is oriented so its grain always runs horizontally,
+            # therefore draw a left -> right arrow.
+            y = min_y + margin_y
+            x1 = min_x + margin_x
+            x2 = max_x - margin_x
 
-                line = self._scene.addLine(
-                    x1,
-                    y,
+            line = self._scene.addLine(
+                x1,
+                y,
+                x2,
+                y,
+                arrow_pen
+            )
+            line.setZValue(5)
+
+            head_size = max(
+                min(width, height) * 0.04,
+                1.0
+            )
+
+            head = QtGui.QPolygonF([
+                QtCore.QPointF(
                     x2,
-                    y,
-                    arrow_pen
-                )
-                line.setZValue(5)
-
-                head_size = max(
-                    min(width, height) * 0.04,
-                    1.0
-                )
-
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(
-                        x2,
-                        y
-                    ),
-                    QtCore.QPointF(
-                        x2 - head_size,
-                        y - head_size * 0.55
-                    ),
-                    QtCore.QPointF(
-                        x2 - head_size,
-                        y + head_size * 0.55
-                    ),
-                ])
-
-            else:
-                # Vertical arrow: top -> bottom.
-                x = min_x + margin_x
-                y1 = min_y + margin_y
-                y2 = max_y - margin_y
-
-                line = self._scene.addLine(
-                    x,
-                    y1,
-                    x,
-                    y2,
-                    arrow_pen
-                )
-                line.setZValue(5)
-
-                head_size = max(
-                    min(width, height) * 0.04,
-                    1.0
-                )
-
-                head = QtGui.QPolygonF([
-                    QtCore.QPointF(
-                        x,
-                        y2
-                    ),
-                    QtCore.QPointF(
-                        x - head_size * 0.55,
-                        y2 - head_size
-                    ),
-                    QtCore.QPointF(
-                        x + head_size * 0.55,
-                        y2 - head_size
-                    ),
-                ])
+                    y
+                ),
+                QtCore.QPointF(
+                    x2 - head_size,
+                    y - head_size * 0.55
+                ),
+                QtCore.QPointF(
+                    x2 - head_size,
+                    y + head_size * 0.55
+                ),
+            ])
 
             head_item = self._scene.addPolygon(
                 head,
@@ -699,7 +761,25 @@ class _OffcutPreview(QtGui.QGraphicsView):
             value = "None"
 
         self._grain = value
-        
+
+        # Compute the outer's normalization offset once so every contour
+        # (holes) is translated by the same amount and keeps its position
+        # relative to the outer boundary instead of collapsing to the origin.
+        offset = _grain_offset(self._base_outer, value)
+
+        self._outer = _orient_polygon_for_grain(
+            self._base_outer,
+            value,
+            offset
+        )
+
+        for index, contour in enumerate(self._contours):
+            contour["polygon"] = _orient_polygon_for_grain(
+                self._base_contour_polygons[index],
+                value,
+                offset
+            )
+
         self._rebuild_scene(
             preserve_view=True
         )
