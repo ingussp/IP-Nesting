@@ -1,0 +1,9 @@
+1) Jāizmaina tulkojums saisībā ar vārdu "Grain" visā projektā. Jāazivieto ar vārdu "Tekstūra"
+2) Jāpieliek poga "Show GPUs", kura dropdown izvēlnē parādā tekošajā datorā pieejamās videokartes.
+3) Izvedot garu un skaidru skaidrojumu katrai nesting dzinēja opcijai. 
+4) Izvērtēt iestatījuma "Curve tolerance" nepieciešmību
+5) Vai nevajadzētu aizvietot iestatījuma "trials" citu nosaukumu
+6) Pievienot aplikācijas(workbench) iestatījumos sekojošas lieta
+  a) Katras detaļas rotēšanas skaitlis pēc noklusējuma. Piemēram 4
+  b) Iespēju noteikt citu "Boundary resolution" lielumu. Pēc nokliusējuma tas ir 0.01 Tas ir nepieciešams ja ir tūkstošiem apaļīgu detaļu
+  c) 
