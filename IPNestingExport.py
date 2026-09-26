@@ -419,30 +419,40 @@ def _remove_duplicate_points(points, tolerance=1e-6):
     return cleaned
 
 
-# Round a supplied XY pair without applying Placement; use [0, 0] for invalid input.
+# Apply the preview object's rotation to a local 2D point, ignoring translation.
 def _transform_point_without_translation(obj, point):
     """
-    Round the supplied XY pair to six decimals without applying Placement.
+    Apply the preview object's rotation to a local 2D point.
 
-    In this project the current visible orientation is already reflected
-    in obj.Shape after applying grain direction or Custom angle.
+    The part's rotation (grain direction or Custom angle) is stored in
+    obj.Placement, not baked into obj.Shape, so it must be applied here to
+    export the part in the same orientation that is shown on screen.
 
-    Do not apply obj.Placement here. Applying Placement again would rotate
-    the already rotated geometry a second time.
-
-    The preview-grid position is removed later by _normalize_polygon().
-    Invalid input returns [0.0, 0.0].
+    The translation is intentionally ignored because the nesting CLI needs
+    local part geometry, not the temporary preview-grid position. The grid
+    position is removed later by _normalize_polygon().
+    Invalid input returns the unrotated point.
     """
     try:
+        vector = App.Vector(
+            float(point[0]),
+            float(point[1]),
+            0.0
+        )
+
+        transformed = obj.Placement.Rotation.multVec(
+            vector
+        )
+
         return [
-            round(float(point[0]), 6),
-            round(float(point[1]), 6)
+            round(float(transformed.x), 6),
+            round(float(transformed.y), 6)
         ]
 
     except Exception:
         return [
-            0.0,
-            0.0
+            round(float(point[0]), 6),
+            round(float(point[1]), 6)
         ]
 
 
@@ -453,6 +463,9 @@ def _normalize_polygon(points):
 
     This removes the temporary position of the object in the
     Nesting_Preview grid, while preserving its current orientation.
+
+    Input points are [x, y] pairs and the output is always [x, y] pairs
+    to match the sheet export format.
     """
     if not points:
         return []
@@ -469,16 +482,16 @@ def _normalize_polygon(points):
         )
 
         return [
-            {
-                "x": round(
+            [
+                round(
                     float(point[0]) - min_x,
                     6
                 ),
-                "y": round(
+                round(
                     float(point[1]) - min_y,
                     6
                 )
-            }
+            ]
             for point in points
         ]
 
@@ -491,14 +504,9 @@ def _extract_part_points(obj, deflection=0.01):
     """
     Extract the current visible 2D outer contour from a preview object.
 
-    The current orientation is already contained in obj.Shape.
-    Do not apply obj.Placement again because the geometry may already
-    include the rotation caused by:
-
-    - normal part rotation;
-    - grain direction X;
-    - grain direction Y;
-    - Custom angle.
+    The part's rotation (grain direction or Custom angle) lives in
+    obj.Placement, so every extracted point is rotated through the
+    object's Placement to match the on-screen orientation.
 
     The temporary preview-grid translation is removed by
     _normalize_polygon().
@@ -548,14 +556,14 @@ def _extract_part_points(obj, deflection=0.01):
             if len(points) < 3:
                 continue
 
-            # IMPORTANT:
-            # Do not apply obj.Placement here.
-            # The current Shape already reflects the visible state.
+            # Apply the object's rotation so the exported contour matches
+            # the on-screen orientation. Translation is removed later by
+            # _normalize_polygon().
             transformed = [
-                [
-                    round(float(point[0]), 6),
-                    round(float(point[1]), 6)
-                ]
+                _transform_point_without_translation(
+                    obj,
+                    point
+                )
                 for point in points
             ]
 
@@ -595,13 +603,13 @@ def _extract_part_points(obj, deflection=0.01):
                 if len(points) < 3:
                     continue
 
-                # IMPORTANT:
-                # Do not apply obj.Placement here.
+                # Apply the object's rotation so the exported contour
+                # matches the on-screen orientation.
                 transformed = [
-                    [
-                        round(float(point[0]), 6),
-                        round(float(point[1]), 6)
-                    ]
+                    _transform_point_without_translation(
+                        obj,
+                        point
+                    )
                     for point in points
                 ]
 
@@ -994,19 +1002,14 @@ def _get_source_type(obj):
     return "3d"
 
 
-# Read grain/custom-angle checkboxes and axis; retain defaults for the numeric custom angle.
-def _get_grain_metadata(panel, row):
+# Read the grain direction from one table row as a sheet-compatible string.
+def _get_grain_direction(panel, row):
     """
-    Read grain and Custom angle state from one table row.
-    """
-    metadata = {
-        "enabled": False,
-        "axis": "X",
-        "custom_angle_enabled": False,
-        "custom_angle_deg": None,
-        "normalized_axis": "X",
-    }
+    Return the grain direction for one table row as "X", "Y" or "None".
 
+    The value mirrors the sheet grain representation so parts and sheets
+    share the same grain field format in input.json.
+    """
     try:
         grain_widget = panel.table.cellWidget(
             row,
@@ -1018,13 +1021,14 @@ def _get_grain_metadata(panel, row):
                 QtGui.QCheckBox
             )
 
-            grain_combo = grain_widget.findChild(
-                QtGui.QComboBox
-            )
-
-            metadata["enabled"] = bool(
+            if not (
                 grain_checkbox
                 and grain_checkbox.isChecked()
+            ):
+                return "None"
+
+            grain_combo = grain_widget.findChild(
+                QtGui.QComboBox
             )
 
             if grain_combo:
@@ -1034,31 +1038,12 @@ def _get_grain_metadata(panel, row):
                 ).strip().upper()
 
                 if axis in ("X", "Y"):
-                    metadata["axis"] = axis
+                    return axis
+
+        return "None"
 
     except Exception:
-        pass
-
-    try:
-        custom_widget = panel.table.cellWidget(
-            row,
-            5
-        )
-
-        if custom_widget:
-            custom_checkbox = custom_widget.findChild(
-                QtGui.QCheckBox
-            )
-
-            metadata["custom_angle_enabled"] = bool(
-                custom_checkbox
-                and custom_checkbox.isChecked()
-            )
-
-    except Exception:
-        pass
-
-    return metadata
+        return "None"
 
 # Coerce a numeric value into [lo, hi], falling back to default on parse failure.
 def _coerce_number(value, default, lo=None, hi=None):
@@ -1524,7 +1509,7 @@ def execute_nesting(panel):
                     )
                     continue
 
-                grain_metadata = _get_grain_metadata(
+                grain = _get_grain_direction(
                     panel,
                     row
                 )
@@ -1534,6 +1519,13 @@ def execute_nesting(panel):
                 )
 
                 part_id = "part_%d" % len(parts)
+
+                # A grain-restricted part may only rotate 0 or 180 degrees so
+                # the texture direction is preserved during nesting.
+                if grain != "None":
+                    rotation_rule = {
+                        "allowedAngles": [0.0, 180.0]
+                    }
 
                 parts.append({
                     # Fields consumed by the nesting CLI.
@@ -1558,59 +1550,7 @@ def execute_nesting(panel):
                             primary_name
                         ),
                         "source_type": source_type,
-                        "grain": grain_metadata,
-                        "placement": {
-                            "base": {
-                                "x": float(
-                                    obj.Placement.Base.x
-                                ),
-                                "y": float(
-                                    obj.Placement.Base.y
-                                ),
-                                "z": float(
-                                    obj.Placement.Base.z
-                                )
-                            },
-                            "rotation": {
-                                "axis": {
-                                    "x": float(
-                                        obj.Placement.Rotation.Axis.x
-                                    ),
-                                    "y": float(
-                                        obj.Placement.Rotation.Axis.y
-                                    ),
-                                    "z": float(
-                                        obj.Placement.Rotation.Axis.z
-                                    )
-                                },
-                                "angle_rad": float(
-                                    obj.Placement.Rotation.Angle
-                                ),
-                                "angle_deg": float(
-                                    obj.Placement.Rotation.Angle
-                                ) * 180.0 / math.pi
-                            }
-                        },
-                        "shape_bbox": {
-                            "min_x": float(
-                                obj.Shape.BoundBox.XMin
-                            ),
-                            "max_x": float(
-                                obj.Shape.BoundBox.XMax
-                            ),
-                            "min_y": float(
-                                obj.Shape.BoundBox.YMin
-                            ),
-                            "max_y": float(
-                                obj.Shape.BoundBox.YMax
-                            ),
-                            "min_z": float(
-                                obj.Shape.BoundBox.ZMin
-                            ),
-                            "max_z": float(
-                                obj.Shape.BoundBox.ZMax
-                            )
-                        },
+                        "grain": grain,
                         "instance_prefix": (
                             part_id
                             + "_instance_"
