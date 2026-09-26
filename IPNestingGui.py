@@ -3044,6 +3044,9 @@ class NestingTaskPanel:
                 checkbox = grain_widget.findChild(QtGui.QCheckBox)
                 if checkbox is not None and checkbox.isChecked():
                     changed += 1
+                    # A grain-restricted part may only rotate 0 or 180
+                    # degrees, so pin the rotation cell accordingly.
+                    self._set_rotation_cell(row, "[0, 180]")
 
             # The controller reads current Grain Direction checkboxes on every apply.
             # It also normalizes angles, redraws all arrows/perimeters and saves the
@@ -4565,6 +4568,27 @@ class NestingTaskPanel:
         """
         return normalize_rotation_text(txt)
 
+
+    # Pin the rotation cell (column 2) for a given data row to an explicit rule.
+    def _set_rotation_cell(self, row, text):
+        """Set the rotation cell (column 2) text for a data row."""
+        try:
+            if row is None:
+                return
+            if row >= self.table.rowCount() - self.control_rows:
+                return
+            item = self.table.item(row, 2)
+            if not item:
+                return
+            if item.text() == text:
+                return
+            try:
+                self._suppress_qty_update = True
+                ui_call(item, 'setText', text)
+            finally:
+                self._suppress_qty_update = False
+        except Exception:
+            pass
 
     # Normalize the rotation count cell for a given data row.
     def _clamp_rotation_cell(self, row):
