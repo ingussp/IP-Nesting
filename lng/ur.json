@@ -527,5 +527,16 @@
   "gpu_device": "GPU آلہ:",
   "gpu_device_tooltip": "استعمال کے لیے OpenCL آلہ منتخب کریں، یا بہترین منتخب کرنے کے لیے Nesting CLI کو Auto دیں۔",
   "gpu_batch_size": "بیچ سائز:",
-  "gpu_batch_size_tooltip": "فی GPU بیچ زیادہ سے زیادہ امیدوار (256..262144)۔"
+  "gpu_batch_size_tooltip": "فی GPU بیچ زیادہ سے زیادہ امیدوار (256..262144)۔",
+  "mark_holes": "سوراخ نشان زد کریں",
+  "mark_holes_tooltip": "منتخب حصے کے اندرونی خاکوں کو سوراخوں کے طور پر نشان زد کریں جو نیسٹنگ کے دوران کھلے رہتے ہیں",
+  "mark_holes_dialog_title": "سوراخ نشان زد کریں",
+  "mark_holes_dialog_hint": "کسی اندرونی خاکے کو سوراخ کے طور پر نشان زد کرنے کے لیے اس پر کلک کریں۔ نشان زد سوراخ نیسٹنگ کے دوران کھلے رکھے جاتے ہیں۔",
+  "mark_holes_select_part_first": "پہلے جدول میں ایک حصہ منتخب کریں۔",
+  "mark_holes_no_contours": "منتخب حصے سے کوئی خاکہ نکالا نہیں جا سکا۔",
+  "mark_holes_no_inner_contours": "منتخب حصے میں کوئی اندرونی خاکہ (سوراخ) نہیں ہے۔",
+  "mark_holes_applied_s": "منتخب حصے کے لیے %d سوراخ نشان زد کیے گئے۔",
+  "mark_holes_dialog_failed": "سوراخ نشان زد کرنے کا ڈائیلاگ ناکام رہا:\n",
+  "mark_holes_read_selection_failed": "mark_holes: انتخاب پڑھنا ناکام رہا:\n",
+  "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں"
 }

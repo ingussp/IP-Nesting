@@ -527,5 +527,16 @@
   "gpu_device": "ឧបករណ៍ GPU:",
   "gpu_device_tooltip": "ជ្រើសរើសឧបករណ៍ OpenCL ដែលត្រូវប្រើ ឬ Auto ដើម្បីឲ្យ Nesting CLI ជ្រើសរើសល្អបំផុត។",
   "gpu_batch_size": "ទំហំបាច់:",
-  "gpu_batch_size_tooltip": "ចំនួនបេក្ខជនអតិបរមាក្នុងមួយបាច់ GPU (256..262144)។"
+  "gpu_batch_size_tooltip": "ចំនួនបេក្ខជនអតិបរមាក្នុងមួយបាច់ GPU (256..262144)។",
+  "mark_holes": "សម្គាល់រន្ធ",
+  "mark_holes_tooltip": "សម្គាល់វណ្ឌវង្កខាងក្នុងរបស់ផ្នែកដែលបានជ្រើសជារន្ធដែលនៅបើកចំហអំឡុងពេលរៀបចំ",
+  "mark_holes_dialog_title": "សម្គាល់រន្ធ",
+  "mark_holes_dialog_hint": "ចុចលើវណ្ឌវង្កខាងក្នុងដើម្បីសម្គាល់វាជារន្ធ។ រន្ធដែលបានសម្គាល់នៅបើកចំហអំឡុងពេលរៀបចំ។",
+  "mark_holes_select_part_first": "ជ្រើសផ្នែកមួយក្នុងតារាងជាមុនសិន។",
+  "mark_holes_no_contours": "មិនអាចទាញយកវណ្ឌវង្កពីផ្នែកដែលបានជ្រើសបានទេ។",
+  "mark_holes_no_inner_contours": "ផ្នែកដែលបានជ្រើសមិនមានវណ្ឌវង្កខាងក្នុង (រន្ធ) ទេ។",
+  "mark_holes_applied_s": "បានសម្គាល់រន្ធចំនួន %d សម្រាប់ផ្នែកដែលបានជ្រើស។",
+  "mark_holes_dialog_failed": "ប្រអប់សម្គាល់រន្ធបរាជ័យ:\n",
+  "mark_holes_read_selection_failed": "mark_holes: ការអានការជ្រើសរើសបរាជ័យ:\n",
+  "mark_holes_button": "សម្គាល់រន្ធនៃផ្នែកដែលបានជ្រើសរើស"
 }

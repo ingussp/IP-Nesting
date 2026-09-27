@@ -527,5 +527,16 @@
   "gpu_device": "Naprava GPU:",
   "gpu_device_tooltip": "Izberite napravo OpenCL za uporabo ali Auto, da Nesting CLI izbere najboljšo.",
   "gpu_batch_size": "Velikost paketa:",
-  "gpu_batch_size_tooltip": "Največ kandidatov na paket GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Največ kandidatov na paket GPU (256..262144).",
+  "mark_holes": "Označi luknje",
+  "mark_holes_tooltip": "Označi notranje obrise izbranega dela kot luknje, ki ostanejo med gnezdenjem odprte",
+  "mark_holes_dialog_title": "Označi luknje",
+  "mark_holes_dialog_hint": "Kliknite notranji obris, da ga označite kot luknjo. Označene luknje ostanejo med gnezdenjem odprte.",
+  "mark_holes_select_part_first": "Najprej izberite del v tabeli.",
+  "mark_holes_no_contours": "Iz izbranega dela ni bilo mogoče izluščiti obrisov.",
+  "mark_holes_no_inner_contours": "Izbrani del nima notranjih obrisov (lukenj).",
+  "mark_holes_applied_s": "Za izbrani del je označenih %d lukenj.",
+  "mark_holes_dialog_failed": "Pogovorno okno za označevanje lukenj ni uspelo:\n",
+  "mark_holes_read_selection_failed": "mark_holes: branje izbire ni uspelo:\n",
+  "mark_holes_button": "Označi luknje izbranega dela"
 }

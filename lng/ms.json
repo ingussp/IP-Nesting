@@ -527,5 +527,16 @@
   "gpu_device": "Peranti GPU:",
   "gpu_device_tooltip": "Pilih peranti OpenCL yang akan digunakan, atau Auto untuk membiarkan Nesting CLI memilih yang terbaik.",
   "gpu_batch_size": "Saiz kelompok:",
-  "gpu_batch_size_tooltip": "Maksimum calon setiap kelompok GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Maksimum calon setiap kelompok GPU (256..262144).",
+  "mark_holes": "Tanda lubang",
+  "mark_holes_tooltip": "Tanda kontur dalam bahagian terpilih sebagai lubang yang kekal terbuka semasa penyusunan",
+  "mark_holes_dialog_title": "Tanda lubang",
+  "mark_holes_dialog_hint": "Klik kontur dalam untuk menandainya sebagai lubang. Lubang yang ditanda kekal terbuka semasa penyusunan.",
+  "mark_holes_select_part_first": "Pilih bahagian dalam jadual dahulu.",
+  "mark_holes_no_contours": "Tiada kontur dapat diekstrak daripada bahagian terpilih.",
+  "mark_holes_no_inner_contours": "Bahagian terpilih tiada kontur dalam (lubang).",
+  "mark_holes_applied_s": "%d lubang ditanda untuk bahagian terpilih.",
+  "mark_holes_dialog_failed": "Dialog penandaan lubang gagal:\n",
+  "mark_holes_read_selection_failed": "mark_holes: pembacaan pilihan gagal:\n",
+  "mark_holes_button": "Tandakan lubang bahagian terpilih"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "Dispozitiv GPU:",
   "gpu_device_tooltip": "Alegeți dispozitivul OpenCL de utilizat sau Auto pentru a lăsa CLI-ul de așezare să aleagă cel mai bun.",
   "gpu_batch_size": "Dimensiune lot:",
-  "gpu_batch_size_tooltip": "Maximum de candidați pe lot GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Maximum de candidați pe lot GPU (256..262144).",
+  "mark_holes": "Marchează găuri",
+  "mark_holes_tooltip": "Marchează contururile interioare ale piesei selectate ca găuri care rămân deschise în timpul aranjării",
+  "mark_holes_dialog_title": "Marchează găuri",
+  "mark_holes_dialog_hint": "Faceți clic pe un contur interior pentru a-l marca drept gaură. Găurile marcate rămân deschise în timpul aranjării.",
+  "mark_holes_select_part_first": "Selectați mai întâi o piesă din tabel.",
+  "mark_holes_no_contours": "Nu s-au putut extrage contururi din piesa selectată.",
+  "mark_holes_no_inner_contours": "Piesa selectată nu are contururi interioare (găuri).",
+  "mark_holes_applied_s": "Au fost marcate %d găuri pentru piesa selectată.",
+  "mark_holes_dialog_failed": "Dialogul de marcare a găurilor a eșuat:\n",
+  "mark_holes_read_selection_failed": "mark_holes: citirea selecției a eșuat:\n",
+  "mark_holes_button": "Marchează găurile piesei selectate"
 }

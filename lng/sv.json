@@ -527,5 +527,16 @@
   "gpu_device": "GPU-enhet:",
   "gpu_device_tooltip": "Välj den OpenCL-enhet som ska användas, eller Auto för att låta Nesting CLI välja den bästa.",
   "gpu_batch_size": "Batchstorlek:",
-  "gpu_batch_size_tooltip": "Maximalt antal kandidater per GPU-batch (256..262144)."
+  "gpu_batch_size_tooltip": "Maximalt antal kandidater per GPU-batch (256..262144).",
+  "mark_holes": "Markera hål",
+  "mark_holes_tooltip": "Markera den valda delens inre konturer som hål som förblir öppna under packningen",
+  "mark_holes_dialog_title": "Markera hål",
+  "mark_holes_dialog_hint": "Klicka på en inre kontur för att markera den som ett hål. Markerade hål hålls öppna under packningen.",
+  "mark_holes_select_part_first": "Välj först en del i tabellen.",
+  "mark_holes_no_contours": "Inga konturer kunde extraheras från den valda delen.",
+  "mark_holes_no_inner_contours": "Den valda delen har inga inre konturer (hål).",
+  "mark_holes_applied_s": "Markerade %d hål för den valda delen.",
+  "mark_holes_dialog_failed": "Dialogrutan för att markera hål misslyckades:\n",
+  "mark_holes_read_selection_failed": "mark_holes: läsning av markeringen misslyckades:\n",
+  "mark_holes_button": "Markera hål i vald del"
 }

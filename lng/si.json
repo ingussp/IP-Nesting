@@ -527,5 +527,16 @@
   "gpu_device": "GPU උපාංගය:",
   "gpu_device_tooltip": "භාවිතා කළ යුතු OpenCL උපාංගය තෝරන්න, නැතහොත් හොඳම දේ තෝරා ගැනීමට Nesting CLI හට Auto තෝරන්න.",
   "gpu_batch_size": "කණ්ඩායම් ප්‍රමාණය:",
-  "gpu_batch_size_tooltip": "GPU කණ්ඩායමකට උපරිම අපේක්ෂකයන් (256..262144)."
+  "gpu_batch_size_tooltip": "GPU කණ්ඩායමකට උපරිම අපේක්ෂකයන් (256..262144).",
+  "mark_holes": "සිදුරු සලකුණු කරන්න",
+  "mark_holes_tooltip": "තෝරාගත් කොටසේ අභ්‍යන්තර සමෝච්ඡ තැබීමේදී විවෘතව පවතින සිදුරු ලෙස සලකුණු කරන්න",
+  "mark_holes_dialog_title": "සිදුරු සලකුණු කරන්න",
+  "mark_holes_dialog_hint": "සිදුරක් ලෙස සලකුණු කිරීමට අභ්‍යන්තර සමෝච්ඡයක් මත ක්ලික් කරන්න. සලකුණු කළ සිදුරු තැබීමේදී විවෘතව තබා ඇත.",
+  "mark_holes_select_part_first": "පළමුව වගුවේ කොටසක් තෝරන්න.",
+  "mark_holes_no_contours": "තෝරාගත් කොටසෙන් සමෝච්ඡ ලබා ගැනීමට නොහැකි විය.",
+  "mark_holes_no_inner_contours": "තෝරාගත් කොටසට අභ්‍යන්තර සමෝච්ඡ (සිදුරු) නොමැත.",
+  "mark_holes_applied_s": "තෝරාගත් කොටස සඳහා සිදුරු %dක් සලකුණු කරන ලදී.",
+  "mark_holes_dialog_failed": "සිදුරු සලකුණු කිරීමේ සංවාදය අසාර්ථක විය:\n",
+  "mark_holes_read_selection_failed": "mark_holes: තේරීම කියවීම අසාර්ථක විය:\n",
+  "mark_holes_button": "තෝරාගත් කොටසේ සිදුරු සලකුණු කරන්න"
 }

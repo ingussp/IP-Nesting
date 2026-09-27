@@ -527,5 +527,16 @@
   "gpu_device": "GPU 设备:",
   "gpu_device_tooltip": "选择要使用的 OpenCL 设备，或选择 Auto 让排样 CLI 选择最佳设备。",
   "gpu_batch_size": "批次大小:",
-  "gpu_batch_size_tooltip": "每个 GPU 批次的最大候选数（256..262144）。"
+  "gpu_batch_size_tooltip": "每个 GPU 批次的最大候选数（256..262144）。",
+  "mark_holes": "标记孔",
+  "mark_holes_tooltip": "将选定零件的内部轮廓标记为在排样过程中保持打开的孔",
+  "mark_holes_dialog_title": "标记孔",
+  "mark_holes_dialog_hint": "单击内部轮廓以将其标记为孔。标记的孔在排样过程中保持打开。",
+  "mark_holes_select_part_first": "请先在表格中选择一个零件。",
+  "mark_holes_no_contours": "无法从选定零件中提取轮廓。",
+  "mark_holes_no_inner_contours": "选定零件没有内部轮廓（孔）。",
+  "mark_holes_applied_s": "已为选定零件标记 %d 个孔。",
+  "mark_holes_dialog_failed": "标记孔对话框失败：\n",
+  "mark_holes_read_selection_failed": "mark_holes: 读取选择失败：\n",
+  "mark_holes_button": "标记所选零件的孔"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "התקן GPU:",
   "gpu_device_tooltip": "בחר את התקן ה-OpenCL לשימוש, או Auto כדי לתת ל-Nesting CLI לבחור את הטוב ביותר.",
   "gpu_batch_size": "גודל אצווה:",
-  "gpu_batch_size_tooltip": "מספר מרבי של מועמדים לאצוות GPU (256..262144)."
+  "gpu_batch_size_tooltip": "מספר מרבי של מועמדים לאצוות GPU (256..262144).",
+  "mark_holes": "סמן חורים",
+  "mark_holes_tooltip": "סמן את קווי המתאר הפנימיים של החלק הנבחר כחורים שנשארים פתוחים במהלך הקינון",
+  "mark_holes_dialog_title": "סמן חורים",
+  "mark_holes_dialog_hint": "לחץ על קו מתאר פנימי כדי לסמן אותו כחור. החורים המסומנים נשמרים פתוחים במהלך הקינון.",
+  "mark_holes_select_part_first": "בחר תחילה חלק בטבלה.",
+  "mark_holes_no_contours": "לא ניתן היה לחלץ קווי מתאר מהחלק הנבחר.",
+  "mark_holes_no_inner_contours": "לחלק הנבחר אין קווי מתאר פנימיים (חורים).",
+  "mark_holes_applied_s": "סומנו %d חורים עבור החלק הנבחר.",
+  "mark_holes_dialog_failed": "תיבת הדו-שיח לסימון חורים נכשלה:\n",
+  "mark_holes_read_selection_failed": "mark_holes: קריאת הבחירה נכשלה:\n",
+  "mark_holes_button": "סמן חורים בחלק הנבחר"
 }

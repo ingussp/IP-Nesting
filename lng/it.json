@@ -527,5 +527,16 @@
   "gpu_device": "Dispositivo GPU:",
   "gpu_device_tooltip": "Scegli il dispositivo OpenCL da usare oppure Auto per lasciare che Nesting CLI scelga il migliore.",
   "gpu_batch_size": "Dimensione batch:",
-  "gpu_batch_size_tooltip": "Massimo di candidati per batch GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Massimo di candidati per batch GPU (256..262144).",
+  "mark_holes": "Segna fori",
+  "mark_holes_tooltip": "Segna i contorni interni del pezzo selezionato come fori che restano aperti durante l'annidamento",
+  "mark_holes_dialog_title": "Segna fori",
+  "mark_holes_dialog_hint": "Fai clic su un contorno interno per segnarlo come foro. I fori segnati restano aperti durante l'annidamento.",
+  "mark_holes_select_part_first": "Seleziona prima un pezzo nella tabella.",
+  "mark_holes_no_contours": "Non è stato possibile estrarre contorni dal pezzo selezionato.",
+  "mark_holes_no_inner_contours": "Il pezzo selezionato non ha contorni interni (fori).",
+  "mark_holes_applied_s": "Segnati %d fori per il pezzo selezionato.",
+  "mark_holes_dialog_failed": "La finestra di marcatura dei fori non è riuscita:\n",
+  "mark_holes_read_selection_failed": "mark_holes: lettura della selezione non riuscita:\n",
+  "mark_holes_button": "Contrassegna i fori del pezzo selezionato"
 }

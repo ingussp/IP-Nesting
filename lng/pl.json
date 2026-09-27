@@ -527,5 +527,16 @@
   "gpu_device": "Urządzenie GPU:",
   "gpu_device_tooltip": "Wybierz urządzenie OpenCL do użycia lub Auto, aby Nesting CLI wybrało najlepsze.",
   "gpu_batch_size": "Rozmiar partii:",
-  "gpu_batch_size_tooltip": "Maksymalna liczba kandydatów na partię GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Maksymalna liczba kandydatów na partię GPU (256..262144).",
+  "mark_holes": "Zaznacz otwory",
+  "mark_holes_tooltip": "Zaznacz wewnętrzne kontury wybranego elementu jako otwory, które pozostają otwarte podczas układania",
+  "mark_holes_dialog_title": "Zaznacz otwory",
+  "mark_holes_dialog_hint": "Kliknij wewnętrzny kontur, aby oznaczyć go jako otwór. Zaznaczone otwory pozostają otwarte podczas układania.",
+  "mark_holes_select_part_first": "Najpierw wybierz element w tabeli.",
+  "mark_holes_no_contours": "Nie udało się wyodrębnić konturów z wybranego elementu.",
+  "mark_holes_no_inner_contours": "Wybrany element nie ma wewnętrznych konturów (otworów).",
+  "mark_holes_applied_s": "Zaznaczono %d otworów dla wybranego elementu.",
+  "mark_holes_dialog_failed": "Okno zaznaczania otworów nie powiodło się:\n",
+  "mark_holes_read_selection_failed": "mark_holes: odczyt zaznaczenia nie powiódł się:\n",
+  "mark_holes_button": "Zaznacz otwory wybranej części"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "GPU-seade:",
   "gpu_device_tooltip": "Valige kasutatav OpenCL-seade või Auto, et lasta Nesting CLI-l valida parim.",
   "gpu_batch_size": "Partii suurus:",
-  "gpu_batch_size_tooltip": "Maksimaalne kandidaatide arv GPU-partii kohta (256..262144)."
+  "gpu_batch_size_tooltip": "Maksimaalne kandidaatide arv GPU-partii kohta (256..262144).",
+  "mark_holes": "Märgi avad",
+  "mark_holes_tooltip": "Märgi valitud detaili sisemised kontuurid aukudeks, mis jäävad paigutamise ajal avatuks",
+  "mark_holes_dialog_title": "Märgi avad",
+  "mark_holes_dialog_hint": "Klõpsa sisemisel kontuuril, et märkida see auguks. Märgitud augud jäävad paigutamise ajal avatuks.",
+  "mark_holes_select_part_first": "Vali kõigepealt tabelist detail.",
+  "mark_holes_no_contours": "Valitud detailist ei õnnestunud kontuure eraldada.",
+  "mark_holes_no_inner_contours": "Valitud detailil puuduvad sisemised kontuurid (augud).",
+  "mark_holes_applied_s": "Valitud detaili jaoks märgiti %d auku.",
+  "mark_holes_dialog_failed": "Aukude märkimise dialoog ebaõnnestus:\n",
+  "mark_holes_read_selection_failed": "mark_holes: valiku lugemine ebaõnnestus:\n",
+  "mark_holes_button": "Märgi valitud detaili avad"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "جهاز GPU:",
   "gpu_device_tooltip": "اختر جهاز OpenCL المطلوب استخدامه، أو اختر Auto لترك CLI التعشيش يختار الأنسب.",
   "gpu_batch_size": "حجم الدفعة:",
-  "gpu_batch_size_tooltip": "الحد الأقصى للمرشحين في كل دفعة GPU (256..262144)."
+  "gpu_batch_size_tooltip": "الحد الأقصى للمرشحين في كل دفعة GPU (256..262144).",
+  "mark_holes": "تحديد الثقوب",
+  "mark_holes_tooltip": "تحديد الكفافات الداخلية للجزء المحدد كثقوب تبقى مفتوحة أثناء التعبئة",
+  "mark_holes_dialog_title": "تحديد الثقوب",
+  "mark_holes_dialog_hint": "انقر على كفاف داخلي لتحديده كثقب. تبقى الثقوب المحددة مفتوحة أثناء التعبئة.",
+  "mark_holes_select_part_first": "حدد جزءًا في الجدول أولًا.",
+  "mark_holes_no_contours": "تعذر استخراج كفافات من الجزء المحدد.",
+  "mark_holes_no_inner_contours": "لا يحتوي الجزء المحدد على كفافات داخلية (ثقوب).",
+  "mark_holes_applied_s": "تم تحديد %d ثقبًا للجزء المحدد.",
+  "mark_holes_dialog_failed": "فشل حوار تحديد الثقوب:\n",
+  "mark_holes_read_selection_failed": "mark_holes: فشل قراءة التحديد:\n",
+  "mark_holes_button": "تحديد فتحات الجزء المحدد"
 }

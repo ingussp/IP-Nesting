@@ -527,5 +527,16 @@
   "gpu_device": "Apparat GPU:",
   "gpu_device_tooltip": "Agħżel l-apparat OpenCL li tuża, jew Auto biex tħalli lil Nesting CLI jagħżel l-aħjar wieħed.",
   "gpu_batch_size": "Daqs tal-lott:",
-  "gpu_batch_size_tooltip": "Massimu ta' kandidati għal kull lott GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Massimu ta' kandidati għal kull lott GPU (256..262144).",
+  "mark_holes": "Immarka t-toqob",
+  "mark_holes_tooltip": "Immarka l-kontorni interni tal-biċċa magħżula bħala toqob li jibqgħu miftuħa waqt l-istivar",
+  "mark_holes_dialog_title": "Immarka t-toqob",
+  "mark_holes_dialog_hint": "Ikklikkja fuq kontorn intern biex timmarkah bħala toqba. It-toqob immarkati jinżammu miftuħa waqt l-istivar.",
+  "mark_holes_select_part_first": "L-ewwel agħżel biċċa fit-tabella.",
+  "mark_holes_no_contours": "Ma setgħux jiġu estratti kontorni mill-biċċa magħżula.",
+  "mark_holes_no_inner_contours": "Il-biċċa magħżula m'għandhiex kontorni interni (toqob).",
+  "mark_holes_applied_s": "Ġew immarkati %d toqob għall-biċċa magħżula.",
+  "mark_holes_dialog_failed": "Id-djalogu tal-immarkar tat-toqob falla:\n",
+  "mark_holes_read_selection_failed": "mark_holes: il-qari tal-għażla falla:\n",
+  "mark_holes_button": "Immarka t-toqob tal-parti magħżula"
 }

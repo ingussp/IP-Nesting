@@ -527,5 +527,16 @@
   "gpu_device": "GPU डिवाइस:",
   "gpu_device_tooltip": "उपयोग के लिए OpenCL डिवाइस चुनें, या सर्वश्रेष्ठ चुनने के लिए Nesting CLI को Auto चुनें।",
   "gpu_batch_size": "बैच आकार:",
-  "gpu_batch_size_tooltip": "प्रति GPU बैच अधिकतम उम्मीदवार (256..262144)।"
+  "gpu_batch_size_tooltip": "प्रति GPU बैच अधिकतम उम्मीदवार (256..262144)।",
+  "mark_holes": "छेद चिह्नित करें",
+  "mark_holes_tooltip": "चयनित भाग की आंतरिक रूपरेखाओं को छेद के रूप में चिह्नित करें जो नेस्टिंग के दौरान खुले रहते हैं",
+  "mark_holes_dialog_title": "छेद चिह्नित करें",
+  "mark_holes_dialog_hint": "किसी आंतरिक रूपरेखा को छेद के रूप में चिह्नित करने के लिए उस पर क्लिक करें। चिह्नित छेद नेस्टिंग के दौरान खुले रखे जाते हैं।",
+  "mark_holes_select_part_first": "पहले तालिका में एक भाग चुनें।",
+  "mark_holes_no_contours": "चयनित भाग से कोई रूपरेखा नहीं निकाली जा सकी।",
+  "mark_holes_no_inner_contours": "चयनित भाग में कोई आंतरिक रूपरेखा (छेद) नहीं है।",
+  "mark_holes_applied_s": "चयनित भाग के लिए %d छेद चिह्नित किए गए।",
+  "mark_holes_dialog_failed": "छेद चिह्नित करने का संवाद विफल रहा:\n",
+  "mark_holes_read_selection_failed": "mark_holes: चयन पढ़ना विफल रहा:\n",
+  "mark_holes_button": "चयनित भाग के छेद चिह्नित करें"
 }

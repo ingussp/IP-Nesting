@@ -527,5 +527,16 @@
   "gpu_device": "GPU na device:",
   "gpu_device_tooltip": "Piliin ang OpenCL device na gagamitin, o Auto para hayaan ang Nesting CLI na pumili ng pinakamahusay.",
   "gpu_batch_size": "Laki ng batch:",
-  "gpu_batch_size_tooltip": "Pinakamataas na kandidato bawat GPU batch (256..262144)."
+  "gpu_batch_size_tooltip": "Pinakamataas na kandidato bawat GPU batch (256..262144).",
+  "mark_holes": "Markahan ang mga butas",
+  "mark_holes_tooltip": "Markahan ang mga panloob na tabas ng napiling bahagi bilang mga butas na nananatiling bukas habang nagna-nesting",
+  "mark_holes_dialog_title": "Markahan ang mga butas",
+  "mark_holes_dialog_hint": "I-click ang isang panloob na tabas upang markahan ito bilang butas. Ang mga minarkahang butas ay pinananatiling bukas habang nagna-nesting.",
+  "mark_holes_select_part_first": "Pumili muna ng bahagi sa talahanayan.",
+  "mark_holes_no_contours": "Walang tabas na makuha mula sa napiling bahagi.",
+  "mark_holes_no_inner_contours": "Ang napiling bahagi ay walang panloob na tabas (mga butas).",
+  "mark_holes_applied_s": "%d butas ang minarkahan para sa napiling bahagi.",
+  "mark_holes_dialog_failed": "Nabigo ang dialog ng pagmarka ng mga butas:\n",
+  "mark_holes_read_selection_failed": "mark_holes: nabigo ang pagbasa ng pinili:\n",
+  "mark_holes_button": "Markahan ang mga butas ng napiling piyesa"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "GPU-Gerät:",
   "gpu_device_tooltip": "Wählen Sie das zu verwendende OpenCL-Gerät oder Auto, damit Nesting CLI das beste Gerät wählt.",
   "gpu_batch_size": "Batchgröße:",
-  "gpu_batch_size_tooltip": "Maximale Kandidaten pro GPU-Batch (256..262144)."
+  "gpu_batch_size_tooltip": "Maximale Kandidaten pro GPU-Batch (256..262144).",
+  "mark_holes": "Löcher markieren",
+  "mark_holes_tooltip": "Innenkonturen des ausgewählten Teils als Löcher markieren, die beim Verschachteln offen bleiben",
+  "mark_holes_dialog_title": "Löcher markieren",
+  "mark_holes_dialog_hint": "Klicken Sie auf eine Innenkontur, um sie als Loch zu markieren. Markierte Löcher bleiben beim Verschachteln offen.",
+  "mark_holes_select_part_first": "Wählen Sie zuerst ein Teil in der Tabelle aus.",
+  "mark_holes_no_contours": "Aus dem ausgewählten Teil konnten keine Konturen extrahiert werden.",
+  "mark_holes_no_inner_contours": "Das ausgewählte Teil hat keine Innenkonturen (Löcher).",
+  "mark_holes_applied_s": "%d Löcher für das ausgewählte Teil markiert.",
+  "mark_holes_dialog_failed": "Dialog zum Markieren von Löchern fehlgeschlagen:\n",
+  "mark_holes_read_selection_failed": "mark_holes: Lesen der Auswahl fehlgeschlagen:\n",
+  "mark_holes_button": "Löcher des gewählten Teils markieren"
 }

@@ -527,6 +527,16 @@
   "cache_rejects_tooltip": "Remember failed raster origins to skip repeated checks.",
   "gpu_enabled_tooltip": "Enable OpenCL GPU acceleration when available.",
   "gpu_device_tooltip": "Choose the OpenCL device to use, or Auto to let the nesting CLI pick the best one.",
-  "gpu_batch_size_tooltip": "Maximum candidates per GPU batch (256..262144)."
+  "gpu_batch_size_tooltip": "Maximum candidates per GPU batch (256..262144).",
+  "mark_holes": "Mark holes",
+  "mark_holes_tooltip": "Mark the selected part's inner contours as holes that stay open during nesting",
+  "mark_holes_dialog_title": "Mark holes",
+  "mark_holes_dialog_hint": "Click an inner contour to mark it as a hole. Selected holes are kept open during nesting.",
+  "mark_holes_select_part_first": "Select a part in the table first.",
+  "mark_holes_no_contours": "No contours could be extracted from the selected part.",
+  "mark_holes_no_inner_contours": "The selected part has no inner contours (holes).",
+  "mark_holes_applied_s": "Marked %d hole(s) for the selected part.",
+  "mark_holes_dialog_failed": "Mark holes dialog failed:\n",
+  "mark_holes_read_selection_failed": "mark_holes: read selection failed:\n",
+  "mark_holes_button": "Mark selected part holes"
 }
-

@@ -527,5 +527,16 @@
   "gpu_device": "GPU cihazı:",
   "gpu_device_tooltip": "Kullanılacak OpenCL cihazını seçin veya Nesting CLI'nin en iyisini seçmesi için Auto'yu seçin.",
   "gpu_batch_size": "Yığın boyutu:",
-  "gpu_batch_size_tooltip": "GPU yığını başına maksimum aday (256..262144)."
+  "gpu_batch_size_tooltip": "GPU yığını başına maksimum aday (256..262144).",
+  "mark_holes": "Delikleri işaretle",
+  "mark_holes_tooltip": "Seçili parçanın iç konturlarını yerleştirme sırasında açık kalan delikler olarak işaretle",
+  "mark_holes_dialog_title": "Delikleri işaretle",
+  "mark_holes_dialog_hint": "Delik olarak işaretlemek için bir iç kontura tıklayın. İşaretlenen delikler yerleştirme sırasında açık tutulur.",
+  "mark_holes_select_part_first": "Önce tabloda bir parça seçin.",
+  "mark_holes_no_contours": "Seçili parçadan kontur çıkarılamadı.",
+  "mark_holes_no_inner_contours": "Seçili parçanın iç konturları (delikleri) yok.",
+  "mark_holes_applied_s": "Seçili parça için %d delik işaretlendi.",
+  "mark_holes_dialog_failed": "Delik işaretleme penceresi başarısız oldu:\n",
+  "mark_holes_read_selection_failed": "mark_holes: seçim okunamadı:\n",
+  "mark_holes_button": "Seçili parçanın deliklerini işaretle"
 }

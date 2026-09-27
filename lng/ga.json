@@ -527,5 +527,16 @@
   "gpu_device": "Gléas GPU:",
   "gpu_device_tooltip": "Roghnaigh an gléas OpenCL le húsáid, nó Auto chun ligean do Nesting CLI an ceann is fearr a roghnú.",
   "gpu_batch_size": "Méid baisc:",
-  "gpu_batch_size_tooltip": "Uasmhéid iarrthóirí in aghaidh baisc GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Uasmhéid iarrthóirí in aghaidh baisc GPU (256..262144).",
+  "mark_holes": "Marcáil poill",
+  "mark_holes_tooltip": "Marcáil imlíne inmheánacha na coda roghnaithe mar phoill a fhanann oscailte le linn neadaithe",
+  "mark_holes_dialog_title": "Marcáil poill",
+  "mark_holes_dialog_hint": "Cliceáil ar imlíne inmheánach chun í a mharcáil mar pholl. Coinnítear poill mharcáilte oscailte le linn neadaithe.",
+  "mark_holes_select_part_first": "Roghnaigh cuid sa tábla ar dtús.",
+  "mark_holes_no_contours": "Níorbh fhéidir imlínte a bhaint as an gcuid roghnaithe.",
+  "mark_holes_no_inner_contours": "Níl aon imlíne inmheánach (poill) sa chuid roghnaithe.",
+  "mark_holes_applied_s": "Marcáladh %d pholl don chuid roghnaithe.",
+  "mark_holes_dialog_failed": "Theip ar an dialóg chun poill a mharcáil:\n",
+  "mark_holes_read_selection_failed": "mark_holes: theip ar léamh an roghnúcháin:\n",
+  "mark_holes_button": "Marcáil poill na coda roghnaithe"
 }

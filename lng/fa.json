@@ -527,5 +527,16 @@
   "gpu_device": "دستگاه GPU:",
   "gpu_device_tooltip": "دستگاه OpenCL مورد استفاده را انتخاب کنید یا Auto را انتخاب کنید تا Nesting CLI بهترین را برگزیند.",
   "gpu_batch_size": "اندازه دسته:",
-  "gpu_batch_size_tooltip": "حداکثر نامزدها در هر دسته GPU (256..262144)."
+  "gpu_batch_size_tooltip": "حداکثر نامزدها در هر دسته GPU (256..262144).",
+  "mark_holes": "علامت‌گذاری سوراخ‌ها",
+  "mark_holes_tooltip": "علامت‌گذاری خطوط داخلی قطعه انتخاب‌شده به‌عنوان سوراخ‌هایی که هنگام چیدمان باز می‌مانند",
+  "mark_holes_dialog_title": "علامت‌گذاری سوراخ‌ها",
+  "mark_holes_dialog_hint": "برای علامت‌گذاری یک خط داخلی به‌عنوان سوراخ روی آن کلیک کنید. سوراخ‌های علامت‌گذاری‌شده هنگام چیدمان باز می‌مانند.",
+  "mark_holes_select_part_first": "ابتدا یک قطعه در جدول انتخاب کنید.",
+  "mark_holes_no_contours": "هیچ خطی از قطعه انتخاب‌شده قابل استخراج نبود.",
+  "mark_holes_no_inner_contours": "قطعه انتخاب‌شده هیچ خط داخلی (سوراخی) ندارد.",
+  "mark_holes_applied_s": "برای قطعه انتخاب‌شده %d سوراخ علامت‌گذاری شد.",
+  "mark_holes_dialog_failed": "پنجره علامت‌گذاری سوراخ‌ها ناموفق بود:\n",
+  "mark_holes_read_selection_failed": "mark_holes: خواندن انتخاب ناموفق بود:\n",
+  "mark_holes_button": "علامت‌گذاری سوراخ‌های قطعه انتخابی"
 }
