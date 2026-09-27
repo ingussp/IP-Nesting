@@ -2858,7 +2858,10 @@ class NestingTaskPanel:
                     qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 1, qty_item)
                     # Column 2: Rotation degree defaults (centered)
-                    rot_item = ui_widget(QtGui.QTableWidgetItem, "1")
+                    rot_item = ui_widget(
+                        QtGui.QTableWidgetItem,
+                        str(self.get_default_rotations()),
+                    )
                     rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     self.table.setItem(insert_pos, 2, rot_item)
                     # Column 3: Select for rotation (checkbox) -- center the checkbox
@@ -4427,11 +4430,53 @@ class NestingTaskPanel:
                 + traceback.format_exc()
             )
 
-    # Return the fixed boundary resolution in millimetres. The value is no
-    # longer user-configurable: it is pinned to 0.01 so that rounded geometry
-    # is exported as a fine polygon that closely matches the original part.
+    # Return the configured boundary resolution in millimetres.
     def get_boundary_resolution_mm(self):
-        return 0.01
+        """
+        Return the configured boundary resolution in millimetres.
+
+        The value is user-configurable in the workbench Settings menu and
+        defaults to 0.01 mm. Smaller values produce a finer polygon for
+        rounded geometry, at the cost of heavier exported geometry.
+        """
+        value = 0.01
+        try:
+            p = self._prefs()
+            if p is not None:
+                value = float(
+                    str(
+                        p.GetString(
+                            "BoundaryResolution",
+                            "0.01"
+                        )
+                    ).replace(",", ".")
+                )
+        except Exception:
+            value = 0.01
+
+        if value <= 0.0:
+            return 0.01
+
+        return value
+
+    # Return the default rotation count applied to newly added parts.
+    def get_default_rotations(self):
+        """
+        Return the default rotation count applied to newly added parts.
+
+        The value is configurable in the workbench Settings menu and defaults
+        to 4. It is stored in the part table's Rotations column as a plain
+        count string, so existing rotation-spec handling is unchanged.
+        """
+        value = 4
+        try:
+            p = self._prefs()
+            if p is not None:
+                value = int(p.GetInt("DefaultRotations", 4))
+        except Exception:
+            value = 4
+
+        return max(1, min(value, 3600))
 
     # Normalize one field and update its canonical mm value.
     def _normalize_decimal_field(self, line_edit):
@@ -4596,7 +4641,10 @@ class NestingTaskPanel:
             qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 1, qty_item)
 
-            rot_item = ui_widget(QtGui.QTableWidgetItem, "1")
+            rot_item = ui_widget(
+                QtGui.QTableWidgetItem,
+                str(self.get_default_rotations()),
+            )
             rot_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.table.setItem(insert_pos, 2, rot_item)
 

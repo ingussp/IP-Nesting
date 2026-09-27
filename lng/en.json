@@ -110,6 +110,8 @@
   "general_parameters": "General Parameters",
   "boundary_resolution_mm": "Boundary Resolution (mm):",
   "maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c": "Maximum deviation used when curved geometry is converted to line segments. Smaller values create more accurate but heavier geometry.",
+  "default_rotations": "Default rotations:",
+  "default_rotations_tooltip": "Number of rotation attempts generated for each newly added part. Higher values may improve the fit but increase calculation time.",
   "units": "Units",
   "display_and_input_units_for_dimensions_internal_geometry_remains_in_millimetres": "Display and input units for dimensions. Internal geometry remains in millimetres.",
   "nesting_cli_settings": "Nesting CLI settings",
