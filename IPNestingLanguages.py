@@ -462,7 +462,6 @@ def show_settings():
     # Keep Python references as well as Qt parents for FreeCAD's PySide compatibility layer.
     languages = QtGui.QMenu(tr("settings.language"), _menu)
     _menu._language_menu = languages
-    _menu.addMenu(languages)
 
     # Default rotation count applied to each newly added part.
     rotations_spin = QtGui.QSpinBox()
@@ -491,6 +490,9 @@ def show_settings():
     )
     resolution_spin.valueChanged.connect(_set_boundary_resolution_mm)
     _menu._resolution_spin = resolution_spin
+
+    # Language selection submenu is shown last in the settings list.
+    _menu.addMenu(languages)
     container = QtGui.QWidget(languages)
     container.setLayoutDirection(QtCore.Qt.LeftToRight)
     layout = QtGui.QVBoxLayout(container)
