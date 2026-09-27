@@ -382,6 +382,70 @@ def _filter_languages(grid, buttons, query, columns):
         grid.addWidget(button, index % rows, index // rows)
 
 
+# Read the configured default rotation count from preferences.
+def _get_default_rotations():
+    try:
+        value = int(App.ParamGet(PREFERENCES).GetInt("DefaultRotations", 4))
+    except Exception:
+        value = 4
+    return max(1, min(value, 3600))
+
+
+# Persist the configured default rotation count.
+def _set_default_rotations(value):
+    try:
+        App.ParamGet(PREFERENCES).SetInt("DefaultRotations", int(value))
+    except Exception:
+        pass
+
+
+# Read the configured boundary resolution in millimetres from preferences.
+def _get_boundary_resolution_mm():
+    value = 0.01
+    try:
+        value = float(
+            str(
+                App.ParamGet(PREFERENCES).GetString(
+                    "BoundaryResolution", "0.01"
+                )
+            ).replace(",", ".")
+        )
+    except Exception:
+        value = 0.01
+    if value <= 0.0:
+        return 0.01
+    return value
+
+
+# Persist the configured boundary resolution in millimetres.
+def _set_boundary_resolution_mm(value):
+    try:
+        App.ParamGet(PREFERENCES).SetString(
+            "BoundaryResolution", "%.6f" % float(value)
+        )
+    except Exception:
+        pass
+
+
+# Build a menu row that shows a translated label next to an editable control.
+def _menu_control_action(menu, label_text, control):
+    from PySide import QtGui
+    container = QtGui.QWidget(menu)
+    row = QtGui.QHBoxLayout(container)
+    row.setContentsMargins(14, 6, 14, 6)
+    label = QtGui.QLabel(str(label_text), container)
+    label.setMinimumWidth(170)
+    row.addWidget(label)
+    row.addStretch(1)
+    row.addWidget(control)
+    action = QtGui.QWidgetAction(menu)
+    action.setDefaultWidget(container)
+    # Keep references so FreeCAD's PySide compatibility layer does not drop them.
+    action._container = container
+    action._label = label
+    return action
+
+
 # Show a large, searchable language submenu with six or seven alphabetical columns.
 def show_settings():
     global _menu
@@ -399,6 +463,34 @@ def show_settings():
     languages = QtGui.QMenu(tr("settings.language"), _menu)
     _menu._language_menu = languages
     _menu.addMenu(languages)
+
+    # Default rotation count applied to each newly added part.
+    rotations_spin = QtGui.QSpinBox()
+    rotations_spin.setRange(1, 3600)
+    rotations_spin.setValue(_get_default_rotations())
+    rotations_spin.setToolTip(tr("default_rotations_tooltip"))
+    _menu.addAction(
+        _menu_control_action(_menu, tr("default_rotations"), rotations_spin)
+    )
+    rotations_spin.valueChanged.connect(_set_default_rotations)
+    _menu._rotations_spin = rotations_spin
+
+    # Boundary resolution for curved geometry, in millimetres.
+    resolution_spin = QtGui.QDoubleSpinBox()
+    resolution_spin.setRange(0.0001, 1000.0)
+    resolution_spin.setDecimals(4)
+    resolution_spin.setSingleStep(0.01)
+    resolution_spin.setValue(_get_boundary_resolution_mm())
+    resolution_spin.setToolTip(
+        tr('maximum_deviation_used_when_curved_geometry_is_converted_to_line_segments_smaller_values_c')
+    )
+    _menu.addAction(
+        _menu_control_action(
+            _menu, tr("boundary_resolution_mm"), resolution_spin
+        )
+    )
+    resolution_spin.valueChanged.connect(_set_boundary_resolution_mm)
+    _menu._resolution_spin = resolution_spin
     container = QtGui.QWidget(languages)
     container.setLayoutDirection(QtCore.Qt.LeftToRight)
     layout = QtGui.QVBoxLayout(container)
