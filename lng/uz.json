@@ -527,5 +527,16 @@
   "gpu_device": "GPU qurilmasi:",
   "gpu_device_tooltip": "Foydalaniladigan OpenCL qurilmasini tanlang yoki eng yaxshisini Nesting CLI tanlashi uchun Auto ni tanlang.",
   "gpu_batch_size": "Partiya hajmi:",
-  "gpu_batch_size_tooltip": "GPU partiyasiga maksimal nomzodlar (256..262144)."
+  "gpu_batch_size_tooltip": "GPU partiyasiga maksimal nomzodlar (256..262144).",
+  "mark_holes": "Teshiklarni belgilash",
+  "mark_holes_tooltip": "Tanlangan qismning ichki konturlarini joylashtirish vaqtida ochiq qoladigan teshiklar sifatida belgilash",
+  "mark_holes_dialog_title": "Teshiklarni belgilash",
+  "mark_holes_dialog_hint": "Teshik sifatida belgilash uchun ichki konturga bosing. Belgilangan teshiklar joylashtirish vaqtida ochiq qoladi.",
+  "mark_holes_select_part_first": "Avval jadvalda qismni tanlang.",
+  "mark_holes_no_contours": "Tanlangan qismdan konturlar olishning imkoni bo'lmadi.",
+  "mark_holes_no_inner_contours": "Tanlangan qismda ichki konturlar (teshiklar) yo'q.",
+  "mark_holes_applied_s": "Tanlangan qism uchun %d ta teshik belgilandi.",
+  "mark_holes_dialog_failed": "Teshiklarni belgilash oynasi muvaffaqiyatsiz tugadi:\n",
+  "mark_holes_read_selection_failed": "mark_holes: tanlovni o'qish muvaffaqiyatsiz tugadi:\n",
+  "mark_holes_button": "Tanlangan qism teshiklarini belgilash"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "GPU įrenginys:",
   "gpu_device_tooltip": "Pasirinkite naudotiną OpenCL įrenginį arba Auto, kad Nesting CLI parinktų geriausią.",
   "gpu_batch_size": "Paketos dydis:",
-  "gpu_batch_size_tooltip": "Didžiausias kandidatų skaičius GPU paketai (256..262144)."
+  "gpu_batch_size_tooltip": "Didžiausias kandidatų skaičius GPU paketai (256..262144).",
+  "mark_holes": "Pažymėti skyles",
+  "mark_holes_tooltip": "Pažymėti pasirinktos dalies vidinius kontūrus kaip skyles, kurios lieka atviros dėstymo metu",
+  "mark_holes_dialog_title": "Pažymėti skyles",
+  "mark_holes_dialog_hint": "Spustelėkite vidinį kontūrą, kad pažymėtumėte jį kaip skylę. Pažymėtos skylės lieka atviros dėstymo metu.",
+  "mark_holes_select_part_first": "Pirmiausia lentelėje pasirinkite dalį.",
+  "mark_holes_no_contours": "Nepavyko išgauti kontūrų iš pasirinktos dalies.",
+  "mark_holes_no_inner_contours": "Pasirinkta dalis neturi vidinių kontūrų (skylių).",
+  "mark_holes_applied_s": "Pasirinktai daliai pažymėta %d skylių.",
+  "mark_holes_dialog_failed": "Skylių žymėjimo dialogas nepavyko:\n",
+  "mark_holes_read_selection_failed": "mark_holes: pasirinkimo skaitymas nepavyko:\n",
+  "mark_holes_button": "Pažymėti pasirinktos detalės skyles"
 }

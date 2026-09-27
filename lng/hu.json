@@ -527,5 +527,16 @@
   "gpu_device": "GPU-eszköz:",
   "gpu_device_tooltip": "Válassza ki a használandó OpenCL-eszközt, vagy Auto, hogy a Nesting CLI válassza ki a legjobbat.",
   "gpu_batch_size": "Kötegméret:",
-  "gpu_batch_size_tooltip": "Maximális jelöltek száma GPU-kötegenként (256..262144)."
+  "gpu_batch_size_tooltip": "Maximális jelöltek száma GPU-kötegenként (256..262144).",
+  "mark_holes": "Lyukak jelölése",
+  "mark_holes_tooltip": "A kiválasztott alkatrész belső kontúrjainak megjelölése lyukként, amelyek a fészkelés során nyitva maradnak",
+  "mark_holes_dialog_title": "Lyukak jelölése",
+  "mark_holes_dialog_hint": "Kattintson egy belső kontúrra, hogy lyukként jelölje meg. A megjelölt lyukak a fészkelés során nyitva maradnak.",
+  "mark_holes_select_part_first": "Először válasszon ki egy alkatrészt a táblázatban.",
+  "mark_holes_no_contours": "A kiválasztott alkatrészből nem lehetett kontúrokat kinyerni.",
+  "mark_holes_no_inner_contours": "A kiválasztott alkatrésznek nincsenek belső kontúrjai (lyukai).",
+  "mark_holes_applied_s": "%d lyuk lett megjelölve a kiválasztott alkatrészhez.",
+  "mark_holes_dialog_failed": "A lyukak jelölése párbeszédablak sikertelen volt:\n",
+  "mark_holes_read_selection_failed": "mark_holes: a kijelölés olvasása sikertelen volt:\n",
+  "mark_holes_button": "Kiválasztott alkatrész furatainak jelölése"
 }

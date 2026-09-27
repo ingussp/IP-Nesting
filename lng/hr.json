@@ -527,5 +527,16 @@
   "gpu_device": "GPU uređaj:",
   "gpu_device_tooltip": "Odaberite OpenCL uređaj koji će se koristiti ili Auto kako bi Nesting CLI odabrao najbolji.",
   "gpu_batch_size": "Veličina serije:",
-  "gpu_batch_size_tooltip": "Maksimalan broj kandidata po GPU seriji (256..262144)."
+  "gpu_batch_size_tooltip": "Maksimalan broj kandidata po GPU seriji (256..262144).",
+  "mark_holes": "Označi rupe",
+  "mark_holes_tooltip": "Označi unutarnje konture odabranog dijela kao rupe koje ostaju otvorene tijekom slaganja",
+  "mark_holes_dialog_title": "Označi rupe",
+  "mark_holes_dialog_hint": "Kliknite na unutarnju konturu da biste je označili kao rupu. Označene rupe ostaju otvorene tijekom slaganja.",
+  "mark_holes_select_part_first": "Prvo odaberite dio u tablici.",
+  "mark_holes_no_contours": "Iz odabranog dijela nije bilo moguće izdvojiti konture.",
+  "mark_holes_no_inner_contours": "Odabrani dio nema unutarnjih kontura (rupa).",
+  "mark_holes_applied_s": "Označeno je %d rupa za odabrani dio.",
+  "mark_holes_dialog_failed": "Dijalog za označavanje rupa nije uspio:\n",
+  "mark_holes_read_selection_failed": "mark_holes: čitanje odabira nije uspjelo:\n",
+  "mark_holes_button": "Označi rupe odabranog dijela"
 }

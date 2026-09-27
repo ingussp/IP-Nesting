@@ -242,9 +242,14 @@ class _OffcutPreview(QtGui.QGraphicsView):
         grain="None",
         display_units="mm",
         parent=None,
-        size_px=700
+        size_px=700,
+        show_dimensions=True
     ):
         super(_OffcutPreview, self).__init__(parent)
+
+        # Sheet previews show outer dimensions; part previews are
+        # sheet-oriented and hide them.
+        self._show_dimensions = bool(show_dimensions)
 
         # Keep the unrotated geometry so grain changes can re-orient the
         # preview without mutating the shared offcut records.
@@ -837,9 +842,11 @@ class _OffcutPreview(QtGui.QGraphicsView):
             # Outer contour is always above background
             # but below selectable contours.
             outer_item.setZValue(0)
-            
-            # Add labels for the four longest outer segments.
-            self._add_outer_dimension_labels()
+
+            # Add labels for the four longest outer segments
+            # (skipped for part previews that are sheet-oriented).
+            if self._show_dimensions:
+                self._add_outer_dimension_labels()
 
         for contour in self._contours:
             if contour.get("is_outer"):

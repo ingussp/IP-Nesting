@@ -527,5 +527,16 @@
   "gpu_device": "Dispositivo GPU:",
   "gpu_device_tooltip": "Escolha o dispositivo OpenCL a usar ou Auto para deixar o Nesting CLI escolher o melhor.",
   "gpu_batch_size": "Tamanho do lote:",
-  "gpu_batch_size_tooltip": "Máximo de candidatos por lote de GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Máximo de candidatos por lote de GPU (256..262144).",
+  "mark_holes": "Marcar furos",
+  "mark_holes_tooltip": "Marcar os contornos internos da peça selecionada como furos que permanecem abertos durante o encaixe",
+  "mark_holes_dialog_title": "Marcar furos",
+  "mark_holes_dialog_hint": "Clique em um contorno interno para marcá-lo como furo. Os furos marcados permanecem abertos durante o encaixe.",
+  "mark_holes_select_part_first": "Selecione primeiro uma peça na tabela.",
+  "mark_holes_no_contours": "Não foi possível extrair contornos da peça selecionada.",
+  "mark_holes_no_inner_contours": "A peça selecionada não tem contornos internos (furos).",
+  "mark_holes_applied_s": "Marcados %d furos para a peça selecionada.",
+  "mark_holes_dialog_failed": "A caixa de diálogo de marcação de furos falhou:\n",
+  "mark_holes_read_selection_failed": "mark_holes: falha ao ler a seleção:\n",
+  "mark_holes_button": "Marcar furos da peça selecionada"
 }

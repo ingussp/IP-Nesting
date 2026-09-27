@@ -527,5 +527,16 @@
   "gpu_device": "GPU وسیله:",
   "gpu_device_tooltip": "د کارولو لپاره د OpenCL وسیله وټاکئ، یا Auto وټاکئ ترڅو Nesting CLI غوره یوه وټاکي.",
   "gpu_batch_size": "د بست اندازه:",
-  "gpu_batch_size_tooltip": "په هر GPU بست کې اعظمي نوماندان (256..262144)."
+  "gpu_batch_size_tooltip": "په هر GPU بست کې اعظمي نوماندان (256..262144).",
+  "mark_holes": "سوري په نښه کول",
+  "mark_holes_tooltip": "د ټاکل شوې برخې داخلي کرښې د سوریو په توګه په نښه کړئ چې د ځای پر ځای کولو پرمهال خلاصې پاتې کیږي",
+  "mark_holes_dialog_title": "سوري په نښه کول",
+  "mark_holes_dialog_hint": "د سوري په توګه د نښه کولو لپاره په داخلي کرښه کلیک وکړئ. نښه شوي سوري د ځای پر ځای کولو پرمهال خلاص ساتل کیږي.",
+  "mark_holes_select_part_first": "لومړی په جدول کې یوه برخه وټاکئ.",
+  "mark_holes_no_contours": "له ټاکل شوې برخې څخه هیڅ کرښه نه شي ترلاسه کیدی.",
+  "mark_holes_no_inner_contours": "ټاکل شوې برخه داخلي کرښې (سوري) نه لري.",
+  "mark_holes_applied_s": "د ټاکل شوې برخې لپاره %d سوري په نښه شول.",
+  "mark_holes_dialog_failed": "د سوریو د نښه کولو ډیالوګ ناکام شو:\n",
+  "mark_holes_read_selection_failed": "mark_holes: د ټاکنې لوستل ناکام شو:\n",
+  "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول"
 }

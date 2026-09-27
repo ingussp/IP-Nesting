@@ -527,5 +527,16 @@
   "gpu_device": "GPU デバイス:",
   "gpu_device_tooltip": "使用する OpenCL デバイスを選択するか、Auto を選択して Nesting CLI に最適なものを選ばせます。",
   "gpu_batch_size": "バッチサイズ:",
-  "gpu_batch_size_tooltip": "GPU バッチあたりの最大候補数 (256..262144)。"
+  "gpu_batch_size_tooltip": "GPU バッチあたりの最大候補数 (256..262144)。",
+  "mark_holes": "穴をマーク",
+  "mark_holes_tooltip": "選択したパーツの内側輪郭を、ネスティング中も開いたままの穴としてマークします",
+  "mark_holes_dialog_title": "穴をマーク",
+  "mark_holes_dialog_hint": "内側輪郭をクリックして穴としてマークします。マークした穴はネスティング中も開いたままになります。",
+  "mark_holes_select_part_first": "先にテーブルでパーツを選択してください。",
+  "mark_holes_no_contours": "選択したパーツから輪郭を抽出できませんでした。",
+  "mark_holes_no_inner_contours": "選択したパーツには内側輪郭（穴）がありません。",
+  "mark_holes_applied_s": "選択したパーツに %d 個の穴をマークしました。",
+  "mark_holes_dialog_failed": "穴のマークダイアログが失敗しました:\n",
+  "mark_holes_read_selection_failed": "mark_holes: 選択の読み取りに失敗しました:\n",
+  "mark_holes_button": "選択した部品の穴をマーク"
 }

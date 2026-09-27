@@ -527,5 +527,16 @@
   "gpu_device": "GPU zařízení:",
   "gpu_device_tooltip": "Vyberte zařízení OpenCL, které se má použít, nebo Auto, aby Nesting CLI vybral nejlepší.",
   "gpu_batch_size": "Velikost dávky:",
-  "gpu_batch_size_tooltip": "Maximální počet kandidátů na dávku GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Maximální počet kandidátů na dávku GPU (256..262144).",
+  "mark_holes": "Označit otvory",
+  "mark_holes_tooltip": "Označit vnitřní obrysy vybraného dílu jako otvory, které zůstanou při skládání otevřené",
+  "mark_holes_dialog_title": "Označit otvory",
+  "mark_holes_dialog_hint": "Klikněte na vnitřní obrys, abyste jej označili jako otvor. Označené otvory zůstanou při skládání otevřené.",
+  "mark_holes_select_part_first": "Nejprve vyberte díl v tabulce.",
+  "mark_holes_no_contours": "Z vybraného dílu se nepodařilo získat obrysy.",
+  "mark_holes_no_inner_contours": "Vybraný díl nemá žádné vnitřní obrysy (otvory).",
+  "mark_holes_applied_s": "Pro vybraný díl bylo označeno %d otvorů.",
+  "mark_holes_dialog_failed": "Dialog pro označení otvorů selhal:\n",
+  "mark_holes_read_selection_failed": "mark_holes: čtení výběru selhalo:\n",
+  "mark_holes_button": "Označit otvory vybraného dílu"
 }

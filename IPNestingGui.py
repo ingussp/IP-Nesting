@@ -17,12 +17,13 @@ import subprocess
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
-from IPNestingExport import execute_nesting as execute_nesting_impl, normalize_rotation_text
+from IPNestingExport import execute_nesting as execute_nesting_impl, normalize_rotation_text, _extract_part_contours, _read_boundary_deflection
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
 from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 from IPNestingOffcutShowDialog import OffcutMaterialsController
+from IPNestingPartHoles import PartHoleDialog
 from IPNestingResult import NestingProcessManager
 
 MM_PER_INCH = 25.4
@@ -254,11 +255,16 @@ class NestingTaskPanel:
         self.grid_cols = 4
         self.grid_spacing = 250 
 
-        # Number of control rows at bottom of table (now two separate rows)
-        self.control_rows = 2
+        # Number of control rows at bottom of table (rotate, grain, mark holes)
+        self.control_rows = 3
 
         self._suppress_selection_update = False
         self._suppress_qty_update = False
+
+        # Marked holes per preview object name -> list of normalized hole
+        # polygons. Kept on the panel so re-opening the dialog preserves the
+        # previous selection and the exporter can read it.
+        self._part_holes = {}
         
         # Display units. Geometry and nesting calculations remain in mm.
         self.display_units = "mm"
@@ -1986,19 +1992,21 @@ class NestingTaskPanel:
         """Wire per-row grain widgets - delegates to grain controller."""
         self._grain._connect_grain_widgets(grain_cb, grain_combo, preview_obj_name)
 
-    # Create two control rows at the bottom: - row (table.rowCount()-2): Rotate controls - row
-    # (table.rowCount()-1): Change grain direction controls
+    # Create three control rows at the bottom: - row (table.rowCount()-3): Rotate controls - row
+    # (table.rowCount()-2): Change grain direction controls - row (table.rowCount()-1): Mark holes
     def _create_control_rows(self):
-        """Create two control rows at the bottom:
-           - row (table.rowCount()-2): Rotate controls
-           - row (table.rowCount()-1): Change grain direction controls
+        """Create three control rows at the bottom:
+           - row (table.rowCount()-3): Rotate controls
+           - row (table.rowCount()-2): Change grain direction controls
+           - row (table.rowCount()-1): Mark selected part holes
         """
         try:
             total_rows = self.table.rowCount()
             # ensure we have exactly control_rows rows reserved at bottom; they are already created at init
             # Top control row index:
             top_idx = total_rows - self.control_rows
-            bottom_idx = total_rows - 1
+            bottom_idx = total_rows - 2
+            mark_idx = total_rows - 1
 
             # --- Top control row: Rotate controls ---
             # Clean existing cell widgets/items in that row
@@ -2085,7 +2093,7 @@ class NestingTaskPanel:
             ui_call(self.set_angle_btn, 'setToolTip', tr('set_grain_angle_for_selected_grainarrow_objects'))
             hbot.addWidget(self.bulk_grain_apply_btn)
             hbot.addWidget(self.set_angle_btn)
-            
+
             try:
                 self.set_angle_btn.clicked.connect(self._on_set_angle_clicked)
             except Exception:
@@ -2099,9 +2107,43 @@ class NestingTaskPanel:
             control_item2.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(bottom_idx, 0, control_item2)
 
-            # Hide the row-number labels for the two control rows so the
+            # --- Mark holes row: Mark selected part holes ---
+            for c in range(self.table.columnCount()):
+                itm = self.table.item(mark_idx, c)
+                if itm:
+                    self.table.setItem(mark_idx, c, None)
+                w = self.table.cellWidget(mark_idx, c)
+                if w is not None:
+                    w.setParent(None)
+
+            container_mark = QtGui.QWidget()
+            hmark = QtGui.QHBoxLayout(container_mark)
+            hmark.setContentsMargins(5, 2, 5, 2)
+            hmark.setSpacing(6)
+
+            hmark.addStretch()
+
+            self.mark_holes_btn = ui_widget(QtGui.QPushButton, tr('mark_holes_button'))
+            self.mark_holes_btn.setMinimumWidth(130)
+            ui_call(self.mark_holes_btn, 'setToolTip', tr('mark_holes_tooltip'))
+            hmark.addWidget(self.mark_holes_btn)
+
+            try:
+                self.mark_holes_btn.clicked.connect(self._on_mark_holes_clicked)
+            except Exception:
+                pass
+
+            hmark.addStretch()
+
+            self.table.setCellWidget(mark_idx, 0, container_mark)
+            self.table.setSpan(mark_idx, 0, 1, self.table.columnCount())
+            control_item3 = ui_widget(QtGui.QTableWidgetItem, "")
+            control_item3.setFlags(QtCore.Qt.NoItemFlags)
+            self.table.setItem(mark_idx, 0, control_item3)
+
+            # Hide the row-number labels for the three control rows so the
             # button rows show no index in the leftmost header.
-            for row in (top_idx, bottom_idx):
+            for row in (top_idx, bottom_idx, mark_idx):
                 vitem = ui_widget(QtGui.QTableWidgetItem, "")
                 vitem.setFlags(QtCore.Qt.NoItemFlags)
                 self.table.setVerticalHeaderItem(row, vitem)
@@ -2303,6 +2345,191 @@ class NestingTaskPanel:
                 tr('on_set_angle_clicked_failed')
                 + traceback.format_exc()
             )
+
+    # Return the primary preview object name associated with a table row.
+    def _primary_name_for_row(self, row):
+        """
+        Return the primary preview object name associated with a table row.
+        """
+        try:
+            name_item = self.table.item(row, 0)
+
+            if name_item is None:
+                return None
+
+            names = []
+
+            try:
+                list_data = name_item.data(
+                    QtCore.Qt.UserRole + 1
+                )
+
+                if list_data:
+                    if isinstance(list_data, list):
+                        names = list(list_data)
+                    else:
+                        names = json.loads(list_data)
+            except Exception:
+                names = []
+
+            if names and names[0]:
+                return str(names[0])
+
+            primary = name_item.data(QtCore.Qt.UserRole)
+
+            if primary:
+                return str(primary)
+
+            return None
+
+        except Exception:
+            return None
+
+    # Open the "Mark holes" dialog for the currently selected part row and
+    # remember which holes stay open so the exporter can apply them.
+    def _on_mark_holes_clicked(self):
+        try:
+            data_rows = self.table.rowCount() - self.control_rows
+
+            if data_rows <= 0:
+                return
+
+            # Resolve the currently selected row; warn if no part is selected
+            # instead of silently acting on the first row.
+            selected_row = None
+
+            try:
+                current = self.table.currentRow()
+
+                if (
+                    current is not None
+                    and 0 <= current < data_rows
+                ):
+                    selected_row = current
+            except Exception:
+                selected_row = None
+
+            # Fall back to the first explicitly selected data row when the
+            # table has no current row (for example after a 3D-view click).
+            if selected_row is None:
+                try:
+                    for index in self.table.selectionModel().selectedRows():
+                        row = index.row()
+
+                        if 0 <= row < data_rows:
+                            selected_row = row
+                            break
+                except Exception:
+                    selected_row = None
+
+            if selected_row is None:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_select_part_first')
+                )
+                return
+
+            primary_name = self._primary_name_for_row(
+                selected_row
+            )
+
+            if not primary_name:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_select_part_first')
+                )
+                return
+
+            if self.preview_doc_name not in App.listDocuments():
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_select_part_first')
+                )
+                return
+
+            p_doc = App.getDocument(self.preview_doc_name)
+
+            if not p_doc:
+                return
+
+            obj = p_doc.getObject(primary_name)
+
+            if not obj:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_select_part_first')
+                )
+                return
+
+            deflection = _read_boundary_deflection(
+                self,
+                default=0.01
+            )
+
+            outer, holes, contour_info = _extract_part_contours(
+                obj,
+                deflection
+            )
+
+            if not outer or not contour_info:
+                QtGui.QMessageBox.warning(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_no_contours')
+                )
+                return
+
+            has_inner = any(
+                not contour.get("is_outer")
+                for contour in contour_info
+            )
+
+            if not has_inner:
+                QtGui.QMessageBox.information(
+                    self.form,
+                    tr('mark_holes'),
+                    tr('mark_holes_no_inner_contours')
+                )
+
+                # No holes remain, so clear any previous selection.
+                self._part_holes[primary_name] = []
+                return
+
+            preselected = self._part_holes.get(
+                primary_name,
+                []
+            )
+
+            dialog = PartHoleDialog(
+                primary_name,
+                outer,
+                contour_info,
+                preselected=preselected,
+                parent=self.form
+            )
+
+            if dialog.exec_() != QtGui.QDialog.Accepted:
+                return
+
+            self._part_holes[primary_name] = (
+                dialog.selected_holes()
+            )
+
+            App.Console.PrintMessage(
+                tr('mark_holes_applied_s')
+                % len(self._part_holes[primary_name])
+            )
+
+        except Exception:
+            App.Console.PrintError(
+                tr('mark_holes_dialog_failed')
+                + traceback.format_exc()
+            )
+
     
     # Return list of GrainArrow_<previewObjName> for ALL rows where Grain Direction checkbox is
     # checked.

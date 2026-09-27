@@ -527,5 +527,16 @@
   "gpu_device": "Périphérique GPU :",
   "gpu_device_tooltip": "Choisissez le périphérique OpenCL à utiliser, ou Auto pour laisser Nesting CLI choisir le meilleur.",
   "gpu_batch_size": "Taille de lot :",
-  "gpu_batch_size_tooltip": "Maximum de candidats par lot GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Maximum de candidats par lot GPU (256..262144).",
+  "mark_holes": "Marquer les trous",
+  "mark_holes_tooltip": "Marquer les contours intérieurs de la pièce sélectionnée comme des trous qui restent ouverts pendant l'imbrication",
+  "mark_holes_dialog_title": "Marquer les trous",
+  "mark_holes_dialog_hint": "Cliquez sur un contour intérieur pour le marquer comme trou. Les trous marqués restent ouverts pendant l'imbrication.",
+  "mark_holes_select_part_first": "Sélectionnez d'abord une pièce dans le tableau.",
+  "mark_holes_no_contours": "Aucun contour n'a pu être extrait de la pièce sélectionnée.",
+  "mark_holes_no_inner_contours": "La pièce sélectionnée n'a pas de contours intérieurs (trous).",
+  "mark_holes_applied_s": "%d trous marqués pour la pièce sélectionnée.",
+  "mark_holes_dialog_failed": "La boîte de dialogue de marquage des trous a échoué :\n",
+  "mark_holes_read_selection_failed": "mark_holes : échec de lecture de la sélection :\n",
+  "mark_holes_button": "Marquer les trous de la pièce sélectionnée"
 }

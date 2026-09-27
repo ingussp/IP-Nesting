@@ -527,5 +527,16 @@
   "gpu_device": "GPU-laite:",
   "gpu_device_tooltip": "Valitse käytettävä OpenCL-laite tai Auto, jolloin Nesting CLI valitsee parhaan.",
   "gpu_batch_size": "Erän koko:",
-  "gpu_batch_size_tooltip": "Enimmäismäärä ehdokkaita GPU-erää kohti (256..262144)."
+  "gpu_batch_size_tooltip": "Enimmäismäärä ehdokkaita GPU-erää kohti (256..262144).",
+  "mark_holes": "Merkitse reiät",
+  "mark_holes_tooltip": "Merkitse valitun kappaleen sisäreunat rei'iksi, jotka pysyvät auki asettelun aikana",
+  "mark_holes_dialog_title": "Merkitse reiät",
+  "mark_holes_dialog_hint": "Napsauta sisäreunaa merkitäksesi sen reiäksi. Merkityt reiät pidetään auki asettelun aikana.",
+  "mark_holes_select_part_first": "Valitse ensin kappale taulukosta.",
+  "mark_holes_no_contours": "Valitusta kappaleesta ei voitu poimia reunoja.",
+  "mark_holes_no_inner_contours": "Valitulla kappaleella ei ole sisäreunoja (reikiä).",
+  "mark_holes_applied_s": "Valitulle kappaleelle merkittiin %d reikää.",
+  "mark_holes_dialog_failed": "Reikien merkitsemisikkuna epäonnistui:\n",
+  "mark_holes_read_selection_failed": "mark_holes: valinnan lukeminen epäonnistui:\n",
+  "mark_holes_button": "Merkitse valitun osan reiät"
 }

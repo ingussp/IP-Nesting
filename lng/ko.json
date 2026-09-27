@@ -527,5 +527,16 @@
   "gpu_device": "GPU 장치:",
   "gpu_device_tooltip": "사용할 OpenCL 장치를 선택하거나 Auto를 선택하여 Nesting CLI가 가장 좋은 장치를 선택하도록 합니다.",
   "gpu_batch_size": "배치 크기:",
-  "gpu_batch_size_tooltip": "GPU 배치당 최대 후보 수 (256..262144)."
+  "gpu_batch_size_tooltip": "GPU 배치당 최대 후보 수 (256..262144).",
+  "mark_holes": "구멍 표시",
+  "mark_holes_tooltip": "선택한 부품의 내부 윤곽을 네스팅 중 열려 있는 구멍으로 표시합니다",
+  "mark_holes_dialog_title": "구멍 표시",
+  "mark_holes_dialog_hint": "내부 윤곽을 클릭하여 구멍으로 표시합니다. 표시된 구멍은 네스팅 중 열려 있게 됩니다.",
+  "mark_holes_select_part_first": "먼저 표에서 부품을 선택하세요.",
+  "mark_holes_no_contours": "선택한 부품에서 윤곽을 추출할 수 없습니다.",
+  "mark_holes_no_inner_contours": "선택한 부품에 내부 윤곽(구멍)이 없습니다.",
+  "mark_holes_applied_s": "선택한 부품에 구멍 %d개를 표시했습니다.",
+  "mark_holes_dialog_failed": "구멍 표시 대화상자가 실패했습니다:\n",
+  "mark_holes_read_selection_failed": "mark_holes: 선택 읽기에 실패했습니다:\n",
+  "mark_holes_button": "선택한 부품의 구멍 표시"
 }

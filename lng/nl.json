@@ -527,5 +527,16 @@
   "gpu_device": "GPU-apparaat:",
   "gpu_device_tooltip": "Kies het te gebruiken OpenCL-apparaat, of Auto om nesting-CLI de beste te laten kiezen.",
   "gpu_batch_size": "Batchgrootte:",
-  "gpu_batch_size_tooltip": "Maximaal aantal kandidaten per GPU-batch (256..262144)."
+  "gpu_batch_size_tooltip": "Maximaal aantal kandidaten per GPU-batch (256..262144).",
+  "mark_holes": "Gaten markeren",
+  "mark_holes_tooltip": "Markeer de binnencontouren van het geselecteerde onderdeel als gaten die tijdens het nesten open blijven",
+  "mark_holes_dialog_title": "Gaten markeren",
+  "mark_holes_dialog_hint": "Klik op een binnencontour om deze als gat te markeren. Gemarkeerde gaten blijven tijdens het nesten open.",
+  "mark_holes_select_part_first": "Selecteer eerst een onderdeel in de tabel.",
+  "mark_holes_no_contours": "Er konden geen contouren uit het geselecteerde onderdeel worden gehaald.",
+  "mark_holes_no_inner_contours": "Het geselecteerde onderdeel heeft geen binnencontouren (gaten).",
+  "mark_holes_applied_s": "%d gaten gemarkeerd voor het geselecteerde onderdeel.",
+  "mark_holes_dialog_failed": "Het dialoogvenster voor het markeren van gaten is mislukt:\n",
+  "mark_holes_read_selection_failed": "mark_holes: lezen van de selectie mislukt:\n",
+  "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel"
 }

@@ -527,5 +527,16 @@
   "gpu_device": "Dispositivo GPU:",
   "gpu_device_tooltip": "Elija el dispositivo OpenCL que desea usar o Auto para que Nesting CLI elija el mejor.",
   "gpu_batch_size": "Tamaño de lote:",
-  "gpu_batch_size_tooltip": "Máximo de candidatos por lote de GPU (256..262144)."
+  "gpu_batch_size_tooltip": "Máximo de candidatos por lote de GPU (256..262144).",
+  "mark_holes": "Marcar agujeros",
+  "mark_holes_tooltip": "Marcar los contornos interiores de la pieza seleccionada como agujeros que permanecen abiertos durante el anidado",
+  "mark_holes_dialog_title": "Marcar agujeros",
+  "mark_holes_dialog_hint": "Haga clic en un contorno interior para marcarlo como agujero. Los agujeros marcados se mantienen abiertos durante el anidado.",
+  "mark_holes_select_part_first": "Seleccione primero una pieza en la tabla.",
+  "mark_holes_no_contours": "No se pudieron extraer contornos de la pieza seleccionada.",
+  "mark_holes_no_inner_contours": "La pieza seleccionada no tiene contornos interiores (agujeros).",
+  "mark_holes_applied_s": "Se marcaron %d agujeros para la pieza seleccionada.",
+  "mark_holes_dialog_failed": "El diálogo de marcar agujeros falló:\n",
+  "mark_holes_read_selection_failed": "mark_holes: falló la lectura de la selección:\n",
+  "mark_holes_button": "Marcar agujeros de la pieza seleccionada"
 }

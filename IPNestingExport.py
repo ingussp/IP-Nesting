@@ -499,23 +499,96 @@ def _normalize_polygon(points):
         return []
 
 
-# Extract the current visible 2D outer contour from a preview object.
-def _extract_part_points(obj, deflection=0.01):
+# Compute the absolute shoelace area of an XY polygon.
+def _polygon_area(points):
     """
-    Extract the current visible 2D outer contour from a preview object.
+    Absolute shoelace area of an [x, y] polygon.
+    """
+    try:
+        if not points or len(points) < 3:
+            return 0.0
+
+        area = 0.0
+        n = len(points)
+
+        for index in range(n):
+            x1, y1 = points[index]
+            x2, y2 = points[(index + 1) % n]
+            area += (x1 * y2 - x2 * y1)
+
+        return abs(area) * 0.5
+
+    except Exception:
+        return 0.0
+
+
+# Return the axis-aligned bounding box of an XY polygon as a 4-tuple.
+def _polygon_bbox(points):
+    try:
+        xs = [float(point[0]) for point in points or []]
+        ys = [float(point[1]) for point in points or []]
+
+        if not xs:
+            return None
+
+        return (
+            min(xs),
+            min(ys),
+            max(xs),
+            max(ys),
+        )
+
+    except Exception:
+        return None
+
+
+# Compare two XY polygons by area and bounding box (best-effort duplicate check).
+def _polygons_same_2d(poly_a, poly_b, tolerance=1e-6):
+    try:
+        if not poly_a or not poly_b:
+            return False
+
+        area_a = _polygon_area(poly_a)
+        area_b = _polygon_area(poly_b)
+
+        if abs(area_a - area_b) > max(
+            tolerance,
+            max(area_a, area_b) * 1e-6
+        ):
+            return False
+
+        bbox_a = _polygon_bbox(poly_a)
+        bbox_b = _polygon_bbox(poly_b)
+
+        if bbox_a is None or bbox_b is None:
+            return False
+
+        for value_a, value_b in zip(bbox_a, bbox_b):
+            if abs(value_a - value_b) > tolerance:
+                return False
+
+        return True
+
+    except Exception:
+        return False
+
+
+# Extract all candidate closed-wire polygons from a preview object, rotated into
+# on-screen orientation but not yet normalized/translated.
+def _extract_part_candidate_wires(obj, deflection=0.01):
+    """
+    Extract every candidate closed wire from a preview object's Shape.
 
     The part's rotation (grain direction or Custom angle) lives in
-    obj.Placement, so every extracted point is rotated through the
-    object's Placement to match the on-screen orientation.
-
-    The temporary preview-grid translation is removed by
-    _normalize_polygon().
+    obj.Placement, so every extracted point is rotated through the object's
+    Placement to match the on-screen orientation. The temporary preview-grid
+    translation is removed later by _normalize_polygon()/_translate_points().
     """
     candidates = []
 
     try:
         if obj is None:
-            return []
+            return candidates
 
         shape = getattr(
             obj,
@@ -524,12 +597,12 @@ def _extract_part_points(obj, deflection=0.01):
         )
 
         if shape is None:
-            return []
+            return candidates
 
         # Make sure the Shape is valid and current.
         try:
             if shape.isNull():
-                return []
+                return candidates
         except Exception:
             pass
 
@@ -617,46 +690,130 @@ def _extract_part_points(obj, deflection=0.01):
                     transformed
                 )
 
-        if not candidates:
-            return []
-
-        # Calculate the absolute shoelace area used to select the largest projected contour.
-        def polygon_area(points):
-            area = 0.0
-
-            for index in range(len(points)):
-                x1, y1 = points[index]
-                x2, y2 = points[
-                    (index + 1) % len(points)
-                ]
-
-                area += (
-                    x1 * y2
-                    - x2 * y1
-                )
-
-            return abs(area) * 0.5
-
-        # Select the largest contour as the outer contour.
-        outer = max(
-            candidates,
-            key=polygon_area
-        )
-
-        outer = _remove_duplicate_points(
-            outer
-        )
-
-        return _normalize_polygon(
-            outer
-        )
-
     except Exception:
         App.Console.PrintError(
             tr('extract_part_points_failed')
             + traceback.format_exc()
         )
+
+    return candidates
+
+
+# Extract the current visible 2D outer contour from a preview object.
+def _extract_part_points(obj, deflection=0.01):
+    """
+    Extract the current visible 2D outer contour from a preview object.
+
+    The part's rotation (grain direction or Custom angle) lives in
+    obj.Placement, so every extracted point is rotated through the object's
+    Placement to match the on-screen orientation.
+
+    The temporary preview-grid translation is removed by
+    _normalize_polygon().
+    """
+    candidates = _extract_part_candidate_wires(obj, deflection)
+
+    if not candidates:
         return []
+
+    # Select the largest contour as the outer contour.
+    outer = max(
+        candidates,
+        key=_polygon_area
+    )
+
+    outer = _remove_duplicate_points(
+        outer
+    )
+
+    return _normalize_polygon(
+        outer
+    )
+
+
+# Extract the part's outer contour and all candidate inner (hole) contours.
+def _extract_part_contours(obj, deflection=0.01):
+    """
+    Extract the part's outer contour and its candidate hole contours.
+
+    Returns:
+        outer        -- normalized [x, y] outer polygon (lower-left at 0/0).
+        holes        -- list of candidate inner [x, y] polygons, translated by
+                        the same offset as the outer contour so their position
+                        is relative to the part boundary.
+        contour_info -- list of contour records, outer first, each carrying
+                        index/polygon/area/is_outer/selected keys.
+    """
+    candidates = _extract_part_candidate_wires(obj, deflection)
+
+    if not candidates:
+        return [], [], []
+
+    # Remove duplicates produced by opposite faces of a solid sharing the same
+    # projected outline (top/bottom faces and through holes).
+    unique = []
+
+    for polygon in candidates:
+        if not polygon or len(polygon) < 3:
+            continue
+
+        if _polygon_area(polygon) <= 1e-9:
+            continue
+
+        duplicate = any(
+            _polygons_same_2d(existing, polygon)
+            for existing in unique
+        )
+
+        if not duplicate:
+            unique.append(polygon)
+
+    if not unique:
+        return [], [], []
+
+    unique.sort(
+        key=_polygon_area,
+        reverse=True
+    )
+
+    outer_raw = _remove_duplicate_points(
+        unique[0]
+    )
+
+    offset = _points_min_xy(outer_raw)
+    outer = _translate_points(outer_raw, offset)
+
+    holes = []
+    contour_info = []
+
+    contour_info.append({
+        "index": 0,
+        "polygon": outer,
+        "area": float(_polygon_area(outer)),
+        "bbox": _polygon_bbox(outer),
+        "is_outer": True,
+        "selected": False,
+    })
+
+    for index, polygon in enumerate(unique[1:], start=1):
+        hole = _remove_duplicate_points(polygon)
+        hole = _translate_points(hole, offset)
+
+        if len(hole) < 3:
+            continue
+
+        holes.append(hole)
+
+        contour_info.append({
+            "index": int(index),
+            "polygon": hole,
+            "area": float(_polygon_area(hole)),
+            "bbox": _polygon_bbox(hole),
+            "is_outer": False,
+            "selected": False,
+        })
+
+    return outer, holes, contour_info
 
 
 # Read a non-negative floating-point value from a Qt widget.
@@ -1520,6 +1677,20 @@ def execute_nesting(panel):
 
                 part_id = "part_%d" % len(parts)
 
+                # Selected inner contours (holes) marked in the part dialog.
+                selected_holes = [
+                    _points_to_cli_points(hole)
+                    for hole in (
+                        getattr(
+                            panel,
+                            "_part_holes",
+                            {}
+                        ).get(primary_name) or []
+                    )
+                    if isinstance(hole, (list, tuple))
+                    and len(hole) >= 3
+                ]
+
                 # A grain-restricted part may only rotate 0 or 180 degrees so
                 # the texture direction is preserved during nesting.
                 if grain != "None":
@@ -1531,6 +1702,7 @@ def execute_nesting(panel):
                     # Fields consumed by the nesting CLI.
                     "id": part_id,
                     "points": points,
+                    "holes": selected_holes,
                     "quantity": quantity,
                     **rotation_rule,
 
