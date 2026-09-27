@@ -62,21 +62,23 @@ class NestingRelayoutManager:
             pass
         return obj
 
-    # Align a chosen large-face normal to +Z, preferring the second-largest face if it has more
-    # wires.
+    # Align a chosen large-face normal to +Z, choosing the smaller of the two largest faces.
     def align_to_largest_face(self, obj):
+        """
+        Return a rotation aligning a selected large-face normal with +Z.
+
+        Choose the smaller of the two largest faces; its lower area usually
+        means more holes, so the face with holes points upward. Return an
+        identity rotation when no face is available or evaluation fails.
+        """
         try:
             # Rank faces by area before choosing the face whose normal will point upward.
             faces = sorted(obj.Shape.Faces, key=lambda f: f.Area, reverse=True)
             if not faces:
                 return App.Rotation()
             best_face = faces[0]
-            if len(faces) >= 2:
-                try:
-                    if len(faces[1].Wires) > len(faces[0].Wires):
-                        best_face = faces[1]
-                except Exception:
-                    pass
+            if len(faces) >= 2 and faces[1].Area < faces[0].Area:
+                best_face = faces[1]
             u_min, u_max, v_min, v_max = best_face.ParameterRange
             u_mid = u_min + (u_max - u_min) / 2.0
             v_mid = v_min + (v_max - v_min) / 2.0
