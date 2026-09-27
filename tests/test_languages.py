@@ -200,17 +200,17 @@ class LanguageTests(unittest.TestCase):
 
     # Perimeter cleanup recognizes saved labels independently of the current language.
     def test_perimeter_aliases(self):
-        labels = self.module.perimeter_labels('Parts with grain direction')
-        self.assertIn('Parts with grain direction', labels)
+        labels = self.module.perimeter_labels('Parts with texture direction')
+        self.assertIn('Parts with texture direction', labels)
         self.assertIn('Detaļas ar tekstūras virzienu', labels)
-        self.assertIn('木目方向ありの部品', labels)
-        self.assertIn('ชิ้นงานที่มีทิศทางเสี้ยน', labels)
+        self.assertIn('テクスチャ方向ありの部品', labels)
+        self.assertIn('ชิ้นงานที่มีทิศทางพื้นผิว', labels)
         self.assertIn('Тело (Направление волокон)', labels)
-        self.assertIn('Детали с направлением волокон', labels)
+        self.assertIn('Детали с направлением текстуры', labels)
         self.assertNotIn('Detaļas bez tekstūras virziena', labels)
-        borders = self.module.perimeter_object_labels('Parts with grain direction', 'border')
+        borders = self.module.perimeter_object_labels('Parts with texture direction', 'border')
         self.assertIn('Тело (Направление волокон) Направление волокон', borders)
-        self.assertIn('Детали с направлением волокон Контур', borders)
+        self.assertIn('Детали с направлением текстуры Контур', borders)
 
     # PySide may emit triggered() without the optional bool; selecting must still work.
     def test_language_action_without_bool(self):
@@ -232,7 +232,7 @@ class LanguageTests(unittest.TestCase):
             return open_file(name, *args, **kwargs)
         with patch.object(builtins, 'open', observed):
             self.assertIn('lv', m.available_languages())
-            m.perimeter_labels('Parts with grain direction')
+            m.perimeter_labels('Parts with texture direction')
             self.assertEqual(members, ['perimeters.json'])
             members.clear()
             self.assertEqual(members, [])

@@ -260,13 +260,13 @@ def _perimeter_catalogs():
 
 # Recognize saved perimeter captions in any supported language without translating group IDs.
 def perimeter_labels(canonical):
-    key = "perimeter.with_grain" if "with grain" in canonical else "perimeter.without_grain"
+    key = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
     return {canonical} | {catalog.get(key, canonical) for catalog in _perimeter_catalogs()}
 
 
 # Match generated object labels using each catalog's caption and suffix template.
 def perimeter_object_labels(canonical, kind):
-    key = "perimeter.with_grain" if "with grain" in canonical else "perimeter.without_grain"
+    key = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
     legacy = canonical + (" Label" if kind == "label" else " Border")
     result = {legacy}
     for catalog in _perimeter_catalogs():
@@ -282,7 +282,7 @@ def tag_perimeter(obj, canonical, kind):
         if name not in obj.PropertiesList:
             obj.addProperty("App::PropertyString", name, "IPNesting")
         obj.setEditorMode(name, 2)
-    obj.IPNestingCaptionKey = "perimeter.with_grain" if "with grain" in canonical else "perimeter.without_grain"
+    obj.IPNestingCaptionKey = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
     obj.IPNestingCaptionKind = kind
 
 
@@ -296,7 +296,7 @@ def refresh_perimeters():
             key = getattr(obj, "IPNestingCaptionKey", "")
             kind = getattr(obj, "IPNestingCaptionKind", "")
             if not key and document.Name == "Nesting_Preview":
-                for canonical in ("Parts with grain direction", "Parts without grain direction"):
+                for canonical in ("Parts with texture direction", "Parts without texture direction"):
                     if obj.Name.startswith("GrainPerimeter") and obj.Label in perimeter_object_labels(canonical, "border"):
                         tag_perimeter(obj, canonical, "border")
                     elif (obj.Label in perimeter_object_labels(canonical, "label")

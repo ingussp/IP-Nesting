@@ -897,7 +897,7 @@ class GrainUIController:
             GrainPreparer.draw_perimeter_and_label(
                 self.panel.preview_doc_name,
                 subset_names=standard_parts,
-                custom_label="Parts without grain direction"
+                custom_label="Parts without texture direction"
             )
 
             # 6) Draw Grain Perimeter (blue handled in IPNestingGrain.py)
@@ -905,13 +905,13 @@ class GrainUIController:
                 GrainPreparer.draw_perimeter_and_label(
                     self.panel.preview_doc_name,
                     subset_names=grain_parts,
-                    custom_label="Parts with grain direction"
+                    custom_label="Parts with texture direction"
                 )
             else:
                 GrainPreparer.draw_perimeter_and_label(
                     self.panel.preview_doc_name,
                     subset_names=[],
-                    custom_label="Parts with grain direction"
+                    custom_label="Parts with texture direction"
                 )
                 
             # 7) Redraw grain arrows after the parts have been moved.
