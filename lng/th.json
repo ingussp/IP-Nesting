@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "ทำเครื่องหมายรูแล้ว %d รูสำหรับชิ้นส่วนที่เลือก",
   "mark_holes_dialog_failed": "กล่องโต้ตอบทำเครื่องหมายรูล้มเหลว:\n",
   "mark_holes_read_selection_failed": "mark_holes: การอ่านส่วนที่เลือกล้มเหลว:\n",
-  "mark_holes_button": "ทำเครื่องหมายรูของชิ้นส่วนที่เลือก"
+  "mark_holes_button": "ทำเครื่องหมายรูของชิ้นส่วนที่เลือก",
+  "show_gpus": "แสดง GPU",
+  "gpu_no_devices": "ไม่พบการ์ดจอ"
 }

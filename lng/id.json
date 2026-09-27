@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "%d lubang ditandai untuk bagian terpilih.",
   "mark_holes_dialog_failed": "Dialog penandaan lubang gagal:\n",
   "mark_holes_read_selection_failed": "mark_holes: pembacaan pilihan gagal:\n",
-  "mark_holes_button": "Tandai lubang bagian terpilih"
+  "mark_holes_button": "Tandai lubang bagian terpilih",
+  "show_gpus": "Tampilkan GPU",
+  "gpu_no_devices": "Tidak ada kartu video yang terdeteksi"
 }

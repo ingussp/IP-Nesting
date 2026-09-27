@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Для выбранной детали отмечено отверстий: %d.",
   "mark_holes_dialog_failed": "Диалог отметки отверстий завершился ошибкой:\n",
   "mark_holes_read_selection_failed": "mark_holes: не удалось прочитать выбор:\n",
-  "mark_holes_button": "Отметить отверстия выбранной детали"
+  "mark_holes_button": "Отметить отверстия выбранной детали",
+  "show_gpus": "Показать GPU",
+  "gpu_no_devices": "Видеокарты не обнаружены"
 }

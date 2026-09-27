@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Đã đánh dấu %d lỗ cho chi tiết đã chọn.",
   "mark_holes_dialog_failed": "Hộp thoại đánh dấu lỗ không thành công:\n",
   "mark_holes_read_selection_failed": "mark_holes: đọc lựa chọn không thành công:\n",
-  "mark_holes_button": "Đánh dấu lỗ của chi tiết đã chọn"
+  "mark_holes_button": "Đánh dấu lỗ của chi tiết đã chọn",
+  "show_gpus": "Hiển thị GPU",
+  "gpu_no_devices": "Không phát hiện card màn hình"
 }

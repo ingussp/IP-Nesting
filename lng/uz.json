@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Tanlangan qism uchun %d ta teshik belgilandi.",
   "mark_holes_dialog_failed": "Teshiklarni belgilash oynasi muvaffaqiyatsiz tugadi:\n",
   "mark_holes_read_selection_failed": "mark_holes: tanlovni o'qish muvaffaqiyatsiz tugadi:\n",
-  "mark_holes_button": "Tanlangan qism teshiklarini belgilash"
+  "mark_holes_button": "Tanlangan qism teshiklarini belgilash",
+  "show_gpus": "Ko‘rsatish GPU",
+  "gpu_no_devices": "Video karta topilmadi"
 }

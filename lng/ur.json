@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "منتخب حصے کے لیے %d سوراخ نشان زد کیے گئے۔",
   "mark_holes_dialog_failed": "سوراخ نشان زد کرنے کا ڈائیلاگ ناکام رہا:\n",
   "mark_holes_read_selection_failed": "mark_holes: انتخاب پڑھنا ناکام رہا:\n",
-  "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں"
+  "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں",
+  "show_gpus": "دکھائیں GPU",
+  "gpu_no_devices": "کوئی ویڈیو کارڈ نہیں ملا"
 }

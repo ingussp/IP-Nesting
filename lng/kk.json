@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Таңдалған бөлшек үшін %d тесік белгіленді.",
   "mark_holes_dialog_failed": "Тесіктерді белгілеу диалогы сәтсіз аяқталды:\n",
   "mark_holes_read_selection_failed": "mark_holes: таңдауды оқу сәтсіз аяқталды:\n",
-  "mark_holes_button": "Таңдалған бөлшектің тесіктерін белгілеу"
+  "mark_holes_button": "Таңдалған бөлшектің тесіктерін белгілеу",
+  "show_gpus": "Көрсету GPU",
+  "gpu_no_devices": "Бейнекарта табылмады"
 }

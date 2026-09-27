@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "चयन गरिएको भागका लागि %d वटा प्वाल चिन्ह लगाइयो।",
   "mark_holes_dialog_failed": "प्वाल चिन्ह लगाउने संवाद असफल भयो:\n",
   "mark_holes_read_selection_failed": "mark_holes: चयन पढ्न असफल भयो:\n",
-  "mark_holes_button": "चयनित भागका प्वालहरू चिन्ह लगाउनुहोस्"
+  "mark_holes_button": "चयनित भागका प्वालहरू चिन्ह लगाउनुहोस्",
+  "show_gpus": "देखाउनुहोस् GPU",
+  "gpu_no_devices": "कुनै भिडियो कार्ड फेला परेन"
 }

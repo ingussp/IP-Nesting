@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "د ټاکل شوې برخې لپاره %d سوري په نښه شول.",
   "mark_holes_dialog_failed": "د سوریو د نښه کولو ډیالوګ ناکام شو:\n",
   "mark_holes_read_selection_failed": "mark_holes: د ټاکنې لوستل ناکام شو:\n",
-  "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول"
+  "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول",
+  "show_gpus": "ښودل GPU",
+  "gpu_no_devices": "هیڅ ویډیو کارټ ونه موندل شو"
 }

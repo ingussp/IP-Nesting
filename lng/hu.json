@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "%d lyuk lett megjelölve a kiválasztott alkatrészhez.",
   "mark_holes_dialog_failed": "A lyukak jelölése párbeszédablak sikertelen volt:\n",
   "mark_holes_read_selection_failed": "mark_holes: a kijelölés olvasása sikertelen volt:\n",
-  "mark_holes_button": "Kiválasztott alkatrész furatainak jelölése"
+  "mark_holes_button": "Kiválasztott alkatrész furatainak jelölése",
+  "show_gpus": "GPU megjelenítése",
+  "gpu_no_devices": "Nem található videokártya"
 }

@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Markerade %d hål för den valda delen.",
   "mark_holes_dialog_failed": "Dialogrutan för att markera hål misslyckades:\n",
   "mark_holes_read_selection_failed": "mark_holes: läsning av markeringen misslyckades:\n",
-  "mark_holes_button": "Markera hål i vald del"
+  "mark_holes_button": "Markera hål i vald del",
+  "show_gpus": "Visa GPU",
+  "gpu_no_devices": "Inga grafikkort hittades"
 }

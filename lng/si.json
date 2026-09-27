@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "තෝරාගත් කොටස සඳහා සිදුරු %dක් සලකුණු කරන ලදී.",
   "mark_holes_dialog_failed": "සිදුරු සලකුණු කිරීමේ සංවාදය අසාර්ථක විය:\n",
   "mark_holes_read_selection_failed": "mark_holes: තේරීම කියවීම අසාර්ථක විය:\n",
-  "mark_holes_button": "තෝරාගත් කොටසේ සිදුරු සලකුණු කරන්න"
+  "mark_holes_button": "තෝරාගත් කොටසේ සිදුරු සලකුණු කරන්න",
+  "show_gpus": "පෙන්වන්න GPU",
+  "gpu_no_devices": "වීඩියෝ කාඩ්පත් හමු නොවීය"
 }

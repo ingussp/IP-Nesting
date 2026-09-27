@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Ġew immarkati %d toqob għall-biċċa magħżula.",
   "mark_holes_dialog_failed": "Id-djalogu tal-immarkar tat-toqob falla:\n",
   "mark_holes_read_selection_failed": "mark_holes: il-qari tal-għażla falla:\n",
-  "mark_holes_button": "Immarka t-toqob tal-parti magħżula"
+  "mark_holes_button": "Immarka t-toqob tal-parti magħżula",
+  "show_gpus": "Uri GPU",
+  "gpu_no_devices": "Ma nstabet l-ebda video card"
 }

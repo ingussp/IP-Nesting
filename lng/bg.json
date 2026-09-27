@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Маркирани са %d отвора за избрания детайл.",
   "mark_holes_dialog_failed": "Диалогът за маркиране на отвори не успя:\n",
   "mark_holes_read_selection_failed": "mark_holes: четенето на избора не успя:\n",
-  "mark_holes_button": "Маркирай отворите на избраната част"
+  "mark_holes_button": "Маркирай отворите на избраната част",
+  "show_gpus": "Покажи GPU",
+  "gpu_no_devices": "Не са открити видеокарти"
 }

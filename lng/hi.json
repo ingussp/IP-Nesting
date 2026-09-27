@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "चयनित भाग के लिए %d छेद चिह्नित किए गए।",
   "mark_holes_dialog_failed": "छेद चिह्नित करने का संवाद विफल रहा:\n",
   "mark_holes_read_selection_failed": "mark_holes: चयन पढ़ना विफल रहा:\n",
-  "mark_holes_button": "चयनित भाग के छेद चिह्नित करें"
+  "mark_holes_button": "चयनित भाग के छेद चिह्नित करें",
+  "show_gpus": "दिखाएँ GPU",
+  "gpu_no_devices": "कोई वीडियो कार्ड नहीं मिला"
 }

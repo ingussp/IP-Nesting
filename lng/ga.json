@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Marcáladh %d pholl don chuid roghnaithe.",
   "mark_holes_dialog_failed": "Theip ar an dialóg chun poill a mharcáil:\n",
   "mark_holes_read_selection_failed": "mark_holes: theip ar léamh an roghnúcháin:\n",
-  "mark_holes_button": "Marcáil poill na coda roghnaithe"
+  "mark_holes_button": "Marcáil poill na coda roghnaithe",
+  "show_gpus": "Taispeáin GPU",
+  "gpu_no_devices": "Níor aimsíodh cártaí físe"
 }

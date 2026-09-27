@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Marked %d hole(s) for the selected part.",
   "mark_holes_dialog_failed": "Mark holes dialog failed:\n",
   "mark_holes_read_selection_failed": "mark_holes: read selection failed:\n",
-  "mark_holes_button": "Mark selected part holes"
+  "mark_holes_button": "Mark selected part holes",
+  "show_gpus": "Show GPUs",
+  "gpu_no_devices": "No video cards detected"
 }

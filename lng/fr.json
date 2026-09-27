@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "%d trous marqués pour la pièce sélectionnée.",
   "mark_holes_dialog_failed": "La boîte de dialogue de marquage des trous a échoué :\n",
   "mark_holes_read_selection_failed": "mark_holes : échec de lecture de la sélection :\n",
-  "mark_holes_button": "Marquer les trous de la pièce sélectionnée"
+  "mark_holes_button": "Marquer les trous de la pièce sélectionnée",
+  "show_gpus": "Afficher GPU",
+  "gpu_no_devices": "Aucune carte vidéo détectée"
 }

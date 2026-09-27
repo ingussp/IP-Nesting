@@ -25,6 +25,7 @@ from IPNestingImport2D import import_dxf_to_preview, import_svg_to_preview
 from IPNestingOffcutShowDialog import OffcutMaterialsController
 from IPNestingPartHoles import PartHoleDialog
 from IPNestingResult import NestingProcessManager
+from IPNestingGpuDetect import detect_gpu_devices
 
 MM_PER_INCH = 25.4
 
@@ -1766,6 +1767,16 @@ class NestingTaskPanel:
         gpu_device_row.addWidget(self.gpu_device_combo)
         lay.addLayout(gpu_device_row)
 
+        # "Show GPUs" button opens a dropdown listing the video cards detected
+        # on this machine, independent of the nesting CLI executable.
+        self.show_gpus_button = QtGui.QToolButton()
+        ui_call(self.show_gpus_button, 'setText', tr('show_gpus'))
+        self.show_gpus_button.setPopupMode(QtGui.QToolButton.InstantPopup)
+        self._gpu_menu = QtGui.QMenu(self.show_gpus_button)
+        self.show_gpus_button.setMenu(self._gpu_menu)
+        self._gpu_menu.aboutToShow.connect(self._populate_gpu_menu)
+        gpu_device_row.addWidget(self.show_gpus_button)
+
         self.gpu_batch_edit, self.gpu_batch_label = self.create_input_in_layout(
             lay,
             tr('gpu_batch_size'),
@@ -1844,36 +1855,54 @@ class NestingTaskPanel:
         except Exception:
             return None
 
-    # Return locally detected OpenCL GPU devices as (index, label) pairs.
-    # The nesting CLI enumerates devices with `--list-gpus`; an empty list
-    # means no GPU was found, leaving only the automatic "-1" entry.
+    # Return locally detected GPU devices as (index, label) pairs.  The
+    # nesting CLI enumerates OpenCL devices with `--list-gpus` and is
+    # preferred because its indices match the CLI's own device selection.
+    # When the CLI is unavailable, fall back to the Python GPU detection
+    # module so the dropdown still lists the machine's video cards.
     def _detect_gpu_devices(self):
+        devices = []
         try:
             executable = self._nesting_cli_executable()
-            if not executable:
-                return []
-            output = subprocess.check_output(
-                [executable, "--list-gpus"],
-                stderr=subprocess.STDOUT,
-                timeout=15,
-            )
-            if isinstance(output, bytes):
-                output = output.decode("utf-8", errors="replace")
-            devices = []
-            for line in output.splitlines():
-                line = line.strip()
-                if not line or ":" not in line:
-                    continue
-                index_text, _, rest = line.partition(":")
-                try:
-                    index = int(index_text.strip())
-                except ValueError:
-                    continue
-                label = rest.strip() or line
-                devices.append((index, label))
-            return devices
+            if executable:
+                output = subprocess.check_output(
+                    [executable, "--list-gpus"],
+                    stderr=subprocess.STDOUT,
+                    timeout=15,
+                )
+                if isinstance(output, bytes):
+                    output = output.decode("utf-8", errors="replace")
+                for line in output.splitlines():
+                    line = line.strip()
+                    if not line or ":" not in line:
+                        continue
+                    index_text, _, rest = line.partition(":")
+                    try:
+                        index = int(index_text.strip())
+                    except ValueError:
+                        continue
+                    devices.append((index, rest.strip() or line))
         except Exception:
-            return []
+            devices = []
+        if devices:
+            return devices
+        return detect_gpu_devices()
+
+    # Repopulate the "Show GPUs" dropdown with the cards detected by the
+    # Python GPU detection module.  Called each time the menu opens so the
+    # list stays current without any work at workbench load.
+    def _populate_gpu_menu(self):
+        menu = getattr(self, "_gpu_menu", None)
+        if menu is None:
+            return
+        menu.clear()
+        devices = detect_gpu_devices()
+        if not devices:
+            empty = menu.addAction(tr('gpu_no_devices'))
+            empty.setEnabled(False)
+            return
+        for _index, device_label in devices:
+            menu.addAction(device_label)
 
     # Re-enumerate GPU devices and repopulate the device dropdown, keeping the
     # current selection when it is still available.

@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Для вибраної деталі позначено отворів: %d.",
   "mark_holes_dialog_failed": "Діалог позначення отворів завершився помилкою:\n",
   "mark_holes_read_selection_failed": "mark_holes: не вдалося прочитати вибір:\n",
-  "mark_holes_button": "Позначити отвори вибраної деталі"
+  "mark_holes_button": "Позначити отвори вибраної деталі",
+  "show_gpus": "Показати GPU",
+  "gpu_no_devices": "Відеокарти не виявлено"
 }

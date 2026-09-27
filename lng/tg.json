@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Барои қисми интихобшуда %d сӯрох қайд карда шуд.",
   "mark_holes_dialog_failed": "Муколамаи қайд кардани сӯрохиҳо ноком шуд:\n",
   "mark_holes_read_selection_failed": "mark_holes: хондани интихоб ноком шуд:\n",
-  "mark_holes_button": "Ишора кардани сӯрохиҳои қисми интихобшуда"
+  "mark_holes_button": "Ишора кардани сӯрохиҳои қисми интихобшуда",
+  "show_gpus": "Нишон додан GPU",
+  "gpu_no_devices": "Корти видео ёфт нашуд"
 }

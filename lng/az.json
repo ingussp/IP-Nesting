@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Seçilmiş hissə üçün %d dəlik işarələndi.",
   "mark_holes_dialog_failed": "Dəliklərin işarələnməsi dialoqu uğursuz oldu:\n",
   "mark_holes_read_selection_failed": "mark_holes: seçim oxunması uğursuz oldu:\n",
-  "mark_holes_button": "Seçilmiş hissənin deşiklərini işarələ"
+  "mark_holes_button": "Seçilmiş hissənin deşiklərini işarələ",
+  "show_gpus": "Göstər GPU",
+  "gpu_no_devices": "Video kartı aşkar edilmədi"
 }

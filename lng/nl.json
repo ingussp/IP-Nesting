@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "%d gaten gemarkeerd voor het geselecteerde onderdeel.",
   "mark_holes_dialog_failed": "Het dialoogvenster voor het markeren van gaten is mislukt:\n",
   "mark_holes_read_selection_failed": "mark_holes: lezen van de selectie mislukt:\n",
-  "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel"
+  "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel",
+  "show_gpus": "GPU's tonen",
+  "gpu_no_devices": "Geen videokaarten gedetecteerd"
 }

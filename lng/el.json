@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Σημειώθηκαν %d οπές για το επιλεγμένο τεμάχιο.",
   "mark_holes_dialog_failed": "Το παράθυρο σήμανσης οπών απέτυχε:\n",
   "mark_holes_read_selection_failed": "mark_holes: η ανάγνωση της επιλογής απέτυχε:\n",
-  "mark_holes_button": "Σημείωση οπών επιλεγμένου τεμαχίου"
+  "mark_holes_button": "Σημείωση οπών επιλεγμένου τεμαχίου",
+  "show_gpus": "Εμφάνιση GPU",
+  "gpu_no_devices": "Δεν εντοπίστηκαν κάρτες γραφικών"
 }

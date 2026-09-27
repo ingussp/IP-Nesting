@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "Marcados %d furos para a peça selecionada.",
   "mark_holes_dialog_failed": "A caixa de diálogo de marcação de furos falhou:\n",
   "mark_holes_read_selection_failed": "mark_holes: falha ao ler a seleção:\n",
-  "mark_holes_button": "Marcar furos da peça selecionada"
+  "mark_holes_button": "Marcar furos da peça selecionada",
+  "show_gpus": "Mostrar GPU",
+  "gpu_no_devices": "Nenhuma placa de vídeo detectada"
 }

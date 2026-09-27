@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "選択したパーツに %d 個の穴をマークしました。",
   "mark_holes_dialog_failed": "穴のマークダイアログが失敗しました:\n",
   "mark_holes_read_selection_failed": "mark_holes: 選択の読み取りに失敗しました:\n",
-  "mark_holes_button": "選択した部品の穴をマーク"
+  "mark_holes_button": "選択した部品の穴をマーク",
+  "show_gpus": "GPU を表示",
+  "gpu_no_devices": "ビデオカードが検出されませんでした"
 }

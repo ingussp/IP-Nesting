@@ -538,5 +538,7 @@
   "mark_holes_applied_s": "已为选定零件标记 %d 个孔。",
   "mark_holes_dialog_failed": "标记孔对话框失败：\n",
   "mark_holes_read_selection_failed": "mark_holes: 读取选择失败：\n",
-  "mark_holes_button": "标记所选零件的孔"
+  "mark_holes_button": "标记所选零件的孔",
+  "show_gpus": "显示 GPU",
+  "gpu_no_devices": "未检测到显卡"
 }
