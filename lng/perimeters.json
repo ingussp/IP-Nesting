@@ -1,7 +1,7 @@
 {
   "en": {
-    "perimeter.with_grain": "Parts with grain direction",
-    "perimeter.without_grain": "Parts without grain direction",
+    "perimeter.with_grain": "Parts with texture direction",
+    "perimeter.without_grain": "Parts without texture direction",
     "perimeter.border": "%s Border",
     "perimeter.label": "%s Label"
   },
@@ -12,242 +12,242 @@
     "perimeter.without_grain": "Detaļas bez tekstūras virziena"
   },
   "ja": {
-    "perimeter.with_grain": "木目方向ありの部品",
-    "perimeter.without_grain": "木目方向なしの部品",
+    "perimeter.with_grain": "テクスチャ方向ありの部品",
+    "perimeter.without_grain": "テクスチャ方向なしの部品",
     "perimeter.border": "%s 境界",
     "perimeter.label": "%s ラベル"
   },
   "th": {
-    "perimeter.with_grain": "ชิ้นงานที่มีทิศทางเสี้ยน",
-    "perimeter.without_grain": "ชิ้นงานที่ไม่มีทิศทางเสี้ยน",
+    "perimeter.with_grain": "ชิ้นงานที่มีทิศทางพื้นผิว",
+    "perimeter.without_grain": "ชิ้นงานที่ไม่มีทิศทางพื้นผิว",
     "perimeter.border": "ขอบเขต %s",
     "perimeter.label": "ป้ายกำกับ %s"
   },
   "ar": {
-    "perimeter.with_grain": "أجزاء ذات اتجاه الألياف",
-    "perimeter.without_grain": "أجزاء بدون توجيه الألياف",
+    "perimeter.with_grain": "أجزاء ذات اتجاه النسيج",
+    "perimeter.without_grain": "أجزاء بدون اتجاه النسيج",
     "perimeter.border": "محيط %s",
     "perimeter.label": "تسمية %s"
   },
   "az": {
-    "perimeter.with_grain": "Fiber istiqamətində olan hissələr",
-    "perimeter.without_grain": "Fiber istiqamətsiz hissələr",
+    "perimeter.with_grain": "Tekstura istiqamətli hissələr",
+    "perimeter.without_grain": "Tekstura istiqamətsiz hissələr",
     "perimeter.border": "%s Kontur",
     "perimeter.label": "%s Yazı"
   },
   "bn": {
-    "perimeter.with_grain": "ফাইবার দিকনির্দেশক অংশ",
-    "perimeter.without_grain": "ফাইবার দিকনির্দেশনা ছাড়াই অংশ",
+    "perimeter.with_grain": "টেক্সচার দিকসহ অংশ",
+    "perimeter.without_grain": "টেক্সচার দিক ছাড়া অংশ",
     "perimeter.border": "%s বহিরেখা",
     "perimeter.label": "%s লেবেল"
   },
   "bg": {
-    "perimeter.with_grain": "Части с насочен влакно",
-    "perimeter.without_grain": "Части без насока на влакна",
+    "perimeter.with_grain": "Части с посока на текстурата",
+    "perimeter.without_grain": "Части без посока на текстурата",
     "perimeter.border": "%s Контур",
     "perimeter.label": "%s Надпис"
   },
   "hr": {
-    "perimeter.with_grain": "Čestici s pravcem vlakana",
-    "perimeter.without_grain": "Čestici bez smjernice vlakana",
+    "perimeter.with_grain": "Dijelovi sa smjerom teksture",
+    "perimeter.without_grain": "Dijelovi bez smjera teksture",
     "perimeter.border": "%s Obris",
     "perimeter.label": "%s Oznaka"
   },
   "cs": {
-    "perimeter.with_grain": "Části s směrem vlákna",
-    "perimeter.without_grain": "Části bez směru vlákniny",
+    "perimeter.with_grain": "Části se směrem textury",
+    "perimeter.without_grain": "Části bez směru textury",
     "perimeter.border": "%s Obrys",
     "perimeter.label": "%s Popisek"
   },
   "da": {
-    "perimeter.with_grain": "Stykker med fiberretning",
-    "perimeter.without_grain": "Stykker uden fiberledning",
+    "perimeter.with_grain": "Stykker med teksturretning",
+    "perimeter.without_grain": "Stykker uden teksturretning",
     "perimeter.border": "%s Omrids",
     "perimeter.label": "%s Etiket"
   },
   "et": {
-    "perimeter.with_grain": "Detailid kiudude suunaga",
-    "perimeter.without_grain": "Detailid ilma kiudude suunata",
+    "perimeter.with_grain": "Detailid tekstuuri suunaga",
+    "perimeter.without_grain": "Detailid tekstuuri suunata",
     "perimeter.border": "%s Piirjoon",
     "perimeter.label": "%s Silt"
   },
   "fil": {
-    "perimeter.with_grain": "Mga bahagi na may direksyon ng fiber",
-    "perimeter.without_grain": "Mga bahagi na walang direksyon ng fiber",
+    "perimeter.with_grain": "Mga bahagi na may direksyon ng tekstura",
+    "perimeter.without_grain": "Mga bahagi na walang direksyon ng tekstura",
     "perimeter.border": "%s Balangkas",
     "perimeter.label": "%s Etiketa"
   },
   "fi": {
-    "perimeter.with_grain": "Osat syysuunnalla",
-    "perimeter.without_grain": "Osat ilman syysuuntaa",
+    "perimeter.with_grain": "Osat tekstuurin suunnalla",
+    "perimeter.without_grain": "Osat ilman tekstuurin suuntaa",
     "perimeter.border": "%s Ääriviiva",
     "perimeter.label": "%s Tunniste"
   },
   "el": {
-    "perimeter.with_grain": "Μέρη με κατεύθυνση ινών",
-    "perimeter.without_grain": "Μέρη χωρίς κατεύθυνση ινών",
+    "perimeter.with_grain": "Μέρη με κατεύθυνση υφής",
+    "perimeter.without_grain": "Μέρη χωρίς κατεύθυνση υφής",
     "perimeter.border": "%s Περίγραμμα",
     "perimeter.label": "%s Ετικέτα"
   },
   "he": {
-    "perimeter.with_grain": "חלקים עם כיוון סיבים",
-    "perimeter.without_grain": "חלקי ללא כיוון סיבים",
+    "perimeter.with_grain": "חלקים עם כיוון מרקם",
+    "perimeter.without_grain": "חלקים ללא כיוון מרקם",
     "perimeter.border": "%s קו מתאר",
     "perimeter.label": "%s תווית"
   },
   "hi": {
-    "perimeter.with_grain": "फाइबर दिशा वाले भाग",
-    "perimeter.without_grain": "फाइबर दिशा रहित भाग",
+    "perimeter.with_grain": "बनावट दिशा वाले भाग",
+    "perimeter.without_grain": "बनावट दिशा रहित भाग",
     "perimeter.border": "%s बाहरी रेखा",
     "perimeter.label": "%s लेबल"
   },
   "hu": {
-    "perimeter.with_grain": "Alkatrészek száliránnyal",
-    "perimeter.without_grain": "Alkatrészek szálirány nélkül",
+    "perimeter.with_grain": "Textúra irányú alkatrészek",
+    "perimeter.without_grain": "Textúra irány nélküli alkatrészek",
     "perimeter.border": "%s Körvonal",
     "perimeter.label": "%s Felirat"
   },
   "ga": {
-    "perimeter.with_grain": "Páirteanna le treo snáithíní",
-    "perimeter.without_grain": "Páirteanna gan treo snáithíní",
+    "perimeter.with_grain": "Páirteanna le treo uigeachta",
+    "perimeter.without_grain": "Páirteanna gan treo uigeachta",
     "perimeter.border": "%s Imlíne",
     "perimeter.label": "%s Lipéad"
   },
   "kk": {
-    "perimeter.with_grain": "Талшық бағытымен бөлшектер",
-    "perimeter.without_grain": "Талшық бағытынсыз бөлшектер",
+    "perimeter.with_grain": "Текстура бағыты бар бөлшектер",
+    "perimeter.without_grain": "Текстура бағыты жоқ бөлшектер",
     "perimeter.border": "%s Контур",
     "perimeter.label": "%s Жазу"
   },
   "km": {
-    "perimeter.with_grain": "ផ្នែក ដែលមាន ការចង្អុលបង្ហាញ ដោយ ខ្សែ",
-    "perimeter.without_grain": "ផ្នែក ដែល គ្មាន ការចង្អុល",
+    "perimeter.with_grain": "ផ្នែកដែលមានទិសវាយនភាព",
+    "perimeter.without_grain": "ផ្នែកដែលគ្មានទិសវាយនភាព",
     "perimeter.border": "%s គ្រោង",
     "perimeter.label": "%s ស្លាក"
   },
   "ko": {
-    "perimeter.with_grain": "섬유 방향 부품",
-    "perimeter.without_grain": "섬유 방향 없는 부품",
+    "perimeter.with_grain": "질감 방향이 있는 부품",
+    "perimeter.without_grain": "질감 방향이 없는 부품",
     "perimeter.border": "%s 외곽선",
     "perimeter.label": "%s 레이블"
   },
   "lt": {
-    "perimeter.with_grain": "Dalis su pluošto nukreipimu",
-    "perimeter.without_grain": "Dėmenys be pluošto nukreipimo",
+    "perimeter.with_grain": "Dalys su tekstūros kryptimi",
+    "perimeter.without_grain": "Dalys be tekstūros krypties",
     "perimeter.border": "%s Kontūras",
     "perimeter.label": "%s Užrašas"
   },
   "ms": {
-    "perimeter.with_grain": "Bahagian dengan arah serat",
-    "perimeter.without_grain": "Bahagian tanpa arah serat",
+    "perimeter.with_grain": "Bahagian dengan arah tekstur",
+    "perimeter.without_grain": "Bahagian tanpa arah tekstur",
     "perimeter.border": "%s Garis luar",
     "perimeter.label": "%s Label"
   },
   "mt": {
-    "perimeter.with_grain": "Partijiet b'direzzjoni tal-fibra",
-    "perimeter.without_grain": "Partijiet mingħajr direzzjoni tal-fibri",
+    "perimeter.with_grain": "Partijiet b'direzzjoni tan-nisġa",
+    "perimeter.without_grain": "Partijiet mingħajr direzzjoni tan-nisġa",
     "perimeter.border": "%s Kontorn",
     "perimeter.label": "%s Tikketta"
   },
   "my": {
-    "perimeter.with_grain": "အမျှင်လမ်းကြောင်းနှင့်ဆိုင်သော အစိတ်အပိုင်းများ",
-    "perimeter.without_grain": "အမျှင်မောင်းနှင်သော အစိတ်အပိုင်းများ",
+    "perimeter.with_grain": "အသွင်အပြင် ဦးတည်ချက်ရှိသော အပိုင်းများ",
+    "perimeter.without_grain": "အသွင်အပြင် ဦးတည်ချက်မရှိသော အပိုင်းများ",
     "perimeter.border": "%s အနားသတ်မျဉ်း",
     "perimeter.label": "%s အညွှန်း"
   },
   "ne": {
-    "perimeter.with_grain": "फाइबर दिशाका भागहरू",
-    "perimeter.without_grain": "फाइबर दिशा बिनाको भागहरू",
+    "perimeter.with_grain": "बनावट दिशा भएका भागहरू",
+    "perimeter.without_grain": "बनावट दिशा नभएका भागहरू",
     "perimeter.border": "%s बाहिरी रेखा",
     "perimeter.label": "%s लेबल"
   },
   "ps": {
-    "perimeter.with_grain": "د فایبر لارښوونې برخې",
-    "perimeter.without_grain": "د فایبر لارښود پرته برخې",
+    "perimeter.with_grain": "د بافت لوري لرونکي برخې",
+    "perimeter.without_grain": "د بافت لوري پرته برخې",
     "perimeter.border": "%s بهرنۍ کرښه",
     "perimeter.label": "%s نښه"
   },
   "fa": {
-    "perimeter.with_grain": "قطعات با جهت فیبر",
-    "perimeter.without_grain": "قطعات بدون جهت فیبر",
+    "perimeter.with_grain": "قطعات دارای جهت بافت",
+    "perimeter.without_grain": "قطعات بدون جهت بافت",
     "perimeter.border": "%s خط پیرامونی",
     "perimeter.label": "%s برچسب"
   },
   "pl": {
-    "perimeter.with_grain": "Części z kierunkiem włókna",
-    "perimeter.without_grain": "Części bez kierunku włókna",
+    "perimeter.with_grain": "Części z kierunkiem tekstury",
+    "perimeter.without_grain": "Części bez kierunku tekstury",
     "perimeter.border": "%s Obrys",
     "perimeter.label": "%s Etykieta"
   },
   "pt": {
-    "perimeter.with_grain": "Parças com direcção de fibras",
-    "perimeter.without_grain": "Partes sem direcção de fibras",
+    "perimeter.with_grain": "Peças com direção da textura",
+    "perimeter.without_grain": "Peças sem direção da textura",
     "perimeter.border": "%s Contorno",
     "perimeter.label": "%s Etiqueta"
   },
   "ru": {
-    "perimeter.with_grain": "Детали с направлением волокон",
-    "perimeter.without_grain": "Детали без направления волокон",
+    "perimeter.with_grain": "Детали с направлением текстуры",
+    "perimeter.without_grain": "Детали без направления текстуры",
     "perimeter.border": "%s Контур",
     "perimeter.label": "%s Надпись"
   },
   "si": {
-    "perimeter.with_grain": "ෆයිබර් දිශාව සහිත කොටස්",
-    "perimeter.without_grain": "ෆයිබර් දිශාව නැති කොටස්",
+    "perimeter.with_grain": "වයනය දිශාව සහිත කොටස්",
+    "perimeter.without_grain": "වයනය දිශාව නැති කොටස්",
     "perimeter.border": "%s පිටත දළ සටහන",
     "perimeter.label": "%s ලේබලය"
   },
   "sk": {
-    "perimeter.with_grain": "Ostatné časti s smerom vlákna",
-    "perimeter.without_grain": "Ostatné časti bez smeru vlákniny",
+    "perimeter.with_grain": "Časti so smerom textúry",
+    "perimeter.without_grain": "Časti bez smeru textúry",
     "perimeter.border": "%s Obrys",
     "perimeter.label": "%s Popis"
   },
   "sl": {
-    "perimeter.with_grain": "Členovi z usmeritvijo vlaken",
-    "perimeter.without_grain": "Členki brez smeri vlaken",
+    "perimeter.with_grain": "Deli s smerjo teksture",
+    "perimeter.without_grain": "Deli brez smeri teksture",
     "perimeter.border": "%s Obris",
     "perimeter.label": "%s Oznaka"
   },
   "sv": {
-    "perimeter.with_grain": "Delar med fiberriktning",
-    "perimeter.without_grain": "Delar utan fiberriktning",
+    "perimeter.with_grain": "Delar med texturriktning",
+    "perimeter.without_grain": "Delar utan texturriktning",
     "perimeter.border": "%s Kontur",
     "perimeter.label": "%s Etikett"
   },
   "tg": {
-    "perimeter.with_grain": "Қисмҳои бо равияи фибро",
-    "perimeter.without_grain": "Қисмҳои бе равияи фибро",
+    "perimeter.with_grain": "Қисмҳои дорои самти текстура",
+    "perimeter.without_grain": "Қисмҳои бе самти текстура",
     "perimeter.border": "%s Хатти канорӣ",
     "perimeter.label": "%s Навиштаҷот"
   },
   "tr": {
-    "perimeter.with_grain": "Fiber yönlü parçalar",
-    "perimeter.without_grain": "Fiber yönü olmayan parçalar",
+    "perimeter.with_grain": "Doku yönlü parçalar",
+    "perimeter.without_grain": "Doku yönü olmayan parçalar",
     "perimeter.border": "%s Dış hat",
     "perimeter.label": "%s Etiket"
   },
   "uk": {
-    "perimeter.with_grain": "Части з напрямком волокон",
-    "perimeter.without_grain": "Частини без напрямку волокон",
+    "perimeter.with_grain": "Деталі з напрямком текстури",
+    "perimeter.without_grain": "Деталі без напрямку текстури",
     "perimeter.border": "%s Контур",
     "perimeter.label": "%s Напис"
   },
   "ur": {
-    "perimeter.with_grain": "فائبر کی سمت والے حصے",
-    "perimeter.without_grain": "فائبر کی سمت کے بغیر حصے",
+    "perimeter.with_grain": "بناوٹ کی سمت والے حصے",
+    "perimeter.without_grain": "بناوٹ کی سمت کے بغیر حصے",
     "perimeter.border": "%s بیرونی خاکہ",
     "perimeter.label": "%s لیبل"
   },
   "uz": {
-    "perimeter.with_grain": "Fiber yo'nalishidagi qismlar",
-    "perimeter.without_grain": "Fiber yo'nalishisiz qismlar",
+    "perimeter.with_grain": "Tekstura yo'nalishli qismlar",
+    "perimeter.without_grain": "Tekstura yo'nalishisiz qismlar",
     "perimeter.border": "%s Kontur",
     "perimeter.label": "%s Yozuv"
   },
   "vi": {
-    "perimeter.with_grain": "Các bộ phận có đường dẫn sợi",
-    "perimeter.without_grain": "Các bộ phận không có đường dẫn sợi",
+    "perimeter.with_grain": "Các phần có hướng kết cấu",
+    "perimeter.without_grain": "Các phần không có hướng kết cấu",
     "perimeter.border": "%s Đường bao",
     "perimeter.label": "%s Nhãn"
   },
@@ -258,44 +258,44 @@
     "perimeter.label": "%s 标签"
   },
   "nl": {
-    "perimeter.with_grain": "Onderdelen met nerfrichting",
-    "perimeter.without_grain": "Onderdelen zonder nerfrichting",
+    "perimeter.with_grain": "Onderdelen met textuurrichting",
+    "perimeter.without_grain": "Onderdelen zonder textuurrichting",
     "perimeter.border": "%s-rand",
     "perimeter.label": "%s-label"
   },
   "fr": {
-    "perimeter.with_grain": "Pièces avec sens du fil",
-    "perimeter.without_grain": "Pièces sans sens du fil",
+    "perimeter.with_grain": "Pièces avec sens de texture",
+    "perimeter.without_grain": "Pièces sans sens de texture",
     "perimeter.border": "%s Contour",
     "perimeter.label": "%s Libellé"
   },
   "de": {
-    "perimeter.with_grain": "Teile mit Faserrichtung",
-    "perimeter.without_grain": "Teile ohne Faserrichtung",
+    "perimeter.with_grain": "Teile mit Texturrichtung",
+    "perimeter.without_grain": "Teile ohne Texturrichtung",
     "perimeter.border": "%s Umrandung",
     "perimeter.label": "%s Beschriftung"
   },
   "id": {
-    "perimeter.with_grain": "Komponen dengan arah serat",
-    "perimeter.without_grain": "Komponen tanpa arah serat",
+    "perimeter.with_grain": "Bagian dengan arah tekstur",
+    "perimeter.without_grain": "Bagian tanpa arah tekstur",
     "perimeter.border": "Batas %s",
     "perimeter.label": "Label %s"
   },
   "it": {
-    "perimeter.with_grain": "Parti con direzione della venatura",
-    "perimeter.without_grain": "Parti senza direzione della venatura",
+    "perimeter.with_grain": "Parti con direzione della texture",
+    "perimeter.without_grain": "Parti senza direzione della texture",
     "perimeter.border": "Bordo %s",
     "perimeter.label": "Etichetta %s"
   },
   "ro": {
-    "perimeter.with_grain": "Piese cu direcția fibrei",
-    "perimeter.without_grain": "Piese fără direcția fibrei",
+    "perimeter.with_grain": "Piese cu direcția texturii",
+    "perimeter.without_grain": "Piese fără direcția texturii",
     "perimeter.border": "Contur %s",
     "perimeter.label": "Etichetă %s"
   },
   "es": {
-    "perimeter.with_grain": "Piezas con dirección de veta",
-    "perimeter.without_grain": "Piezas sin dirección de veta",
+    "perimeter.with_grain": "Piezas con dirección de textura",
+    "perimeter.without_grain": "Piezas sin dirección de textura",
     "perimeter.border": "%s Contorno",
     "perimeter.label": "%s Etiqueta"
   },

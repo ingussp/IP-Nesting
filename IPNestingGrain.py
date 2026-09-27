@@ -272,7 +272,7 @@ class GrainPreparer:
         preview_doc_name,
         base_label_offset=None,
         subset_names=None,
-        custom_label="Parts without grain direction",
+        custom_label="Parts without texture direction",
         line_color=None,
     ):
         """
@@ -293,7 +293,7 @@ class GrainPreparer:
 
             # Suffix determines unique names for this specific group (Main vs Grain)
             suffix = "Main"
-            if "with grain" in custom_label:
+            if "with texture" in custom_label:
                 suffix = "Grain"
 
             # Keep group identity in canonical names; only presentation is translated.

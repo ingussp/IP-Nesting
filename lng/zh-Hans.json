@@ -175,7 +175,7 @@
   "uncheck_all_selection_checkboxes_in_the_table": "取消勾选表格中的所有选择复选框",
   "apply_grain": "应用纹理",
   "set_custom_angle": "设置自定义角度",
-  "set_grain_angle_for_selected_grainarrow_objects": "设置所选 GrainArrow 对象的纹理角度",
+  "set_grain_angle_for_selected_grainarrow_objects": "设置所选纹理箭头对象的纹理角度",
   "shape_successfully_serialized_and_re_imported": "形状已成功序列化并重新导入\n",
   "no_selection_to_add": "没有可添加的选择项。\n",
   "clear_all_checks_all_select_for_rotation_checkboxes_cleared": "clear_all_checks：已清除所有“选择以旋转”复选框。\n",
