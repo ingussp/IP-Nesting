@@ -40,8 +40,9 @@ class PreviewDocManager:
         """
         Return a rotation aligning a selected large-face normal with +Z.
 
-        Choose the largest face unless the second-largest has more wires.
-        Return an identity rotation when no face is available or evaluation fails.
+        Choose the smaller of the two largest faces; its lower area usually
+        means more holes, so the face with holes points upward. Return an
+        identity rotation when no face is available or evaluation fails.
         """
         try:
             # Rank faces by area before choosing the face whose normal will point upward.
@@ -49,9 +50,8 @@ class PreviewDocManager:
             if not faces:
                 return App.Rotation()
             best_face = faces[0]
-            if len(faces) >= 2:
-                if len(faces[1].Wires) > len(faces[0].Wires):
-                    best_face = faces[1]
+            if len(faces) >= 2 and faces[1].Area < faces[0].Area:
+                best_face = faces[1]
             u_min, u_max, v_min, v_max = best_face.ParameterRange
             u_mid = u_min + (u_max - u_min) / 2.0
             v_mid = v_min + (v_max - v_min) / 2.0
