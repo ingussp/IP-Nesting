@@ -1,1 +1,2 @@
 1) Pie katras valodas jāpieliek poga, "Edit" lai būtu iespēja labot valodu. Pēc pogas nospiešanas jāatveras atsevišķam logam, kur ir viss lng faila saturs un katrā rindā ir savs mainīgais ar angļu valodas orģinālo tekstu un ešoša valodas tekstu, kuru iespējams palabot. Rezultāts jāsaglabā portālā vai github. Tas vēl nav skaidrs kā to izdarīt.
+2) Jāpieliek attālums no detaļu iekšējiem caurumiem līdz detaļai, kura tiks tur iekšā ievietota
