@@ -1500,6 +1500,7 @@ def execute_nesting(panel):
             pass
 
         parts = []
+        snapshots = {}
 
         data_rows = max(
             0,
@@ -1627,6 +1628,9 @@ def execute_nesting(panel):
                 # Selected inner contours (holes) marked in the part dialog.
                 selected_holes = current_selected_holes(panel, obj, boundary_resolution)
 
+                from IPNestingRuntime import snapshot_part
+                snapshots[part_id] = snapshot_part(obj, boundary_resolution)
+
                 # A grain-restricted part may only rotate 0 or 180 degrees so
                 # the texture direction is preserved during nesting.
                 if grain != "None":
@@ -1704,7 +1708,8 @@ def execute_nesting(panel):
             "sheets": sheets,
             "parts": parts,
             "output": {
-                "json": "result.json"
+                "json": "result.json",
+                "cancelFile": ".clinesting-cancel-" + job_id
             }
         }
 
@@ -1765,7 +1770,8 @@ def execute_nesting(panel):
                     ),
                     "quantity": part.get("quantity", 1),
                     "points": part["points"],
-                    "boundary_resolution": boundary_resolution
+                    "boundary_resolution": boundary_resolution,
+                    **snapshots[part["id"]]
                 }
                 for index, part in enumerate(parts)
             ],
@@ -1778,29 +1784,16 @@ def execute_nesting(panel):
             ]
         }
 
-        with open(
-            session_path,
-            "w",
-            encoding="utf-8"
-        ) as session_file:
-            json.dump(
-                session_payload,
-                session_file,
-                indent=2,
-                ensure_ascii=False
-            )
-        
-        with open(
-            output_path,
-            "w",
-            encoding="utf-8"
-        ) as output_file:
-            json.dump(
-                payload,
-                output_file,
-                indent=2,
-                ensure_ascii=False
-            )
+        import tempfile
+        for path, data in ((session_path, session_payload), (output_path, payload)):
+            fd, temporary = tempfile.mkstemp(prefix=".nesting-", dir=script_dir)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                    json.dump(data, stream, indent=2, ensure_ascii=False)
+                os.replace(temporary, path)
+            finally:
+                if os.path.exists(temporary):
+                    os.remove(temporary)
 
         App.Console.PrintMessage(
             tr('nesting_cli_input_json_written_to_s')

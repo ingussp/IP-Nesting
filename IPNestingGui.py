@@ -644,7 +644,7 @@ class NestingTaskPanel:
         self._nesting_manager = NestingProcessManager(
             self
         )
-        self.form.destroyed.connect(lambda: self._nesting_manager.stop_nesting())
+        self.form.destroyed.connect(lambda: self._nesting_manager.shutdown())
         register_window(self.form)
 
     # Recompute the preview and display a textual diagnostic report.
@@ -1831,23 +1831,10 @@ class NestingTaskPanel:
 
     # Locate the bundled nesting CLI executable, falling back to one on PATH.
     def _nesting_cli_executable(self):
-        candidates = [
-            os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "nesting-cli",
-                "clinesting.exe",
-            ),
-            os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "clinesting.exe",
-            ),
-        ]
-        for candidate in candidates:
-            if os.path.isfile(candidate):
-                return candidate
+        from IPNestingRuntime import find_executable
         try:
-            return shutil.which("clinesting")
-        except Exception:
+            return find_executable(os.path.dirname(os.path.abspath(__file__)))
+        except RuntimeError:
             return None
 
     # Return locally detected OpenCL GPU devices as (index, label) pairs.
@@ -1862,6 +1849,7 @@ class NestingTaskPanel:
                 [executable, "--list-gpus"],
                 stderr=subprocess.STDOUT,
                 timeout=15,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             )
             if isinstance(output, bytes):
                 output = output.decode("utf-8", errors="replace")
@@ -3495,14 +3483,19 @@ class NestingTaskPanel:
                 "input.json"
             )
 
+            if not self._nesting_manager.prepare_job():
+                return
+
             generation_ok = execute_nesting_impl(
                 self
             )
 
             if generation_ok is not True:
+                self._nesting_manager.release_job()
                 return
 
             if not os.path.exists(input_path):
+                self._nesting_manager.release_job()
                 QtGui.QMessageBox.critical(
                     self.form,
                     tr('input_generation_failed'),
@@ -3544,6 +3537,7 @@ class NestingTaskPanel:
                 )
 
         except Exception:
+            self._nesting_manager.release_job()
             App.Console.PrintError(
                 tr('execute_nesting_failed')
                 + traceback.format_exc()
@@ -3554,6 +3548,15 @@ class NestingTaskPanel:
                 tr('input_generation_error'),
                 tr('failed_to_generate_input_json')
             )
+
+    def isAllowedAlterDocument(self):
+        # Result documents must be selectable while continuous nesting runs.
+        return True
+
+    def reject(self):
+        self._nesting_manager.shutdown()
+        Gui.Control.closeDialog()
+        return True
 
     # Return the Cancel button flag expected by the FreeCAD task-panel API.
     def getStandardButtons(self):

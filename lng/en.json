@@ -459,7 +459,7 @@
   "nesting_result_imported_successfully": "Nesting result imported successfully.\n",
   "imported_d_placed_part_s": "Imported %d placed part(s).\n",
   "nesting_cli_started": "Nesting CLI started.\n",
-  "waiting_for_result_json": "Waiting for result.json...\n",
+  "waiting_for_result_json": "Please wait. Parts are being arranged…",
   "nesting_failed_s": "Nesting failed: %s\n",
   "nesting_failed": "Nesting failed",
   "result_json_root_must_be_an_object": "result.json root must be an object.\n",
