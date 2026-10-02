@@ -135,8 +135,7 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
                     tr('wire_stitching_fallback_used_edge_chain_was_not_continuous')
                 )
 
-                found_idx = 0
-                found_pts = chunks[0]
+                return []
 
             chunks.pop(found_idx)
 
@@ -151,6 +150,9 @@ def _extract_wire_points_ordered(wire, deflection=0.01):
                 ordered.extend(found_pts[1:])
             else:
                 ordered.extend(found_pts)
+
+        if not _points_equal_2d(ordered[0], ordered[-1]):
+            return []
 
         if (
             len(ordered) > 1
@@ -419,43 +421,6 @@ def _remove_duplicate_points(points, tolerance=1e-6):
     return cleaned
 
 
-# Apply the preview object's rotation to a local 2D point, ignoring translation.
-def _transform_point_without_translation(obj, point):
-    """
-    Apply the preview object's rotation to a local 2D point.
-
-    The part's rotation (grain direction or Custom angle) is stored in
-    obj.Placement, not baked into obj.Shape, so it must be applied here to
-    export the part in the same orientation that is shown on screen.
-
-    The translation is intentionally ignored because the nesting CLI needs
-    local part geometry, not the temporary preview-grid position. The grid
-    position is removed later by _normalize_polygon().
-    Invalid input returns the unrotated point.
-    """
-    try:
-        vector = App.Vector(
-            float(point[0]),
-            float(point[1]),
-            0.0
-        )
-
-        transformed = obj.Placement.Rotation.multVec(
-            vector
-        )
-
-        return [
-            round(float(transformed.x), 6),
-            round(float(transformed.y), 6)
-        ]
-
-    except Exception:
-        return [
-            round(float(point[0]), 6),
-            round(float(point[1]), 6)
-        ]
-
-
 # Move polygon coordinates so the minimum X/Y position becomes 0/0.
 def _normalize_polygon(points):
     """
@@ -544,169 +509,128 @@ def _polygon_bbox(points):
 
 # Compare two XY polygons by area and bounding box (best-effort duplicate check).
 def _polygons_same_2d(poly_a, poly_b, tolerance=1e-6):
-    try:
-        if not poly_a or not poly_b:
-            return False
-
-        area_a = _polygon_area(poly_a)
-        area_b = _polygon_area(poly_b)
-
-        if abs(area_a - area_b) > max(
-            tolerance,
-            max(area_a, area_b) * 1e-6
-        ):
-            return False
-
-        bbox_a = _polygon_bbox(poly_a)
-        bbox_b = _polygon_bbox(poly_b)
-
-        if bbox_a is None or bbox_b is None:
-            return False
-
-        for value_a, value_b in zip(bbox_a, bbox_b):
-            if abs(value_a - value_b) > tolerance:
-                return False
-
-        return True
-
-    except Exception:
+    """Compare complete cyclic boundaries, allowing reversed winding."""
+    a = _remove_duplicate_points(poly_a)
+    b = _remove_duplicate_points(poly_b)
+    if not a or len(a) != len(b):
         return False
+    for start, point in enumerate(b):
+        if _points_equal_2d(a[0], point, tolerance):
+            for direction in (1, -1):
+                if all(_points_equal_2d(p, b[(start + direction*i) % len(b)], tolerance)
+                       for i, p in enumerate(a)):
+                    return True
+    return False
 
 
 # Extract all candidate closed-wire polygons from a preview object, rotated into
 # on-screen orientation but not yet normalized/translated.
 def _extract_part_candidate_wires(obj, deflection=0.01):
-    """
-    Extract every candidate closed wire from a preview object's Shape.
+    """Extract one planar profile, never projected side-wall wires.
 
-    The part's rotation (grain direction or Custom angle) lives in
-    obj.Placement, so every extracted point is rotated through the object's
-    Placement to match the on-screen orientation. The temporary preview-grid
-    translation is removed later by _normalize_polygon()/_translate_points().
+    Shape already includes the object's Placement. Only flat profiles and
+    straight extrusions normal to XY are supported; reject ambiguous solids.
     """
+    import Part
+    shape = obj.Shape
+    if shape.isNull() or not shape.isValid():
+        raise ValueError("The part has no valid shape")
+    flat_faces = [f for f in shape.Faces if f.BoundBox.ZLength < 1e-7]
+    if shape.Solids:
+        if not flat_faces:
+            raise ValueError("Align the part with the XY plane before nesting")
+        # The union of cap faces fills blind pockets instead of treating them
+        # as through holes. Non-prismatic solids fail the volume check below.
+        caps = []
+        for face in flat_faces:
+            cap = face.copy()
+            cap.translate(App.Vector(0, 0, -cap.BoundBox.ZMin))
+            caps.append(cap)
+        profile = caps[0]
+        for cap in caps[1:]:
+            profile = profile.fuse(cap)
+        profile = profile.removeSplitter()
+        if len(profile.Faces) != 1:
+            raise ValueError("A part must have one connected planar profile")
+        expected_volume = profile.Area * shape.BoundBox.ZLength
+        if abs(shape.Volume - expected_volume) > max(1e-6, expected_volume * 1e-7):
+            raise ValueError("Only flat profiles and straight extrusions are supported")
+        wires = profile.Faces[0].Wires
+    else:
+        if shape.BoundBox.ZLength > 1e-7:
+            raise ValueError("The part profile must be parallel to XY")
+        wires = shape.Wires
     candidates = []
-
-    try:
-        if obj is None:
-            return candidates
-
-        shape = getattr(
-            obj,
-            "Shape",
-            None
-        )
-
-        if shape is None:
-            return candidates
-
-        # Make sure the Shape is valid and current.
-        try:
-            if shape.isNull():
-                return candidates
-        except Exception:
-            pass
-
-        # Prefer closed wires.
-        wires = list(
-            getattr(shape, "Wires", []) or []
-        )
-
-        for wire in wires:
-            try:
-                if (
-                    hasattr(wire, "isClosed")
-                    and not wire.isClosed()
-                ):
-                    continue
-            except Exception:
-                continue
-
-            points = _extract_wire_points_ordered(
-                wire,
-                deflection=deflection
-            )
-
-            if len(points) < 3:
-                continue
-
-            # Apply the object's rotation so the exported contour matches
-            # the on-screen orientation. Translation is removed later by
-            # _normalize_polygon().
-            transformed = [
-                _transform_point_without_translation(
-                    obj,
-                    point
-                )
-                for point in points
-            ]
-
-            candidates.append(
-                transformed
-            )
-
-        # Fallback to horizontal faces.
-        if not candidates:
-            for face in list(
-                getattr(shape, "Faces", []) or []
-            ):
-                try:
-                    normal = face.normalAt(
-                        0.5,
-                        0.5
-                    )
-
-                    if abs(
-                        normal.dot(
-                            App.Vector(0, 0, 1)
-                        )
-                    ) <= 0.9:
-                        continue
-
-                except Exception:
-                    continue
-
-                try:
-                    points = _extract_wire_points_ordered(
-                        face.OuterWire,
-                        deflection=deflection
-                    )
-                except Exception:
-                    points = []
-
-                if len(points) < 3:
-                    continue
-
-                # Apply the object's rotation so the exported contour
-                # matches the on-screen orientation.
-                transformed = [
-                    _transform_point_without_translation(
-                        obj,
-                        point
-                    )
-                    for point in points
-                ]
-
-                candidates.append(
-                    transformed
-                )
-
-    except Exception:
-        App.Console.PrintError(
-            tr('extract_part_points_failed')
-            + traceback.format_exc()
-        )
-
+    for wire in wires:
+        if not wire.isClosed():
+            raise ValueError("The part contains an open contour")
+        points = _extract_wire_points_ordered(wire, deflection)
+        if len(points) < 3 or not all(math.isfinite(v) for p in points for v in p):
+            raise ValueError("The part contains an invalid contour")
+        polygon = Part.makePolygon([App.Vector(x, y, 0) for x, y in points + points[:1]])
+        face = Part.Face(polygon)
+        if not face.isValid() or face.Area <= 1e-9:
+            raise ValueError("The part contains a self-intersecting or empty contour")
+        if not any(_polygons_same_2d(points, old) for old in candidates):
+            candidates.append(points)
+    if not candidates:
+        raise ValueError("The part has no closed profile")
+    candidates.sort(key=_polygon_area, reverse=True)
+    def as_face(poly):
+        return Part.Face(Part.makePolygon([App.Vector(x, y, 0) for x, y in poly + poly[:1]]))
+    outer = as_face(candidates[0])
+    inner_faces = []
+    for poly in candidates[1:]:
+        inner = as_face(poly)
+        if (abs(outer.common(inner).Area - inner.Area) > max(1e-7, inner.Area*1e-7)
+                or outer.OuterWire.distToShape(inner.OuterWire)[0] < 1e-7):
+            raise ValueError("Disconnected or touching part contours are unsupported")
+        if any(inner.common(other).Area > 1e-7 for other in inner_faces):
+            raise ValueError("Overlapping or nested hole contours are unsupported")
+        inner_faces.append(inner)
     return candidates
 
 
-# Extract the current visible 2D outer contour from a preview object.
+def remember_hole_selection(panel, obj, holes, deflection=0.01):
+    """Keep selected boundaries in object-local coordinates across rotations."""
+    candidates = _extract_part_candidate_wires(obj, deflection)
+    ox, oy = _points_min_xy(candidates[0])
+    inverse = obj.Placement.inverse()
+    z = obj.Shape.BoundBox.ZMin
+    local = [[inverse.multVec(App.Vector(x + ox, y + oy, z)) for x, y in hole]
+             for hole in holes]
+    if not hasattr(panel, "_part_hole_local"):
+        panel._part_hole_local = {}
+    panel._part_hole_local[obj.Name] = local
+    panel._part_holes[obj.Name] = holes
+
+
+def current_selected_holes(panel, obj, deflection=0.01):
+    selected = getattr(panel, "_part_holes", {}).get(obj.Name) or []
+    if not selected:
+        return []
+    local = getattr(panel, "_part_hole_local", {}).get(obj.Name)
+    if local is None:
+        raise ValueError("Please mark the part holes again before nesting")
+    candidates = _extract_part_candidate_wires(obj, deflection)
+    ox, oy = _points_min_xy(candidates[0])
+    current = []
+    for hole in local:
+        world = [obj.Placement.multVec(p) for p in hole]
+        transformed = [[p.x - ox, p.y - oy] for p in world]
+        available = [_translate_points(p, (ox, oy)) for p in candidates[1:]]
+        match = next((p for p in available if _polygons_same_2d(p, transformed, 2e-5)), None)
+        if match is None:
+            raise ValueError("Part geometry or sampling changed; please mark its holes again")
+        current.append(match)
+    return current
+
+
 def _extract_part_points(obj, deflection=0.01):
     """
     Extract the current visible 2D outer contour from a preview object.
 
-    The part's rotation (grain direction or Custom angle) lives in
-    obj.Placement, so every extracted point is rotated through the object's
-    Placement to match the on-screen orientation.
+    Shape coordinates already include the preview object's rotation.
 
     The temporary preview-grid translation is removed by
     _normalize_polygon().
@@ -1347,6 +1271,29 @@ def _read_combo_bool(panel, attr, default):
         return bool(default)
 
 # Write nesting CLI input.json and nesting_session.json from the panel and preview geometry.
+def _validate_material(sheet):
+    """Fail before launching the CLI if a stock boundary is unusable."""
+    import Part
+    contours = [sheet.get("points", [])] + (sheet.get("holes", []) or [])
+    faces = []
+    for polygon in contours:
+        if len(polygon) < 3 or not all(math.isfinite(float(v)) for p in polygon for v in p):
+            raise ValueError("Invalid material contour")
+        vectors = [App.Vector(float(x), float(y), 0) for x, y in polygon]
+        wire = Part.makePolygon(vectors + vectors[:1])
+        face = Part.Face(wire)
+        if not face.isValid() or face.Area <= 1e-9:
+            raise ValueError("Invalid material contour")
+        faces.append(face)
+    for index, hole in enumerate(faces[1:], 1):
+        if abs(faces[0].common(hole).Area - hole.Area) > max(1e-7, hole.Area*1e-7):
+            raise ValueError("A material hole lies outside its boundary")
+        if any(hole.common(other).Area > 1e-7 for other in faces[1:index]):
+            raise ValueError("Material holes overlap")
+    if int(sheet.get("quantity", 1)) < 1:
+        raise ValueError("Material quantity must be positive")
+
+
 def execute_nesting(panel):
     """
     Export the panel state to the nesting CLI input.json and nesting_session.json.
@@ -1448,7 +1395,8 @@ def execute_nesting(panel):
             hole_clearance=hole_clearance,
         )
 
-        # Export every added sheet and offcut.
+        # Validate the entire order before writing either job file.
+        errors = []
         sheets = []
 
         for material in getattr(
@@ -1461,6 +1409,7 @@ def execute_nesting(panel):
                     material
                 )
                 
+                _validate_material(sheet)
                 sheet["_ip_nesting"] = {
                     "source_sheet_index": len(sheets),
                     "material_id": material.get(
@@ -1512,6 +1461,9 @@ def execute_nesting(panel):
                     tr('failed_to_convert_material_to_cli_sheet')
                     + traceback.format_exc()
                 )
+
+        if len(sheets) != len(getattr(panel, "offcuts", []) or []) or not sheets:
+            errors.append("One or more materials have invalid geometry or dimensions")
 
         # Get the preview document.
         p_doc = (
@@ -1573,19 +1525,14 @@ def execute_nesting(panel):
                 )
 
                 if not name_item:
-                    continue
+                    raise ValueError("Missing part name")
 
                 try:
-                    quantity = max(
-                        1,
-                        int(
-                            str(
-                                qty_item.text()
-                            ).strip()
-                        )
-                    )
+                    quantity = int(str(qty_item.text()).strip())
+                    if quantity < 1:
+                        raise ValueError("Quantity must be positive")
                 except Exception:
-                    quantity = 1
+                    raise ValueError("Invalid part quantity")
 
                 rotation_rule = _read_rotation_rule(
                     rotation_item
@@ -1624,7 +1571,7 @@ def execute_nesting(panel):
                         tr('part_row_d_has_no_preview_object_name')
                         % row
                     )
-                    continue
+                    raise ValueError("Missing or invalid part geometry")
 
                 obj = p_doc.getObject(
                     primary_name
@@ -1637,7 +1584,7 @@ def execute_nesting(panel):
                             primary_name
                         )
                     )
-                    continue
+                    raise ValueError("Missing or invalid part geometry")
 
                 # FIX:
                 # Log the actual Placement used for export.
@@ -1664,7 +1611,7 @@ def execute_nesting(panel):
                             primary_name
                         )
                     )
-                    continue
+                    raise ValueError("Missing or invalid part geometry")
 
                 grain = _get_grain_direction(
                     panel,
@@ -1678,18 +1625,7 @@ def execute_nesting(panel):
                 part_id = "part_%d" % len(parts)
 
                 # Selected inner contours (holes) marked in the part dialog.
-                selected_holes = [
-                    _points_to_cli_points(hole)
-                    for hole in (
-                        getattr(
-                            panel,
-                            "_part_holes",
-                            {}
-                        ).get(primary_name) or []
-                    )
-                    if isinstance(hole, (list, tuple))
-                    and len(hole) >= 3
-                ]
+                selected_holes = current_selected_holes(panel, obj, boundary_resolution)
 
                 # A grain-restricted part may only rotate 0 or 180 degrees so
                 # the texture direction is preserved during nesting.
@@ -1730,7 +1666,8 @@ def execute_nesting(panel):
                     }
                 })
 
-            except Exception:
+            except Exception as exc:
+                errors.append("Row %d: %s" % (row + 1, exc))
                 App.Console.PrintError(
                     tr('failed_to_export_part_row_d_s')
                     % (
@@ -1738,6 +1675,15 @@ def execute_nesting(panel):
                         traceback.format_exc()
                     )
                 )
+
+        if errors or not parts:
+            message = "\n".join(errors or ["No parts to export"])
+            App.Console.PrintError(message + "\n")
+            try:
+                QtGui.QMessageBox.warning(panel.form, tr('cannot_start_nesting'), message)
+            except Exception:
+                pass
+            return False
 
         payload = {
             "units": "mm",
@@ -1817,10 +1763,9 @@ def execute_nesting(panel):
                         "source_type",
                         "unknown"
                     ),
-                    "quantity": part.get(
-                        "quantity",
-                        1
-                    )
+                    "quantity": part.get("quantity", 1),
+                    "points": part["points"],
+                    "boundary_resolution": boundary_resolution
                 }
                 for index, part in enumerate(parts)
             ],

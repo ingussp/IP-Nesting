@@ -110,102 +110,11 @@ def poly_bbox(poly):
 
 # Project a wire or closed edge into an XY point list.
 def _wire_to_polyline_2d(wire, deflection=0.5):
-    """
-    Project a wire or closed edge into an XY point list.
-
-    Use vertices when at least three are available; otherwise discretize
-    edges. Curves in contours with three or more vertices are therefore
-    represented by vertex-to-vertex chords.
-    """
-    pts = []
-
-    try:
-        # First try explicit ordered vertices.
-        vertices = list(getattr(wire, "OrderedVertexes", []) or [])
-
-        if not vertices:
-            vertices = list(getattr(wire, "Vertexes", []) or [])
-
-        if len(vertices) >= 3:
-            for vertex in vertices:
-                try:
-                    point = vertex.Point
-                    pts.append([
-                        float(point.x),
-                        float(point.y),
-                    ])
-                except Exception:
-                    pass
-
-        # For circles and other curved edges, discretize each edge.
-        if len(pts) < 3:
-            pts = []
-
-            edges = list(
-                getattr(wire, "Edges", []) or []
-            )
-
-            if not edges:
-                edges = [wire]
-
-            for edge in edges:
-                discretized = None
-
-                try:
-                    discretized = edge.discretize(
-                        Deflection=float(deflection)
-                    )
-                except Exception:
-                    try:
-                        discretized = edge.discretize(
-                            deflection=float(deflection)
-                        )
-                    except Exception:
-                        pass
-
-                if not discretized:
-                    continue
-
-                for point in discretized:
-                    try:
-                        pts.append([
-                            float(point.x),
-                            float(point.y),
-                        ])
-                    except Exception:
-                        pass
-
-    except Exception:
-        pts = []
-
-    # Remove consecutive duplicate points.
-    cleaned = []
-
-    for point in pts:
-        if not cleaned:
-            cleaned.append(point)
-            continue
-
-        previous = cleaned[-1]
-
-        if (
-            abs(previous[0] - point[0]) > 1e-9
-            or abs(previous[1] - point[1]) > 1e-9
-        ):
-            cleaned.append(point)
-
-    # Remove repeated closing point.
-    if len(cleaned) >= 2:
-        first = cleaned[0]
-        last = cleaned[-1]
-
-        if (
-            abs(first[0] - last[0]) <= 1e-9
-            and abs(first[1] - last[1]) <= 1e-9
-        ):
-            cleaned.pop()
-
-    return cleaned
+    from IPNestingExport import _extract_wire_points_ordered
+    if not hasattr(wire, "Edges"):
+        import Part
+        wire = Part.Wire([wire])
+    return _extract_wire_points_ordered(wire, deflection)
 
 
 # -------------------------
@@ -757,41 +666,8 @@ def _make_contour_record(index, polygon, area, is_outer=False):
 
 # Best-effort duplicate contour detection using area and bbox.
 def _polygons_are_same(poly_a, poly_b, tolerance=1e-6):
-    """
-    Best-effort duplicate contour detection using area and bbox.
-    """
-    try:
-        if not poly_a or not poly_b:
-            return False
-
-        area_a = abs(polygon_area(poly_a))
-        area_b = abs(polygon_area(poly_b))
-
-        if abs(area_a - area_b) > max(
-            tolerance,
-            max(area_a, area_b) * 1e-6
-        ):
-            return False
-
-        bbox_a = poly_bbox(poly_a)
-        bbox_b = poly_bbox(poly_b)
-
-        for key in (
-            "min_x",
-            "min_y",
-            "max_x",
-            "max_y",
-        ):
-            if abs(
-                float(bbox_a[key])
-                - float(bbox_b[key])
-            ) > tolerance:
-                return False
-
-        return True
-
-    except Exception:
-        return False
+    from IPNestingExport import _polygons_same_2d
+    return _polygons_same_2d(poly_a, poly_b, tolerance)
 
 # Append a nonzero-area contour unless an area/bounding-box match exists.
 def _append_unique_contour(candidate_polygons, polygon):

@@ -72,18 +72,6 @@ class PartCoordinateExportTests(unittest.TestCase):
             [[0.0, 4.0], [4.0, 4.0], [4.0, 0.0]],
         )
 
-    # Point rotation must reflect the object's Placement so the exported
-    # polygon matches the on-screen (grain-rotated) orientation.
-    def test_transform_point_applies_placement_rotation(self):
-        transform = self.export._transform_point_without_translation
-        obj = types.SimpleNamespace(
-            Placement=types.SimpleNamespace(
-                Rotation=_Rotation90()
-            )
-        )
-        self.assertEqual(transform(obj, [1.0, 0.0]), [0.0, 1.0])
-        self.assertEqual(transform(obj, [0.0, 1.0]), [-1.0, 0.0])
-
     # The grain rotation restriction produces the permitted [0, 180] rule.
     def test_grain_rotation_restriction(self):
         parse = self.export.parse_rotation_spec

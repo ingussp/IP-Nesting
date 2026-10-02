@@ -41,6 +41,45 @@ except Exception:
     Part = None
 
 
+def _normalize_result(data, session):
+    """Adapt CLI sheets[].parts[] while retaining legacy result support."""
+    import copy
+    result = copy.deepcopy(data)
+    if "placements" in result:
+        return result
+    if not isinstance(result.get("sheets"), list):
+        raise ValueError("Unsupported nesting result schema")
+    sources = {int(p["source_part_index"]): dict(p) for p in session.get("parts", [])}
+    placements = []
+    for sheet_index, sheet in enumerate(result["sheets"]):
+        if "points" in sheet:
+            sheet["type"] = "polygon"
+            sheet["outer"] = sheet["points"]
+        sheet["sheet_instance_index"] = sheet_index
+        for part in sheet.get("parts", []):
+            meta = part.get("_ip_nesting", {})
+            source_index = meta.get("source_part_index", part.get("source"))
+            if source_index is None:
+                raise ValueError("A placed part has no source identity")
+            source_index = int(source_index)
+            source = sources.setdefault(source_index, {})
+            source.update(meta)
+            source["source_part_index"] = source_index
+            placement = dict(part, source_part_index=source_index,
+                             instance_index=len(placements), sheet_instance_index=sheet_index)
+            placement["absolute_points"] = part.get("points", [])
+            placement["absolute_holes"] = part.get("holes", [])
+            placements.append(placement)
+    if int(result.get("placed", len(placements))) != len(placements):
+        raise ValueError("Result placement count does not match its geometry")
+    result["placements"] = placements
+    result["sourceParts"] = list(sources.values())
+    result["summary"] = dict(placed_count=len(placements),
+                             unplaced_count=len(result.get("unplaced", [])),
+                             utilisation=result.get("utilization", 0))
+    return result
+
+
 # ----------------------------------------------------------------------
 # General helpers
 # ----------------------------------------------------------------------
@@ -290,7 +329,8 @@ class NestingResultImporter(object):
     def import_result(
         self,
         result_data,
-        session_data=None
+        session_data=None,
+        show_summary=True
     ):
         try:
             if not isinstance(
@@ -302,13 +342,15 @@ class NestingResultImporter(object):
                 )
                 return False
 
-            self.result_data = result_data
+            previous_doc = self.result_doc
+            self.result_data = _normalize_result(result_data, session_data or {})
             self.session_data = (
                 session_data
                 if isinstance(session_data, dict)
                 else {}
             )
 
+            self._source_shapes = {}
             self._prepare_maps()
 
             self.preview_doc = (
@@ -328,8 +370,13 @@ class NestingResultImporter(object):
             if self.result_doc is None:
                 return False
 
-            self._import_sheets()
-            self._import_placements()
+            sheet_count = self._import_sheets()
+            imported_count = self._import_placements()
+            expected = sum(1 for p in self.result_data.get("placements", []) if p.get("placed", True))
+            if sheet_count != len(self.result_data.get("sheets", [])) or imported_count != expected:
+                App.closeDocument(self.result_doc.Name)
+                self.result_doc = previous_doc
+                raise ValueError("Result import was incomplete; previous result preserved")
 
             try:
                 self.result_doc.recompute()
@@ -349,7 +396,10 @@ class NestingResultImporter(object):
             except Exception:
                 pass
 
-            self._show_result_summary()
+            if previous_doc is not None and previous_doc.Name in App.listDocuments():
+                App.closeDocument(previous_doc.Name)
+            if show_summary:
+                self._show_result_summary()
 
             return True
 
@@ -552,14 +602,6 @@ class NestingResultImporter(object):
     # Close any existing Nesting_Result document and create a replacement.
     def _create_result_document(self):
         try:
-            if "Nesting_Result" in App.listDocuments():
-                try:
-                    App.closeDocument(
-                        "Nesting_Result"
-                    )
-                except Exception:
-                    pass
-
             return App.newDocument(
                 "Nesting_Result"
             )
@@ -577,6 +619,9 @@ class NestingResultImporter(object):
 
     # Create and label a result object for each returned sheet record.
     def _import_sheets(self):
+        imported_count = 0
+        self.sheet_groups = {}
+        display_x = 0.0
         for index, sheet in enumerate(
             self.result_data.get(
                 "sheets",
@@ -598,6 +643,13 @@ class NestingResultImporter(object):
                 )
 
                 if sheet_object:
+                    group = self.result_doc.addObject("App::Part", "SheetGroup_%d" % index)
+                    group.Label = tr('sheet_d') % (index + 1)
+                    group.addObject(sheet_object)
+                    group.Placement.Base = App.Vector(display_x, 0, 0)
+                    display_x += sheet_object.Shape.BoundBox.XLength + 50.0
+                    self.sheet_groups[index] = group
+                    imported_count += 1
                     sheet_object.Label = (
                         tr('sheet_d')
                         % (
@@ -611,6 +663,8 @@ class NestingResultImporter(object):
                     % index
                     + traceback.format_exc()
                 )
+
+        return imported_count
 
     # Create a rectangle wire or a polygon face with holes at the result document origin.
     def _create_sheet_object(self, name, sheet):
@@ -820,6 +874,10 @@ class NestingResultImporter(object):
                     )
 
                 if ok:
+                    obj = self.result_doc.getObject(self._result_object_name(placement))
+                    group = self.sheet_groups.get(int(placement.get("sheet_instance_index", 0)))
+                    if group is not None and obj is not None:
+                        group.addObject(obj)
                     imported_count += 1
 
             except Exception:
@@ -832,6 +890,8 @@ class NestingResultImporter(object):
             tr('imported_d_placed_part_s')
             % imported_count
         )
+
+        return imported_count
 
     # Build an instance name from the placement ID or source/instance indices.
     def _result_object_name(self, placement):
@@ -952,121 +1012,26 @@ class NestingResultImporter(object):
                 source_shape.copy()
             )
 
-            geometry_transform = (
-                source_part.get(
-                    "geometry_transform",
-                    {}
-                )
-            )
-
-            if not geometry_transform:
-                geometry_transform = (
-                    source_part.get(
-                        "_ip_nesting",
-                        {}
-                    ).get(
-                        "geometry_transform",
-                        {}
-                    )
-                )
-
-            offset = (
-                geometry_transform.get(
-                    "nesting_to_source_shape_offset",
-                    {}
-                )
-            )
-
-            offset_x = _safe_float(
-                offset.get(
-                    "x"
-                )
-            )
-
-            offset_y = _safe_float(
-                offset.get(
-                    "y"
-                )
-            )
-
-            offset_z = _safe_float(
-                offset.get(
-                    "z"
-                )
-            )
-
-            # Move source geometry from source_shape_coordinates
-            # into nesting_local coordinates.
-            if (
-                abs(offset_x) > 1e-12
-                or abs(offset_y) > 1e-12
-                or abs(offset_z) > 1e-12
-            ):
-                try:
-                    result_object.Shape.translate(
-                        App.Vector(
-                            -offset_x,
-                            -offset_y,
-                            -offset_z
-                        )
-                    )
-                except Exception:
-                    App.Console.PrintWarning(
-                        tr('could_not_apply_source_shape_offset_for_s')
-                        % preview_object_name
-                    )
-
-            source_placement = _copy_placement(
-                source_object.Placement
-            )
-
-            result_x = _safe_float(
-                placement.get(
-                    "x"
-                )
-            )
-
-            result_y = _safe_float(
-                placement.get(
-                    "y"
-                )
-            )
-
-            result_rotation = _safe_float(
-                placement.get(
-                    "rotation"
-                )
-            )
-
-            # Preserve the original source placement first.
-            result_object.Placement = (
-                source_placement
-            )
-
-            # Apply the nesting result in the XY plane.
-            result_rotation_placement = (
-                App.Placement(
-                    App.Vector(
-                        result_x,
-                        result_y,
-                        0.0
-                    ),
-                    App.Rotation(
-                        App.Vector(
-                            0,
-                            0,
-                            1
-                        ),
-                        result_rotation
-                    )
-                )
-            )
-
-            result_object.Placement = (
-                result_rotation_placement.multiply(
-                    result_object.Placement
-                )
-            )
+            cached = self._source_shapes.get(preview_object_name)
+            if cached is None:
+                from IPNestingExport import (_extract_part_candidate_wires, _normalize_polygon,
+                                             _polygons_same_2d, _points_min_xy)
+                candidates = _extract_part_candidate_wires(source_object, source_part.get("boundary_resolution", .01))
+                if source_part.get("points") and not _polygons_same_2d(
+                        _normalize_polygon(candidates[0]), source_part["points"], 2e-5):
+                    raise ValueError("Source geometry changed while nesting was running")
+                ox, oy = _points_min_xy(candidates[0])
+                cached = source_shape.copy()
+                cached.translate(App.Vector(-ox, -oy, -cached.BoundBox.ZMin))
+                self._source_shapes[preview_object_name] = cached
+            shape = cached.copy()
+            result_x = _safe_float(placement.get("x"))
+            result_y = _safe_float(placement.get("y"))
+            result_rotation = _safe_float(placement.get("rotation"))
+            transform = App.Placement(App.Vector(result_x, result_y, 0),
+                                      App.Rotation(App.Vector(0, 0, 1), result_rotation))
+            shape.Placement = transform.multiply(shape.Placement)
+            result_object.Shape = shape
 
             try:
                 result_object.addProperty(
@@ -1144,6 +1109,19 @@ class NestingResultImporter(object):
         try:
             if Part is None:
                 return False
+
+            if "absolute_points" in placement:
+                contours = [placement["absolute_points"]] + placement.get("absolute_holes", [])
+                wires = []
+                for contour in contours:
+                    vectors = _close_vectors(_points_to_vectors(contour))
+                    if len(vectors) < 4:
+                        return False
+                    wires.append(Part.makePolygon(vectors))
+                obj = self.result_doc.addObject("Part::Feature", self._result_object_name(placement))
+                obj.Label = source_part.get("label", obj.Name)
+                obj.Shape = Part.makeCompound(wires)
+                return True
 
             points = source_part.get(
                 "points",
@@ -1333,6 +1311,19 @@ class NestingProcessManager(object):
         self.stable_result_checks = 0
 
         self._finished = False
+        self._cancelled = False
+        self._imported_signature = None
+        self.importer = None
+
+    def is_running(self):
+        return self.process is not None and self.process.poll() is None
+
+    def stop_nesting(self):
+        self._cancelled = True
+        if self.is_running():
+            process = self.process
+            process.terminate()
+            QtCore.QTimer.singleShot(2000, lambda: process.kill() if process.poll() is None else None)
 
     # ------------------------------------------------------------------
     # Paths
@@ -1454,12 +1445,14 @@ class NestingProcessManager(object):
             self.last_result_signature = None
             self.stable_result_checks = 0
             self._finished = False
+            self._cancelled = False
+            self._imported_signature = None
+            self.importer = NestingResultImporter(self.panel)
 
             # Hide/disable controls while nesting is running.
             try:
-                self.panel.run_btn.setEnabled(
-                    False
-                )
+                self.panel.run_btn.setEnabled(False)
+                self.panel.stop_btn.setEnabled(True)
             except Exception:
                 pass
 
@@ -1519,6 +1512,14 @@ class NestingProcessManager(object):
     def _check_result(self):
         try:
             if self._finished:
+                return
+
+            running = self.is_running()
+            if not running and getattr(self, "_cancelled", False) and not os.path.exists(self.result_path or ""):
+                self._finish_success()
+                return
+            if not running and self.process is not None and self.process.returncode and not getattr(self, "_cancelled", False):
+                self._finish_failure("Nesting CLI exited with code %s" % self.process.returncode)
                 return
 
             if not self.result_path:
@@ -1584,10 +1585,9 @@ class NestingProcessManager(object):
                 self.result_path
             )
 
-            if not isinstance(
-                result_data,
-                dict
-            ):
+            if not isinstance(result_data, dict):
+                if not running:
+                    self._finish_failure("Nesting CLI produced an invalid result file")
                 return
 
             result_job_id = result_data.get(
@@ -1596,7 +1596,6 @@ class NestingProcessManager(object):
 
             if (
                 self.job_id
-                and result_job_id
                 and str(result_job_id)
                 != str(self.job_id)
             ):
@@ -1611,17 +1610,20 @@ class NestingProcessManager(object):
                 self.session_path
             )
 
-            importer = NestingResultImporter(
-                self.panel
-            )
-
-            imported = importer.import_result(
-                result_data=result_data,
-                session_data=session_data
-            )
+            if signature == getattr(self, "_imported_signature", None):
+                if not running:
+                    self._finish_success()
+                return
+            if self.importer is None:
+                self.importer = NestingResultImporter(self.panel)
+            imported = self.importer.import_result(
+                result_data=result_data, session_data=session_data,
+                show_summary=not running)
 
             if imported:
-                self._finish_success()
+                self._imported_signature = signature
+                if not running:
+                    self._finish_success()
             else:
                 self._finish_failure(
                     tr('could_not_import_result_json')
@@ -1650,9 +1652,8 @@ class NestingProcessManager(object):
         self._stop_timer()
 
         try:
-            self.panel.run_btn.setEnabled(
-                True
-            )
+            self.panel.run_btn.setEnabled(True)
+            self.panel.stop_btn.setEnabled(False)
         except Exception:
             pass
 
@@ -1673,6 +1674,8 @@ class NestingProcessManager(object):
         if self._finished:
             return
 
+        if self.is_running():
+            self.stop_nesting()
         self._finished = True
         self._restore_ui()
 
