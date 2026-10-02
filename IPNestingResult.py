@@ -63,7 +63,8 @@ def _normalize_result(data, session):
                 raise ValueError("A placed part has no source identity")
             source_index = int(source_index)
             source = sources.setdefault(source_index, {})
-            source.update(meta)
+            source.update({key: value for key, value in meta.items()
+                           if key not in ("shape_brep", "normalization_offset", "display")})
             source["source_part_index"] = source_index
             placement = dict(part, source_part_index=source_index,
                              instance_index=len(placements), sheet_instance_index=sheet_index)
@@ -357,7 +358,7 @@ class NestingResultImporter(object):
                 self._get_preview_document()
             )
 
-            if self.preview_doc is None:
+            if self.preview_doc is None and not all(p.get("shape_brep") for p in self.source_parts_by_index.values()):
                 App.Console.PrintError(
                     tr('nesting_preview_document_was_not_found')
                 )
@@ -862,7 +863,7 @@ class NestingResultImporter(object):
                     source_part
                 )
 
-                if source_type == "3d":
+                if source_part.get("shape_brep") or source_type == "3d":
                     ok = self._import_3d_instance(
                         source_part,
                         placement
@@ -938,93 +939,40 @@ class NestingResultImporter(object):
         source_part,
         placement
     ):
-        """
-        Import a 3D source object.
-
-        Transformation order:
-
-        1. Copy source Shape.
-        2. Apply nesting-to-source-shape offset
-           to the copied Shape.
-        3. Preserve source object's Placement.
-        4. Apply result rotation around local origin.
-        5. Apply result x/y translation.
-        """
+        """Place the captured BREP using only normalization and a Z rotation."""
         try:
-            if self.preview_doc is None:
-                return False
-
-            preview_object_name = (
-                self._get_preview_object_name(
-                    source_part
-                )
-            )
-
-            if not preview_object_name:
-                return False
-
-            source_object = (
-                self.preview_doc.getObject(
-                    preview_object_name
-                )
-            )
-
-            if source_object is None:
-                App.Console.PrintWarning(
-                    tr('preview_object_s_was_not_found')
-                    % preview_object_name
-                )
-                return False
-
-            source_shape = getattr(
-                source_object,
-                "Shape",
-                None
-            )
-
-            if source_shape is None:
-                return False
-
-            if source_shape.isNull():
-                return False
-
-            result_name = (
-                self._result_object_name(
-                    placement
-                )
-            )
-
-            result_object = (
-                self.result_doc.addObject(
-                    "Part::Feature",
-                    result_name
-                )
-            )
-
-            result_object.Label = (
-                source_part.get(
-                    "label",
-                    result_name
-                )
-            )
-
-            result_object.Shape = (
-                source_shape.copy()
-            )
-
-            cached = self._source_shapes.get(preview_object_name)
+            preview_object_name = self._get_preview_object_name(source_part)
+            cache_key = source_part.get("part_id", preview_object_name)
+            cached = self._source_shapes.get(cache_key)
             if cached is None:
-                from IPNestingExport import (_extract_part_candidate_wires, _normalize_polygon,
-                                             _polygons_same_2d, _points_min_xy)
-                candidates = _extract_part_candidate_wires(source_object, source_part.get("boundary_resolution", .01))
-                if source_part.get("points") and not _polygons_same_2d(
-                        _normalize_polygon(candidates[0]), source_part["points"], 2e-5):
-                    raise ValueError("Source geometry changed while nesting was running")
-                ox, oy = _points_min_xy(candidates[0])
-                cached = source_shape.copy()
-                cached.translate(App.Vector(-ox, -oy, -cached.BoundBox.ZMin))
-                self._source_shapes[preview_object_name] = cached
+                if source_part.get("shape_brep"):
+                    cached = Part.Shape()
+                    cached.importBrepFromString(source_part["shape_brep"])
+                    if cached.isNull() or not cached.isValid():
+                        raise ValueError("Invalid job geometry snapshot")
+                    offset = source_part["normalization_offset"]
+                    cached.translate(App.Vector(*[-float(v) for v in offset]))
+                else:
+                    # Compatibility with older sessions that did not capture BREP.
+                    if self.preview_doc is None or not preview_object_name:
+                        return False
+                    source_object = self.preview_doc.getObject(preview_object_name)
+                    if source_object is None:
+                        return False
+                    from IPNestingExport import (_extract_part_candidate_wires, _normalize_polygon,
+                                                 _polygons_same_2d, _points_min_xy)
+                    candidates = _extract_part_candidate_wires(source_object, source_part.get("boundary_resolution", .01))
+                    if source_part.get("points") and not _polygons_same_2d(
+                            _normalize_polygon(candidates[0]), source_part["points"], 2e-5):
+                        raise ValueError("Source geometry changed while nesting was running")
+                    ox, oy = _points_min_xy(candidates[0])
+                    cached = source_object.Shape.copy()
+                    cached.translate(App.Vector(-ox, -oy, -cached.BoundBox.ZMin))
+                self._source_shapes[cache_key] = cached
             shape = cached.copy()
+            result_name = self._result_object_name(placement)
+            result_object = self.result_doc.addObject("Part::Feature", result_name)
+            result_object.Label = source_part.get("label", result_name)
             result_x = _safe_float(placement.get("x"))
             result_y = _safe_float(placement.get("y"))
             result_rotation = _safe_float(placement.get("rotation"))
@@ -1032,6 +980,19 @@ class NestingResultImporter(object):
                                       App.Rotation(App.Vector(0, 0, 1), result_rotation))
             shape.Placement = transform.multiply(shape.Placement)
             result_object.Shape = shape
+            display = source_part.get("display", {})
+            try:
+                view = result_object.ViewObject
+                if "shape_color" in display:
+                    view.ShapeColor = tuple(display["shape_color"])
+                if "line_color" in display:
+                    view.LineColor = tuple(display["line_color"])
+                if "transparency" in display:
+                    view.Transparency = display["transparency"]
+                if display.get("face_colors"):
+                    view.DiffuseColor = [tuple(color) for color in display["face_colors"]]
+            except (AttributeError, TypeError):
+                pass
 
             try:
                 result_object.addProperty(
@@ -1288,407 +1249,266 @@ class NestingResultImporter(object):
 
 # Starts the configured nesting CLI and waits asynchronously for result.json.
 class NestingProcessManager(object):
-    """
-    Starts the configured nesting CLI and waits asynchronously for result.json.
-    """
-
-    # Initialize process paths, job identity, polling state and the completion guard.
+    """One asynchronous workbench job, with strict identity and cooperative stop."""
     def __init__(self, panel):
         self.panel = panel
-
         self.process = None
         self.result_timer = None
-
-        self.input_path = None
-        self.result_path = None
-        self.session_path = None
-        self.cli_path = None
-
+        self.wait_dialog = None
+        self.input_path = self.result_path = self.session_path = self.cli_path = None
+        self.cancel_path = None
         self.job_id = None
-        self.process_started_at = None
-
+        self.session_data = {}
         self.last_result_signature = None
         self.stable_result_checks = 0
-
+        self._imported_signature = None
         self._finished = False
         self._cancelled = False
-        self._imported_signature = None
+        self._job_lock = None
+        self._log = None
         self.importer = None
+
+    def _module_directory(self):
+        return os.path.abspath(os.path.dirname(__file__))
+
+    def _find_nesting_cli_executable(self):
+        from IPNestingRuntime import find_executable
+        return find_executable(self._module_directory())
 
     def is_running(self):
         return self.process is not None and self.process.poll() is None
 
+    def prepare_job(self):
+        """Lock before the exporter writes input/session in the workbench."""
+        if self.is_running():
+            return False
+        if self._job_lock is not None:
+            return True
+        lock = QtCore.QLockFile(os.path.join(self._module_directory(), ".ipnesting-job.lock"))
+        if not lock.tryLock(0):
+            QtGui.QMessageBox.warning(self.panel.form, tr('nesting_already_running'),
+                                      tr('a_nesting_process_is_already_running'))
+            return False
+        self._job_lock = lock
+        return True
+
+    def release_job(self):
+        if self.is_running():
+            return
+        if self._job_lock is not None:
+            self._job_lock.unlock()
+            self._job_lock = None
+
+    def _release_after_exit(self):
+        if self.is_running():
+            QtCore.QTimer.singleShot(100, self._release_after_exit)
+        else:
+            self.release_job()
+            self._close_log()
+            self._remove_cancel_marker()
+
+    def _close_log(self):
+        if self._log is not None:
+            self._log.close()
+            self._log = None
+
+    def _remove_cancel_marker(self):
+        if self.cancel_path and os.path.isfile(self.cancel_path):
+            try:
+                os.remove(self.cancel_path)
+            except OSError:
+                pass
+
     def stop_nesting(self):
+        if self._cancelled:
+            return
         self._cancelled = True
         if self.is_running():
             process = self.process
-            process.terminate()
-            QtCore.QTimer.singleShot(2000, lambda: process.kill() if process.poll() is None else None)
+            try:
+                with open(self.cancel_path, "w", encoding="utf-8") as stream:
+                    stream.write(self.job_id)
+            except (OSError, TypeError):
+                process.terminate()
+            # Native file cancellation also works with CREATE_NO_WINDOW.
+            QtCore.QTimer.singleShot(5000, lambda: process.kill() if process.poll() is None else None)
 
-    # ------------------------------------------------------------------
-    # Paths
-    # ------------------------------------------------------------------
+    def shutdown(self):
+        """A closed task panel must not leave a worker or file lock behind."""
+        self.stop_nesting()
+        try:
+            if self.result_timer is not None:
+                self.result_timer.stop()
+            if self.wait_dialog is not None:
+                self.wait_dialog.finish()
+                self.wait_dialog = None
+        except RuntimeError:
+            pass  # Qt parent may already have destroyed its child widgets.
+        self._release_after_exit()
 
-    # Return the absolute directory containing the result-processing module.
-    def _module_directory(self):
-        return os.path.abspath(
-            os.path.dirname(__file__)
-        )
-
-    # Return the nesting CLI executable located inside the workbench directory:
-    def _find_nesting_cli_executable(self):
-        """
-        Return the nesting CLI executable located inside the workbench
-        directory:
-
-            <workbench>/nesting-cli/clinesting.exe
-        """
-        executable_path = os.path.join(
-            self._module_directory(),
-            "nesting-cli",
-            "clinesting.exe"
-        )
-
-        if os.path.isfile(executable_path):
-            return os.path.abspath(
-                executable_path
-            )
-
-        return None
-    # ------------------------------------------------------------------
-    # Start
-    # ------------------------------------------------------------------
-
-    # Launch the bundled nesting CLI and poll its result file while disabling Run
-    # Nesting.
     def start_nesting(self, input_path):
         try:
-            if self.process is not None:
-                if self.process.poll() is None:
-                    QtGui.QMessageBox.warning(
-                        self.panel.form,
-                        tr('nesting_already_running'),
-                        tr('a_nesting_process_is_already_running')
-                    )
-                    return False
-
-            self.input_path = os.path.abspath(
-                input_path
-            )
-
-            # Workbench directory contains input.json and nesting_session.json.
-            work_directory = os.path.dirname(
-                self.input_path
-            )
-
-            self.session_path = os.path.join(
-                work_directory,
-                "nesting_session.json"
-            )
-
-            self.cli_path = (
-                self._find_nesting_cli_executable()
-            )
-
-            if not self.cli_path:
-                QtGui.QMessageBox.critical(
-                    self.panel.form,
-                    tr('nesting_error'),
-                    (
-                        tr('nesting_cli_executable_was_not_found_expected_location_s')
-                    )
-                    % os.path.join(
-                        self._module_directory(),
-                        "nesting-cli",
-                        "clinesting.exe"
-                    )
-                )
+            if self.is_running():
                 return False
-
-            # The nesting CLI resolves relative output paths against the
-            # directory containing input.json, so result.json lands next to
-            # the input file, not next to the executable.
-            self.result_path = os.path.join(
-                work_directory,
-                "result.json"
-            )
-
-            session_data = _load_json_file(
-                self.session_path
-            )
-
-            if isinstance(
-                session_data,
-                dict
-            ):
-                self.job_id = session_data.get(
-                    "job_id"
-                )
-
-            # Delete old result before launching a new job.
-            try:
-                if os.path.exists(
-                    self.result_path
-                ):
-                    os.remove(
-                        self.result_path
-                    )
-            except Exception:
-                App.Console.PrintWarning(
-                    tr('could_not_remove_old_result_json')
-                )
-
-            self.process_started_at = (
-                QtCore.QDateTime.currentDateTime()
-            )
-
+            if not self.prepare_job():
+                return False
+            self.input_path = os.path.abspath(input_path)
+            directory = self._module_directory()
+            if self.input_path != os.path.join(directory, "input.json"):
+                raise ValueError("input.json must be in the workbench directory")
+            self.session_path = os.path.join(directory, "nesting_session.json")
+            self.result_path = os.path.join(directory, "result.json")
+            input_data = _load_json_file(self.input_path)
+            self.session_data = _load_json_file(self.session_path)
+            if not isinstance(input_data, dict) or not isinstance(self.session_data, dict):
+                raise ValueError("The nesting job files could not be read")
+            self.job_id = input_data.get("job_id")
+            import re
+            if (not isinstance(self.job_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", self.job_id)
+                    or self.session_data.get("job_id") != self.job_id):
+                raise ValueError("Input and session job identifiers do not match")
+            expected_cancel = ".clinesting-cancel-" + self.job_id
+            output = input_data.get("output", {})
+            if output.get("json") != "result.json" or output.get("cancelFile") != expected_cancel:
+                raise ValueError("Unexpected workbench result/cancellation paths")
+            self.cancel_path = os.path.join(directory, expected_cancel)
+            self.cli_path = self._find_nesting_cli_executable()
+            if not self.cli_path:
+                from IPNestingRuntime import executable_candidates
+                raise RuntimeError(tr('nesting_cli_executable_was_not_found_expected_location_s')
+                                   % executable_candidates(directory)[0])
+            # Only remove this job's marker and the old root snapshot. The CLI
+            # locks and clears results history when continuous mode starts.
+            self._remove_cancel_marker()
+            if os.path.lexists(self.result_path):
+                if os.path.islink(self.result_path):
+                    raise ValueError("result.json must not be a filesystem link")
+                os.remove(self.result_path)
             self.last_result_signature = None
             self.stable_result_checks = 0
-            self._finished = False
-            self._cancelled = False
             self._imported_signature = None
+            self._finished = self._cancelled = False
             self.importer = NestingResultImporter(self.panel)
-
-            # Hide/disable controls while nesting is running.
+            self._log = open(os.path.join(directory, "clinesting.log"), "wb")
+            self.process = subprocess.Popen(
+                [self.cli_path, "--input", self.input_path], cwd=directory,
+                stdout=self._log, stderr=subprocess.STDOUT,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
             try:
                 self.panel.run_btn.setEnabled(False)
                 self.panel.stop_btn.setEnabled(True)
-            except Exception:
+            except AttributeError:
                 pass
-
-            self.process = subprocess.Popen(
-                [
-                    self.cli_path,
-                    "--input",
-                    self.input_path
-                ],
-                cwd=work_directory,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.STDOUT
-            )
-
-            self.result_timer = QtCore.QTimer(
-                self.panel.form
-            )
-
-            self.result_timer.setInterval(
-                500
-            )
-
-            self.result_timer.timeout.connect(
-                self._check_result
-            )
-
+            from IPNestingWaitDialog import NestingWaitDialog
+            self.wait_dialog = NestingWaitDialog(self.stop_nesting, getattr(self.panel, "form", None))
+            self.wait_dialog.show()
+            self.result_timer = QtCore.QTimer(getattr(self.panel, "form", None))
+            self.result_timer.setInterval(250)
+            self.result_timer.timeout.connect(self._check_result)
             self.result_timer.start()
-
-            App.Console.PrintMessage(
-                tr('nesting_cli_started')
-            )
-
-            App.Console.PrintMessage(
-                tr('waiting_for_result_json')
-            )
-
+            App.Console.PrintMessage(tr('nesting_cli_started'))
             return True
-
-        except Exception:
-            App.Console.PrintError(
-                tr('nestingprocessmanager_start_nesting_failed')
-                + traceback.format_exc()
-            )
-
-            self._finish_failure(
-                tr('could_not_start_the_nesting_cli')
-            )
-
+        except Exception as exc:
+            App.Console.PrintError(traceback.format_exc())
+            self._finish_failure(str(exc))
             return False
 
-    # ------------------------------------------------------------------
-    # Polling
-    # ------------------------------------------------------------------
+    def _failure_detail(self):
+        try:
+            with open(os.path.join(self._module_directory(), "clinesting.log"), "rb") as stream:
+                stream.seek(0, os.SEEK_END)
+                stream.seek(max(0, stream.tell() - 4096))
+                return stream.read().decode("utf-8", errors="replace")
+        except OSError:
+            return ""
 
-    # Wait for a stable result file, check its job ID and import it or report a detected
-    # failure.
     def _check_result(self):
         try:
             if self._finished:
                 return
-
             running = self.is_running()
-            if not running and getattr(self, "_cancelled", False) and not os.path.exists(self.result_path or ""):
-                self._finish_success()
-                return
-            if not running and self.process is not None and self.process.returncode and not getattr(self, "_cancelled", False):
-                self._finish_failure("Nesting CLI exited with code %s" % self.process.returncode)
-                return
-
-            if not self.result_path:
-                self._finish_failure(
-                    tr('result_path_is_not_configured')
-                )
-                return
-
-            if not os.path.exists(
-                self.result_path
-            ):
-                if (
-                    self.process is not None
-                    and self.process.poll() is not None
-                ):
-                    return_code = self.process.returncode
-
-                    self._finish_failure(
-                        (
-                            tr('nesting_cli_finished_without_creating_result_json_exit_code_s')
-                        )
-                        % str(return_code)
-                    )
-
-                return
-
-            # Ignore result.json from before this process.
-            try:
-                result_mtime = os.path.getmtime(
-                    self.result_path
-                )
-
-                started_timestamp = (
-                    self.process_started_at.toSecsSinceEpoch()
-                )
-
-                if result_mtime < started_timestamp:
+            if not running:
+                self._close_log()
+                if self.process is not None and self.process.returncode and not self._cancelled:
+                    self._finish_failure("Nesting CLI exited with code %s\n%s" %
+                                         (self.process.returncode, self._failure_detail()))
                     return
-
-            except Exception:
-                pass
-
-            signature = _read_file_signature(
-                self.result_path
-            )
-
+            if not self.result_path or not os.path.exists(self.result_path):
+                if not running:
+                    if self._cancelled:
+                        self._finish_success()
+                    else:
+                        self._finish_failure(tr('nesting_cli_finished_without_creating_result_json_exit_code_s')
+                                             % str(self.process.returncode if self.process else "unknown"))
+                return
+            signature = _read_file_signature(self.result_path)
             if signature is None:
                 return
-
             if signature != self.last_result_signature:
                 self.last_result_signature = signature
                 self.stable_result_checks = 0
                 return
-
             self.stable_result_checks += 1
-
-            # Wait until the file has remained unchanged
-            # for at least two polling cycles.
             if self.stable_result_checks < 2:
                 return
-
-            result_data = _load_json_file(
-                self.result_path
-            )
-
+            if signature == self._imported_signature:
+                if not running:
+                    self._finish_success()
+                return
+            result_data = _load_json_file(self.result_path)
             if not isinstance(result_data, dict):
                 if not running:
                     self._finish_failure("Nesting CLI produced an invalid result file")
                 return
-
-            result_job_id = result_data.get(
-                "job_id"
-            )
-
-            if (
-                self.job_id
-                and str(result_job_id)
-                != str(self.job_id)
-            ):
-                self._finish_failure(
-                    (
-                        tr('the_job_id_in_result_json_does_not_match_nesting_session_json')
-                    )
-                )
-                return
-
-            session_data = _load_json_file(
-                self.session_path
-            )
-
-            if signature == getattr(self, "_imported_signature", None):
+            if self.job_id and result_data.get("job_id") != self.job_id:
+                # A foreign file must never replace this job's displayed result.
                 if not running:
-                    self._finish_success()
+                    self._finish_failure(tr('the_job_id_in_result_json_does_not_match_nesting_session_json'))
                 return
             if self.importer is None:
                 self.importer = NestingResultImporter(self.panel)
-            imported = self.importer.import_result(
-                result_data=result_data, session_data=session_data,
-                show_summary=not running)
-
-            if imported:
-                self._imported_signature = signature
-                if not running:
-                    self._finish_success()
-            else:
-                self._finish_failure(
-                    tr('could_not_import_result_json')
-                )
-
+            session = self.session_data or _load_json_file(self.session_path)
+            if not self.importer.import_result(result_data=result_data, session_data=session, show_summary=False):
+                self._finish_failure(tr('could_not_import_result_json'))
+                return
+            self._imported_signature = signature
+            if not running:
+                self._finish_success()
         except Exception:
-            self._finish_failure(
-                tr('result_processing_failed_s')
-                % traceback.format_exc()
-            )
+            self._finish_failure(tr('result_processing_failed_s') % traceback.format_exc())
 
-    # ------------------------------------------------------------------
-    # Finish
-    # ------------------------------------------------------------------
-
-    # Stop result polling when a timer exists.
-    def _stop_timer(self):
-        try:
-            if self.result_timer is not None:
-                self.result_timer.stop()
-        except Exception:
-            pass
-
-    # Stop result polling and re-enable the Run Nesting button.
     def _restore_ui(self):
-        self._stop_timer()
-
+        if self.result_timer is not None:
+            self.result_timer.stop()
+        if self.wait_dialog is not None:
+            self.wait_dialog.finish()
+            self.wait_dialog.deleteLater()
+            self.wait_dialog = None
         try:
             self.panel.run_btn.setEnabled(True)
             self.panel.stop_btn.setEnabled(False)
-        except Exception:
+        except AttributeError:
             pass
+        self._release_after_exit()
 
-    # Mark the job finished once, restore the UI and log successful import.
     def _finish_success(self):
         if self._finished:
             return
-
         self._finished = True
         self._restore_ui()
+        if self._imported_signature is not None:
+            App.Console.PrintMessage(tr('nesting_result_imported_successfully'))
+        elif self._cancelled:
+            App.Console.PrintMessage(tr('common.cancel') + "\n")
 
-        App.Console.PrintMessage(
-            tr('nesting_result_imported_successfully')
-        )
-
-    # Mark the job finished once, restore the UI and display the failure message.
     def _finish_failure(self, message):
         if self._finished:
             return
-
-        if self.is_running():
-            self.stop_nesting()
+        self.stop_nesting()
         self._finished = True
         self._restore_ui()
-
-        App.Console.PrintError(
-            tr('nesting_failed_s')
-            % str(message)
-        )
-
+        App.Console.PrintError(tr('nesting_failed_s') % str(message))
         try:
-            QtGui.QMessageBox.critical(
-                self.panel.form,
-                tr('nesting_failed'),
-                str(message)
-            )
-        except Exception:
+            QtGui.QMessageBox.critical(self.panel.form, tr('nesting_failed'), str(message))
+        except (AttributeError, TypeError):
             pass

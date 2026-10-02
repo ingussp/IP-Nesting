@@ -2,4 +2,12 @@ __pycache__/
 nesting-cli/
 input.json
 nesting_session.json
+result.json
+result.json.tmp
+results/
+clinesting.log
+.ipnesting-job.lock
+.clinesting-results.lock
+.clinesting-cancel-*
+.nesting-*
 todo.txt

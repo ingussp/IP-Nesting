@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/ingussp/CLI-nesting",
+  "source_commit": "ab20be8347e3f096b537f3830765a38432b0cac0",
+  "protocol": "workbench-job-v1",
+  "build": {
+    "system": "Windows",
+    "architecture": "x86_64",
+    "compiler": "MSVC 19.44",
+    "configuration": "Release",
+    "static_msvc_runtime": true
+  },
+  "binaries": {
+    "windows-x86_64/clinesting.exe": {
+      "sha256": "945494150318ded61be516146bfaf21c6a7515499070d2f50014bd6bf96b232d",
+      "bytes": 922624
+    }
+  }
+}
