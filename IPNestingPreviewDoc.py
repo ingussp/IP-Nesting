@@ -168,8 +168,7 @@ class PreviewDocManager:
                     App.Console.PrintError(tr('recompute_failed_in_delete_preview_objects') + traceback.format_exc())
                 try:
                     mgr = NestingRelayoutManager(preview_doc_name=self.panel.preview_doc_name, grid_cols=self.panel.grid_cols, padding=50.0)
-                    mgr.run(copy_selection=True)
-                    mgr.run(copy_selection=True)
+                    mgr.run(copy_selection=False)
                 except Exception:
                     App.Console.PrintError(tr('relayout_failed_in_delete_preview_objects') + traceback.format_exc())
                 try:

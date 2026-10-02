@@ -17,6 +17,7 @@ import subprocess
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
+from IPNestingExport import remember_hole_selection, current_selected_holes
 from IPNestingExport import execute_nesting as execute_nesting_impl, normalize_rotation_text, _extract_part_contours, _read_boundary_deflection
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
@@ -614,6 +615,10 @@ class NestingTaskPanel:
         self.run_btn.setStyleSheet("background-color: #CF3519; color: white; font-weight: bold; height: 35px;")
         self.run_btn.clicked.connect(self.execute_nesting)
         self.layout.addWidget(self.run_btn)
+        self.stop_btn = ui_widget(QtGui.QPushButton, tr('common.cancel'))
+        self.stop_btn.setEnabled(False)
+        self.stop_btn.clicked.connect(lambda: self._nesting_manager.stop_nesting())
+        self.layout.addWidget(self.stop_btn)
         
         self.debug_export_btn = ui_widget(QtGui.QPushButton, tr('debug_export_polygons'))
         ui_call(self.debug_export_btn, 'setToolTip', tr('draw_exported_polygons_in_a_separate_document_to_inspect_what_is_sent_to_the_exe'))
@@ -639,6 +644,7 @@ class NestingTaskPanel:
         self._nesting_manager = NestingProcessManager(
             self
         )
+        self.form.destroyed.connect(lambda: self._nesting_manager.stop_nesting())
         register_window(self.form)
 
     # Recompute the preview and display a textual diagnostic report.
@@ -2499,10 +2505,10 @@ class NestingTaskPanel:
                 self._part_holes[primary_name] = []
                 return
 
-            preselected = self._part_holes.get(
-                primary_name,
-                []
-            )
+            try:
+                preselected = current_selected_holes(self, obj, deflection)
+            except ValueError:
+                preselected = []
 
             dialog = PartHoleDialog(
                 primary_name,
@@ -2515,9 +2521,7 @@ class NestingTaskPanel:
             if dialog.exec_() != QtGui.QDialog.Accepted:
                 return
 
-            self._part_holes[primary_name] = (
-                dialog.selected_holes()
-            )
+            remember_hole_selection(self, obj, dialog.selected_holes(), deflection)
 
             App.Console.PrintMessage(
                 tr('mark_holes_applied_s')
@@ -3443,6 +3447,9 @@ class NestingTaskPanel:
         The process manager polls result.json and imports the completed result.
         """
         try:
+            if self._nesting_manager.is_running():
+                return
+
             data_rows = max(
                 0,
                 self.table.rowCount() - self.control_rows
@@ -3487,12 +3494,6 @@ class NestingTaskPanel:
                 script_dir,
                 "input.json"
             )
-
-            if os.path.exists(input_path):
-                try:
-                    os.remove(input_path)
-                except Exception:
-                    pass
 
             generation_ok = execute_nesting_impl(
                 self

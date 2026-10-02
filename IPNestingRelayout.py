@@ -174,13 +174,6 @@ class NestingRelayoutManager:
 
             for o in objs:
                 try:
-                    # Align to largest face (fallback)
-                    try:
-                        rot = self.align_to_largest_face(o)
-                        o.Placement = App.Placement(App.Vector(0, 0, 0), rot)
-                    except Exception:
-                        pass
-
                     if self.recompute:
                         try:
                             p_doc.recompute()
