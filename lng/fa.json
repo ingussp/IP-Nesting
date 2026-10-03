@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "برای قطعه انتخاب‌شده %d سوراخ علامت‌گذاری شد.",
   "mark_holes_dialog_failed": "پنجره علامت‌گذاری سوراخ‌ها ناموفق بود:\n",
   "mark_holes_read_selection_failed": "mark_holes: خواندن انتخاب ناموفق بود:\n",
-  "mark_holes_button": "علامت‌گذاری سوراخ‌های قطعه انتخابی"
-}
+  "mark_holes_button": "علامت‌گذاری سوراخ‌های قطعه انتخابی", "show_gpus": "نمایش GPUها", "looking_for_graphic_cards": "در حال جستجوی کارت‌های گرافیک"}

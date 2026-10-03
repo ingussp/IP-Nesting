@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Valitud detaili jaoks märgiti %d auku.",
   "mark_holes_dialog_failed": "Aukude märkimise dialoog ebaõnnestus:\n",
   "mark_holes_read_selection_failed": "mark_holes: valiku lugemine ebaõnnestus:\n",
-  "mark_holes_button": "Märgi valitud detaili avad"
-}
+  "mark_holes_button": "Märgi valitud detaili avad", "show_gpus": "Näita GPU-sid", "looking_for_graphic_cards": "Graafikakaartide otsimine"}

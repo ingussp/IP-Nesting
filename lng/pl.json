@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Zaznaczono %d otworów dla wybranego elementu.",
   "mark_holes_dialog_failed": "Okno zaznaczania otworów nie powiodło się:\n",
   "mark_holes_read_selection_failed": "mark_holes: odczyt zaznaczenia nie powiódł się:\n",
-  "mark_holes_button": "Zaznacz otwory wybranej części"
-}
+  "mark_holes_button": "Zaznacz otwory wybranej części", "show_gpus": "Pokaż GPU", "looking_for_graphic_cards": "Wyszukiwanie kart graficznych"}

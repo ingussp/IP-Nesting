@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "%d Löcher für das ausgewählte Teil markiert.",
   "mark_holes_dialog_failed": "Dialog zum Markieren von Löchern fehlgeschlagen:\n",
   "mark_holes_read_selection_failed": "mark_holes: Lesen der Auswahl fehlgeschlagen:\n",
-  "mark_holes_button": "Löcher des gewählten Teils markieren"
-}
+  "mark_holes_button": "Löcher des gewählten Teils markieren", "show_gpus": "GPUs anzeigen", "looking_for_graphic_cards": "Grafikkarten werden gesucht"}

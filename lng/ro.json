@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Au fost marcate %d găuri pentru piesa selectată.",
   "mark_holes_dialog_failed": "Dialogul de marcare a găurilor a eșuat:\n",
   "mark_holes_read_selection_failed": "mark_holes: citirea selecției a eșuat:\n",
-  "mark_holes_button": "Marchează găurile piesei selectate"
-}
+  "mark_holes_button": "Marchează găurile piesei selectate", "show_gpus": "Afișează GPU", "looking_for_graphic_cards": "Se caută plăci grafice"}

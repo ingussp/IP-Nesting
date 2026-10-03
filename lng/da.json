@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Markerede %d huller for den valgte del.",
   "mark_holes_dialog_failed": "Dialogen for markering af huller mislykkedes:\n",
   "mark_holes_read_selection_failed": "mark_holes: læsning af markering mislykkedes:\n",
-  "mark_holes_button": "Marker huller i den valgte del"
-}
+  "mark_holes_button": "Marker huller i den valgte del", "show_gpus": "Vis GPU'er", "looking_for_graphic_cards": "Søger efter grafikkort"}

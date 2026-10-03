@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Se marcaron %d agujeros para la pieza seleccionada.",
   "mark_holes_dialog_failed": "El diálogo de marcar agujeros falló:\n",
   "mark_holes_read_selection_failed": "mark_holes: falló la lectura de la selección:\n",
-  "mark_holes_button": "Marcar agujeros de la pieza seleccionada"
-}
+  "mark_holes_button": "Marcar agujeros de la pieza seleccionada", "show_gpus": "Mostrar GPU", "looking_for_graphic_cards": "Buscando tarjetas gráficas"}

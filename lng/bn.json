@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "নির্বাচিত অংশের জন্য %dটি ছিদ্র চিহ্নিত করা হয়েছে।",
   "mark_holes_dialog_failed": "ছিদ্র চিহ্নিতকরণ ডায়ালগ ব্যর্থ হয়েছে:\n",
   "mark_holes_read_selection_failed": "mark_holes: নির্বাচন পড়া ব্যর্থ হয়েছে:\n",
-  "mark_holes_button": "নির্বাচিত অংশের ছিদ্র চিহ্নিত করুন"
-}
+  "mark_holes_button": "নির্বাচিত অংশের ছিদ্র চিহ্নিত করুন", "show_gpus": "GPU দেখান", "looking_for_graphic_cards": "গ্রাফিক্স কার্ড খোঁজা হচ্ছে"}

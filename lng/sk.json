@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Pre vybraný diel bolo označených %d otvorov.",
   "mark_holes_dialog_failed": "Dialóg na označenie otvorov zlyhal:\n",
   "mark_holes_read_selection_failed": "mark_holes: čítanie výberu zlyhalo:\n",
-  "mark_holes_button": "Označiť otvory vybraného dielu"
-}
+  "mark_holes_button": "Označiť otvory vybraného dielu", "show_gpus": "Zobraziť GPU", "looking_for_graphic_cards": "Vyhľadávanie grafických kariet"}

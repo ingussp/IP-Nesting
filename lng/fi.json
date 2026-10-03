@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Valitulle kappaleelle merkittiin %d reikää.",
   "mark_holes_dialog_failed": "Reikien merkitsemisikkuna epäonnistui:\n",
   "mark_holes_read_selection_failed": "mark_holes: valinnan lukeminen epäonnistui:\n",
-  "mark_holes_button": "Merkitse valitun osan reiät"
-}
+  "mark_holes_button": "Merkitse valitun osan reiät", "show_gpus": "Näytä GPU:t", "looking_for_graphic_cards": "Etsitään näytönohjaimia"}

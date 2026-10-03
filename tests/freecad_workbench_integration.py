@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import time
+import threading
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
@@ -42,16 +43,20 @@ class WorkbenchTests(unittest.TestCase):
         self.errors = []
         self.dialog_patch = patch.object(QtGui.QMessageBox, 'critical', side_effect=lambda *args: self.errors.append(str(args[-1])))
         self.dialog_patch.start()
+        self.warning_patch = patch.object(QtGui.QMessageBox, 'warning', side_effect=lambda *args: self.errors.append(str(args[-1])))
+        self.warning_patch.start()
 
     def tearDown(self):
         if self.manager is not None and self.manager.is_running():
-            self.manager.process.kill()
-            self.manager.process.wait(timeout=5)
+            self.manager.shutdown()
+            self.wait_until(lambda: not self.manager.is_running())
+            self.manager._release_after_exit()
         if self.manager is not None:
             self.manager._restore_ui()
         self.form.close()
         APPLICATION.processEvents()
         self.dialog_patch.stop()
+        self.warning_patch.stop()
         for name in list(App.listDocuments()):
             App.closeDocument(name)
         self.temp.cleanup()
@@ -136,11 +141,24 @@ class WorkbenchTests(unittest.TestCase):
         E.__file__ = str(self.root / 'IPNestingExport.py')
         G.__file__ = str(self.root / 'IPNestingGui.py')
         try:
+            extracted = []
+            extraction = E._extract_part_candidate_wires
+            def trace_contour(*args, **kwargs):
+                self.assertTrue(self.manager.wait_dialog._painted)
+                extracted.append(1)
+                return extraction(*args, **kwargs)
+            contour_patch = patch.object(E, '_extract_part_candidate_wires', side_effect=trace_contour)
+            contour_patch.start()
             panel.run_btn.click()
+            self.assertTrue(self.manager.wait_dialog.isVisible())
+            self.assertIsNone(self.manager.process)
+            self.wait_until(lambda: self.manager.process is not None or self.manager._finished)
             self.assertIsNotNone(self.manager.process, self.errors)
             self.wait_until(lambda: self.manager._finished)
         finally:
+            contour_patch.stop()
             E.__file__, G.__file__ = originals
+        self.assertEqual(len(extracted), 1)
         self.assertFalse(self.errors)
         self.assertEqual(json.loads((self.root / 'result.json').read_text())['placed'], 2)
         self.assertTrue(panel.isAllowedAlterDocument())
@@ -169,7 +187,8 @@ class WorkbenchTests(unittest.TestCase):
         other._module_directory = lambda: str(self.root)
         with patch.object(QtGui.QMessageBox, 'warning'):
             self.assertFalse(other.prepare_job())
-        # Stop the timer to inject a foreign result before any import.
+        # Stop before polling/importing; launch is now asynchronous.
+        self.wait_until(lambda: self.manager.process is not None)
         self.manager.result_timer.stop()
         (self.root / 'result.json').write_text(json.dumps(dict(job_id='foreign', sheets=[], placed=0)))
         for _ in range(3): self.manager._check_result()
@@ -177,6 +196,118 @@ class WorkbenchTests(unittest.TestCase):
         self.assertFalse(self.manager._finished)
         self.manager.stop_nesting()
         self.manager.process.wait(timeout=5)
+
+    def test_gpu_is_explicit_and_painted_before_slow_scan(self):
+        import IPNestingGui as G
+        import IPNestingGpu as GPU
+        ticks, seen = [], []
+        heartbeat = QtCore.QTimer(self.form)
+        heartbeat.setInterval(5)
+        heartbeat.timeout.connect(lambda: ticks.append(time.monotonic()))
+        heartbeat.start()
+        main_thread = threading.get_ident()
+        def scan(exe, cancelled):
+            seen.append((panel._gpu_discovery.dialog._painted, threading.get_ident()))
+            time.sleep(.25)
+            return [(0, 'Test GPU')]
+        with patch.object(GPU, 'query_devices', side_effect=scan) as query:
+            panel = G.NestingTaskPanel()
+            self.assertTrue(hasattr(panel, 'show_gpus_btn'))
+            query.assert_not_called()
+            panel.gpu_enabled_combo.setCurrentIndex(1)
+            APPLICATION.processEvents()
+            query.assert_not_called()
+            panel.show_gpus_btn.click()
+            self.assertTrue(panel._gpu_discovery.dialog.isVisible())
+            query.assert_not_called()
+            self.wait_until(lambda: panel._gpu_discovery.dialog is None)
+        heartbeat.stop()
+        self.assertEqual(len(seen), 1)
+        self.assertTrue(seen[0][0])
+        self.assertNotEqual(seen[0][1], main_thread)
+        self.assertGreater(len(ticks), 10)
+        self.assertEqual(panel.gpu_device_combo.itemText(1), 'Test GPU')
+        panel.form.deleteLater()
+
+    def test_cancel_gpu_before_first_paint_does_not_scan(self):
+        import IPNestingGui as G
+        import IPNestingGpu as GPU
+        panel = G.NestingTaskPanel()
+        with patch.object(GPU, 'query_devices') as query:
+            panel.show_gpus_btn.click()
+            panel._gpu_discovery.dialog.cancel_button.click()
+            APPLICATION.processEvents()
+            query.assert_not_called()
+        self.assertTrue(panel.show_gpus_btn.isEnabled())
+        panel.form.deleteLater()
+
+    def test_slow_process_creation_keeps_qt_responsive_after_paint(self):
+        ticks, seen = [], []
+        heartbeat = QtCore.QTimer(self.form)
+        heartbeat.setInterval(5)
+        heartbeat.timeout.connect(lambda: ticks.append(time.monotonic()))
+        heartbeat.start()
+        popen = R.subprocess.Popen
+        main_thread = threading.get_ident()
+        def delayed(*args, **kwargs):
+            seen.append((self.manager.wait_dialog._painted, threading.get_ident()))
+            time.sleep(.25)
+            return popen(*args, **kwargs)
+        with patch.object(R.subprocess, 'Popen', side_effect=delayed):
+            self.export_and_start('first', 2)
+            self.wait_until(lambda: self.manager.process is not None or self.manager._finished)
+        heartbeat.stop()
+        self.assertEqual(len(seen), 1)
+        self.assertTrue(seen[0][0])
+        self.assertNotEqual(seen[0][1], main_thread)
+        self.assertGreater(len(ticks), 10)
+        self.wait_until(lambda: self.manager._finished)
+        self.assertFalse(self.errors)
+
+    def test_cancel_pending_launch_reaps_late_process_and_keeps_lock(self):
+        started, allow = threading.Event(), threading.Event()
+        created = []
+        popen = R.subprocess.Popen
+        def delayed(*args, **kwargs):
+            if '--input' not in args[0]:
+                return popen(*args, **kwargs)
+            started.set()
+            allow.wait(5)
+            process = popen(*args, **kwargs)
+            created.append(process)
+            return process
+        with patch.object(R.subprocess, 'Popen', side_effect=delayed):
+            panel = self.export_and_start('continuous')
+            try:
+                self.wait_until(started.is_set)
+                self.manager.wait_dialog.cancel_button.click()
+                self.assertTrue(self.manager._finished)
+                self.assertTrue(self.manager.is_running())
+                other = R.NestingProcessManager(panel)
+                other._module_directory = lambda: str(self.root)
+                with patch.object(QtGui.QMessageBox, 'warning'):
+                    self.assertFalse(other.prepare_job())
+            finally:
+                allow.set()
+            self.wait_until(lambda: not self.manager.is_running())
+        self.manager._release_after_exit()
+        self.assertEqual(len(created), 1)
+        self.assertIsNotNone(created[0].poll())
+        self.assertIsNone(self.manager._job_lock)
+        self.assertIsNone(self.manager._log)
+        self.assertFalse(self.errors)
+
+    def test_cancel_before_export_paint_does_not_touch_job_files(self):
+        panel = NS(form=self.form, run_btn=QtGui.QPushButton(), stop_btn=QtGui.QPushButton())
+        self.manager = R.NestingProcessManager(panel)
+        self.manager._module_directory = lambda: str(self.root)
+        with patch.object(E, 'export_nesting_steps') as export:
+            self.assertTrue(self.manager.prepare_and_start(str(self.root / 'input.json')))
+            self.manager.wait_dialog.cancel_button.click()
+            APPLICATION.processEvents()
+            export.assert_not_called()
+        self.assertFalse((self.root / 'input.json').exists())
+        self.assertIsNone(self.manager._job_lock)
 
     def test_snapshot_works_without_preview_document(self):
         record = snapshot_part(self.source, .01)
