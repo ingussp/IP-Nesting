@@ -605,14 +605,15 @@ def remember_hole_selection(panel, obj, holes, deflection=0.01):
     panel._part_holes[obj.Name] = holes
 
 
-def current_selected_holes(panel, obj, deflection=0.01):
+def current_selected_holes(panel, obj, deflection=0.01, candidates=None):
     selected = getattr(panel, "_part_holes", {}).get(obj.Name) or []
     if not selected:
         return []
     local = getattr(panel, "_part_hole_local", {}).get(obj.Name)
     if local is None:
         raise ValueError("Please mark the part holes again before nesting")
-    candidates = _extract_part_candidate_wires(obj, deflection)
+    if candidates is None:
+        candidates = _extract_part_candidate_wires(obj, deflection)
     ox, oy = _points_min_xy(candidates[0])
     current = []
     for hole in local:
@@ -626,7 +627,7 @@ def current_selected_holes(panel, obj, deflection=0.01):
     return current
 
 
-def _extract_part_points(obj, deflection=0.01):
+def _extract_part_points(obj, deflection=0.01, candidates=None):
     """
     Extract the current visible 2D outer contour from a preview object.
 
@@ -635,7 +636,8 @@ def _extract_part_points(obj, deflection=0.01):
     The temporary preview-grid translation is removed by
     _normalize_polygon().
     """
-    candidates = _extract_part_candidate_wires(obj, deflection)
+    if candidates is None:
+        candidates = _extract_part_candidate_wires(obj, deflection)
 
     if not candidates:
         return []
@@ -1295,10 +1297,21 @@ def _validate_material(sheet):
 
 
 def execute_nesting(panel):
+    """Synchronous compatibility wrapper for scripts and geometry tests."""
+    steps = export_nesting_steps(panel)
+    while True:
+        try:
+            next(steps)
+        except StopIteration as finished:
+            return finished.value
+
+
+def export_nesting_steps(panel):
     """
     Export the panel state to the nesting CLI input.json and nesting_session.json.
 
-    Returns True when both files are written, or False on failure.
+    Yields between FreeCAD operations; returns True after both files are written,
+    or False on failure.
     Dimensions are read as canonical millimetre values and the payload
     declares mm.
     """
@@ -1404,6 +1417,7 @@ def execute_nesting(panel):
             "offcuts",
             []
         ) or []:
+            yield None
             try:
                 sheet = _material_to_cli_sheet(
                     material
@@ -1465,6 +1479,8 @@ def execute_nesting(panel):
         if len(sheets) != len(getattr(panel, "offcuts", []) or []) or not sheets:
             errors.append("One or more materials have invalid geometry or dimensions")
 
+        yield None  # Let Qt paint and handle cancellation before recomputing.
+
         # Get the preview document.
         p_doc = (
             App.getDocument(
@@ -1499,6 +1515,7 @@ def execute_nesting(panel):
         except Exception:
             pass
 
+        yield None
         parts = []
         snapshots = {}
 
@@ -1509,6 +1526,7 @@ def execute_nesting(panel):
         )
 
         for row in range(data_rows):
+            yield None  # FreeCAD geometry remains on the main thread.
             try:
                 name_item = panel.table.item(
                     row,
@@ -1600,10 +1618,8 @@ def execute_nesting(panel):
                 except Exception:
                     pass
 
-                points = _extract_part_points(
-                    obj,
-                    deflection=boundary_resolution
-                )
+                candidates = _extract_part_candidate_wires(obj, boundary_resolution)
+                points = _extract_part_points(obj, boundary_resolution, candidates=candidates)
 
                 if len(points) < 3:
                     App.Console.PrintWarning(
@@ -1626,10 +1642,10 @@ def execute_nesting(panel):
                 part_id = "part_%d" % len(parts)
 
                 # Selected inner contours (holes) marked in the part dialog.
-                selected_holes = current_selected_holes(panel, obj, boundary_resolution)
+                selected_holes = current_selected_holes(panel, obj, boundary_resolution, candidates=candidates)
 
                 from IPNestingRuntime import snapshot_part
-                snapshots[part_id] = snapshot_part(obj, boundary_resolution)
+                snapshots[part_id] = snapshot_part(obj, boundary_resolution, candidates=candidates)
 
                 # A grain-restricted part may only rotate 0 or 180 degrees so
                 # the texture direction is preserved during nesting.
@@ -1680,6 +1696,7 @@ def execute_nesting(panel):
                     )
                 )
 
+        yield None
         if errors or not parts:
             message = "\n".join(errors or ["No parts to export"])
             App.Console.PrintError(message + "\n")

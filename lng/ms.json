@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "%d lubang ditanda untuk bahagian terpilih.",
   "mark_holes_dialog_failed": "Dialog penandaan lubang gagal:\n",
   "mark_holes_read_selection_failed": "mark_holes: pembacaan pilihan gagal:\n",
-  "mark_holes_button": "Tandakan lubang bahagian terpilih"
-}
+  "mark_holes_button": "Tandakan lubang bahagian terpilih", "show_gpus": "Tunjukkan GPU", "looking_for_graphic_cards": "Mencari kad grafik"}

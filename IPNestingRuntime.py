@@ -27,14 +27,15 @@ def find_executable(workbench, system=None, machine=None):
     return None
 
 
-def snapshot_part(obj, deflection):
+def snapshot_part(obj, deflection, candidates=None):
     """Capture the visible shape with its existing Placement and face orientation.
 
     BREP includes curved geometry and the displayed top/bottom orientation.
     Never derive the result from a later, mutable preview object.
     """
     from IPNestingExport import _extract_part_candidate_wires, _points_min_xy
-    candidates = _extract_part_candidate_wires(obj, deflection)
+    if candidates is None:
+        candidates = _extract_part_candidate_wires(obj, deflection)
     ox, oy = _points_min_xy(candidates[0])
     record = {
         "shape_brep": obj.Shape.exportBrepToString(),

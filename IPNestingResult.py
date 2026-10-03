@@ -1267,6 +1267,14 @@ class NestingProcessManager(object):
         self._job_lock = None
         self._log = None
         self.importer = None
+        self._preparing = False
+        self._export_steps = None
+        self._launch_task = None
+        self._launch_timer = None
+        self._job_generation = 0
+        form = getattr(panel, 'form', None)
+        if form is not None and hasattr(form, 'destroyed'):
+            form.destroyed.connect(self.shutdown)
 
     def _module_directory(self):
         return os.path.abspath(os.path.dirname(__file__))
@@ -1275,8 +1283,73 @@ class NestingProcessManager(object):
         from IPNestingRuntime import find_executable
         return find_executable(self._module_directory())
 
-    def is_running(self):
+    def _process_alive(self):
         return self.process is not None and self.process.poll() is None
+
+    def is_running(self):
+        return (self._preparing or self._process_alive()
+                or (self._launch_task is not None and not self._launch_task.finished.is_set()))
+
+    def _show_wait(self):
+        from IPNestingWaitDialog import NestingWaitDialog
+        if self.wait_dialog is None:
+            self.wait_dialog = NestingWaitDialog(self.stop_nesting, getattr(self.panel, "form", None))
+            self.wait_dialog.setWindowModality(QtCore.Qt.WindowModal)
+            self.wait_dialog.show()
+        try:
+            self.panel.run_btn.setEnabled(False)
+            self.panel.stop_btn.setEnabled(True)
+        except AttributeError:
+            pass
+
+    def _queue_job_callback(self, callback, after_paint=False):
+        generation = self._job_generation
+        def guarded():
+            if generation == self._job_generation and not self._finished and not self._cancelled:
+                callback()
+        if after_paint:
+            self.wait_dialog.start_after_paint(guarded)
+        else:
+            QtCore.QTimer.singleShot(0, guarded)
+
+    def prepare_and_start(self, input_path):
+        """Paint progress first, then export one part per Qt event-loop turn."""
+        if self.is_running() or not self.prepare_job():
+            return False
+        self._job_generation += 1
+        self._finished = self._cancelled = False
+        self._preparing = True
+        self._show_wait()
+        self.wait_dialog.message.setText(tr('starting_nesting_cli_input_export').strip())
+        self._queue_job_callback(lambda: self._begin_export(input_path), after_paint=True)
+        return True
+
+    def _begin_export(self, input_path):
+        if self._finished or self._cancelled:
+            return
+        from IPNestingExport import export_nesting_steps
+        self._export_steps = export_nesting_steps(self.panel)
+        self._advance_export(input_path)
+
+    def _advance_export(self, input_path):
+        if self._finished or self._cancelled:
+            return
+        try:
+            next(self._export_steps)
+        except StopIteration as done:
+            self._export_steps = None
+            if self._finished or self._cancelled:
+                return
+            if done.value is True:
+                self.start_nesting(input_path)
+            else:
+                self._preparing = False
+                self._finish_failure(tr('failed_to_generate_input_json'))
+            return
+        except Exception as exc:
+            self._finish_failure(str(exc))
+            return
+        self._queue_job_callback(lambda: self._advance_export(input_path))
 
     def prepare_job(self):
         """Lock before the exporter writes input/session in the workbench."""
@@ -1323,7 +1396,20 @@ class NestingProcessManager(object):
         if self._cancelled:
             return
         self._cancelled = True
-        if self.is_running():
+        if self._launch_task is not None:
+            self._launch_task.cancel()
+        if self._export_steps is not None:
+            try:
+                self._export_steps.close()
+            except ValueError:
+                pass  # A nested error dialog may still be inside the generator.
+            self._export_steps = None
+        self._preparing = False
+        if not self._process_alive():
+            if not self._finished:
+                self._finish_success()
+            return
+        if self._process_alive():
             process = self.process
             try:
                 with open(self.cancel_path, "w", encoding="utf-8") as stream:
@@ -1333,7 +1419,7 @@ class NestingProcessManager(object):
             # Native file cancellation also works with CREATE_NO_WINDOW.
             QtCore.QTimer.singleShot(5000, lambda: process.kill() if process.poll() is None else None)
 
-    def shutdown(self):
+    def shutdown(self, *args):
         """A closed task panel must not leave a worker or file lock behind."""
         self.stop_nesting()
         try:
@@ -1347,11 +1433,24 @@ class NestingProcessManager(object):
         self._release_after_exit()
 
     def start_nesting(self, input_path):
+        if self._process_alive() or (self._launch_task is not None and not self._launch_task.finished.is_set()):
+            return False
+        if self._job_lock is None and not self.prepare_job():
+            return False
+        if self._cancelled and self._preparing:
+            return False
+        if not self._preparing:
+            self._job_generation += 1
+        self._finished = self._cancelled = False
+        self._preparing = True
+        self._show_wait()
+        self._queue_job_callback(lambda: self._start_cli(input_path), after_paint=True)
+        return True
+
+    def _start_cli(self, input_path):
         try:
-            if self.is_running():
-                return False
-            if not self.prepare_job():
-                return False
+            if self._finished or self._cancelled:
+                return
             self.input_path = os.path.abspath(input_path)
             directory = self._module_directory()
             if self.input_path != os.path.join(directory, "input.json"):
@@ -1390,28 +1489,45 @@ class NestingProcessManager(object):
             self._finished = self._cancelled = False
             self.importer = NestingResultImporter(self.panel)
             self._log = open(os.path.join(directory, "clinesting.log"), "wb")
-            self.process = subprocess.Popen(
-                [self.cli_path, "--input", self.input_path], cwd=directory,
-                stdout=self._log, stderr=subprocess.STDOUT,
-                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
-            try:
-                self.panel.run_btn.setEnabled(False)
-                self.panel.stop_btn.setEnabled(True)
-            except AttributeError:
-                pass
-            from IPNestingWaitDialog import NestingWaitDialog
-            self.wait_dialog = NestingWaitDialog(self.stop_nesting, getattr(self.panel, "form", None))
-            self.wait_dialog.show()
-            self.result_timer = QtCore.QTimer(getattr(self.panel, "form", None))
-            self.result_timer.setInterval(250)
-            self.result_timer.timeout.connect(self._check_result)
-            self.result_timer.start()
-            App.Console.PrintMessage(tr('nesting_cli_started'))
-            return True
+            from IPNestingAsync import BackgroundCall, discard_process
+            command = [self.cli_path, "--input", self.input_path]
+            log = self._log
+            self._launch_task = BackgroundCall(lambda cancelled: subprocess.Popen(
+                command, cwd=directory, stdout=log, stderr=subprocess.STDOUT,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0),
+                discard=discard_process)
+            self._launch_task.start()
+            self._launch_timer = QtCore.QTimer(getattr(self.panel, "form", None))
+            self._launch_timer.setInterval(20)
+            self._launch_timer.timeout.connect(self._poll_launch)
+            self._launch_timer.start()
         except Exception as exc:
             App.Console.PrintError(traceback.format_exc())
             self._finish_failure(str(exc))
             return False
+
+    def _poll_launch(self):
+        outcome = self._launch_task.poll() if self._launch_task is not None else None
+        if outcome is None or self._finished or self._cancelled:
+            return
+        self._launch_timer.stop()
+        process, error = outcome
+        self._launch_task = None
+        if error:
+            self._finish_failure(error)
+            return
+        self.process = process
+        self._preparing = False
+        if self.wait_dialog is not None:
+            self.wait_dialog.message.setText(tr('waiting_for_result_json'))
+            self.wait_dialog.hide()
+            self.wait_dialog.setWindowModality(QtCore.Qt.NonModal)
+            self.wait_dialog.show()
+        self.result_timer = QtCore.QTimer(getattr(self.panel, "form", None))
+        self.result_timer.setInterval(250)
+        self.result_timer.timeout.connect(self._check_result)
+        self.result_timer.start()
+        App.Console.PrintMessage(tr('nesting_cli_started'))
 
     def _failure_detail(self):
         try:
@@ -1478,17 +1594,19 @@ class NestingProcessManager(object):
             self._finish_failure(tr('result_processing_failed_s') % traceback.format_exc())
 
     def _restore_ui(self):
-        if self.result_timer is not None:
-            self.result_timer.stop()
-        if self.wait_dialog is not None:
-            self.wait_dialog.finish()
-            self.wait_dialog.deleteLater()
-            self.wait_dialog = None
         try:
+            if self._launch_timer is not None:
+                self._launch_timer.stop()
+            if self.result_timer is not None:
+                self.result_timer.stop()
+            if self.wait_dialog is not None:
+                self.wait_dialog.finish()
+                self.wait_dialog.deleteLater()
+                self.wait_dialog = None
             self.panel.run_btn.setEnabled(True)
             self.panel.stop_btn.setEnabled(False)
-        except AttributeError:
-            pass
+        except (AttributeError, RuntimeError):
+            pass  # A destroyed Qt parent must still cancel/reap its worker.
         self._release_after_exit()
 
     def _finish_success(self):
@@ -1504,8 +1622,8 @@ class NestingProcessManager(object):
     def _finish_failure(self, message):
         if self._finished:
             return
-        self.stop_nesting()
         self._finished = True
+        self.stop_nesting()
         self._restore_ui()
         App.Console.PrintError(tr('nesting_failed_s') % str(message))
         try:

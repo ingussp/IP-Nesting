@@ -13,12 +13,11 @@ import time
 import re
 import shutil
 import tempfile
-import subprocess
 import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
 from IPNestingExport import remember_hole_selection, current_selected_holes
-from IPNestingExport import execute_nesting as execute_nesting_impl, normalize_rotation_text, _extract_part_contours, _read_boundary_deflection
+from IPNestingExport import normalize_rotation_text, _extract_part_contours, _read_boundary_deflection
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
@@ -1764,12 +1763,13 @@ class NestingTaskPanel:
         self.gpu_device_label = ui_widget(QtGui.QLabel, tr('gpu_device'))
         self.gpu_device_combo = QtGui.QComboBox()
         self.gpu_device_combo.addItem("Auto", -1)
-        for device_index, device_label in self._detect_gpu_devices():
-            self.gpu_device_combo.addItem(device_label, device_index)
         ui_call(self.gpu_device_combo, 'setToolTip', tr('gpu_device_tooltip'))
         ui_call(self.gpu_device_label, 'setToolTip', tr('gpu_device_tooltip'))
         gpu_device_row.addWidget(self.gpu_device_label)
         gpu_device_row.addWidget(self.gpu_device_combo)
+        self.show_gpus_btn = ui_widget(QtGui.QPushButton, tr('show_gpus'))
+        self.show_gpus_btn.clicked.connect(self._show_gpus)
+        gpu_device_row.addWidget(self.show_gpus_btn)
         lay.addLayout(gpu_device_row)
 
         self.gpu_batch_edit, self.gpu_batch_label = self.create_input_in_layout(
@@ -1837,73 +1837,30 @@ class NestingTaskPanel:
         except RuntimeError:
             return None
 
-    # Return locally detected OpenCL GPU devices as (index, label) pairs.
-    # The nesting CLI enumerates devices with `--list-gpus`; an empty list
-    # means no GPU was found, leaving only the automatic "-1" entry.
-    def _detect_gpu_devices(self):
-        try:
-            executable = self._nesting_cli_executable()
-            if not executable:
-                return []
-            output = subprocess.check_output(
-                [executable, "--list-gpus"],
-                stderr=subprocess.STDOUT,
-                timeout=15,
-                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-            )
-            if isinstance(output, bytes):
-                output = output.decode("utf-8", errors="replace")
-            devices = []
-            for line in output.splitlines():
-                line = line.strip()
-                if not line or ":" not in line:
-                    continue
-                index_text, _, rest = line.partition(":")
-                try:
-                    index = int(index_text.strip())
-                except ValueError:
-                    continue
-                label = rest.strip() or line
-                devices.append((index, label))
-            return devices
-        except Exception:
-            return []
+    def _show_gpus(self):
+        from IPNestingGpu import GpuDiscovery
+        if getattr(self, "_gpu_discovery", None) is None:
+            self._gpu_discovery = GpuDiscovery(self)
+        self._gpu_discovery.start()
 
-    # Re-enumerate GPU devices and repopulate the device dropdown, keeping the
-    # current selection when it is still available.
-    def _refresh_gpu_devices(self):
-        combo = getattr(self, "gpu_device_combo", None)
-        if combo is None:
-            return
+    def _refresh_gpu_devices(self, devices):
+        """Apply an explicitly requested scan without spawning another process."""
+        combo = self.gpu_device_combo
+        previous = combo.currentData()
+        blocked = combo.blockSignals(True)
         try:
-            previous = combo.currentData()
-        except Exception:
-            previous = None
-        try:
-            combo.blockSignals(True)
             combo.clear()
             combo.addItem("Auto", -1)
-            for device_index, device_label in self._detect_gpu_devices():
-                combo.addItem(device_label, device_index)
-            if previous is not None:
-                index = combo.findData(previous)
-                if index >= 0:
-                    combo.setCurrentIndex(index)
+            for index, label in devices:
+                combo.addItem(label, index)
+            selected = combo.findData(previous)
+            if selected >= 0:
+                combo.setCurrentIndex(selected)
         finally:
-            try:
-                combo.blockSignals(False)
-            except Exception:
-                pass
+            combo.blockSignals(blocked)
+        self._save_settings_to_prefs()
 
-    # Re-enumerate GPU devices when the user enables GPU acceleration, so the
-    # dropdown reflects the cards available on this machine.
     def _on_gpu_enabled_changed(self, _index):
-        try:
-            combo = getattr(self, "gpu_enabled_combo", None)
-            if combo is not None and combo.currentIndex() == 1:
-                self._refresh_gpu_devices()
-        except Exception:
-            pass
         self._update_cli_dependency_widgets()
 
     # Enable or disable a widget, tolerating a missing or non-Qt widget.
@@ -3474,80 +3431,10 @@ class NestingTaskPanel:
 
                 return
 
-            script_dir = os.path.abspath(
-                os.path.dirname(__file__)
-            )
-
-            input_path = os.path.join(
-                script_dir,
-                "input.json"
-            )
-
-            if not self._nesting_manager.prepare_job():
-                return
-
-            generation_ok = execute_nesting_impl(
-                self
-            )
-
-            if generation_ok is not True:
-                self._nesting_manager.release_job()
-                return
-
-            if not os.path.exists(input_path):
-                self._nesting_manager.release_job()
-                QtGui.QMessageBox.critical(
-                    self.form,
-                    tr('input_generation_failed'),
-                    tr('the_input_json_file_was_not_created')
-                )
-                return
-
-            # Start the nesting CLI and wait asynchronously for result.json.
-            try:
-                started = self._nesting_manager.start_nesting(
-                    input_path=input_path
-                )
-
-                if not started:
-                    return
-
-            except Exception:
-                App.Console.PrintError(
-                    tr('failed_to_start_nesting_process')
-                    + traceback.format_exc()
-                )
-
-                QtGui.QMessageBox.critical(
-                    self.form,
-                    tr('nesting_start_error'),
-                    tr('failed_to_start_the_nesting_process')
-                )
-
-            except Exception:
-                App.Console.PrintError(
-                    tr('failed_to_start_nesting_process')
-                    + traceback.format_exc()
-                )
-
-                QtGui.QMessageBox.critical(
-                    self.form,
-                    tr('nesting_start_error'),
-                    tr('failed_to_start_the_nesting_process')
-                )
-
+            input_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "input.json")
+            self._nesting_manager.prepare_and_start(input_path)
         except Exception:
-            self._nesting_manager.release_job()
-            App.Console.PrintError(
-                tr('execute_nesting_failed')
-                + traceback.format_exc()
-            )
-
-            QtGui.QMessageBox.critical(
-                self.form,
-                tr('input_generation_error'),
-                tr('failed_to_generate_input_json')
-            )
+            self._nesting_manager._finish_failure(traceback.format_exc())
 
     def isAllowedAlterDocument(self):
         # Result documents must be selectable while continuous nesting runs.
@@ -3555,6 +3442,8 @@ class NestingTaskPanel:
 
     def reject(self):
         self._nesting_manager.shutdown()
+        if getattr(self, "_gpu_discovery", None) is not None:
+            self._gpu_discovery.cancel()
         Gui.Control.closeDialog()
         return True
 
@@ -4298,6 +4187,9 @@ class NestingTaskPanel:
             try:
                 saved_gpu_device = int(p.GetInt("GpuDevice", -1))
                 index = self.gpu_device_combo.findData(saved_gpu_device)
+                if index < 0 and saved_gpu_device >= 0:
+                    self.gpu_device_combo.addItem("GPU %d" % saved_gpu_device, saved_gpu_device)
+                    index = self.gpu_device_combo.findData(saved_gpu_device)
                 if index >= 0:
                     self.gpu_device_combo.setCurrentIndex(index)
             except Exception:
@@ -4570,8 +4462,7 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
-            # Refresh the GPU device list when acceleration is enabled so the
-            # dropdown reflects the cards available on this machine.
+            # GPU toggles only update controls. Device discovery is explicit.
             try:
                 self.gpu_enabled_combo.currentIndexChanged.connect(
                     self._on_gpu_enabled_changed

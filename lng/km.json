@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "បានសម្គាល់រន្ធចំនួន %d សម្រាប់ផ្នែកដែលបានជ្រើស។",
   "mark_holes_dialog_failed": "ប្រអប់សម្គាល់រន្ធបរាជ័យ:\n",
   "mark_holes_read_selection_failed": "mark_holes: ការអានការជ្រើសរើសបរាជ័យ:\n",
-  "mark_holes_button": "សម្គាល់រន្ធនៃផ្នែកដែលបានជ្រើសរើស"
-}
+  "mark_holes_button": "សម្គាល់រន្ធនៃផ្នែកដែលបានជ្រើសរើស", "show_gpus": "បង្ហាញ GPU", "looking_for_graphic_cards": "កំពុងស្វែងរកកាតក្រាហ្វិក"}

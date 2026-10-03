@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Segnati %d fori per il pezzo selezionato.",
   "mark_holes_dialog_failed": "La finestra di marcatura dei fori non è riuscita:\n",
   "mark_holes_read_selection_failed": "mark_holes: lettura della selezione non riuscita:\n",
-  "mark_holes_button": "Contrassegna i fori del pezzo selezionato"
-}
+  "mark_holes_button": "Contrassegna i fori del pezzo selezionato", "show_gpus": "Mostra GPU", "looking_for_graphic_cards": "Ricerca delle schede grafiche"}

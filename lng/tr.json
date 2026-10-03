@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Seçili parça için %d delik işaretlendi.",
   "mark_holes_dialog_failed": "Delik işaretleme penceresi başarısız oldu:\n",
   "mark_holes_read_selection_failed": "mark_holes: seçim okunamadı:\n",
-  "mark_holes_button": "Seçili parçanın deliklerini işaretle"
-}
+  "mark_holes_button": "Seçili parçanın deliklerini işaretle", "show_gpus": "GPU'ları göster", "looking_for_graphic_cards": "Ekran kartları aranıyor"}

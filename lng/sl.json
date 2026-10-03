@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Za izbrani del je označenih %d lukenj.",
   "mark_holes_dialog_failed": "Pogovorno okno za označevanje lukenj ni uspelo:\n",
   "mark_holes_read_selection_failed": "mark_holes: branje izbire ni uspelo:\n",
-  "mark_holes_button": "Označi luknje izbranega dela"
-}
+  "mark_holes_button": "Označi luknje izbranega dela", "show_gpus": "Prikaži GPU", "looking_for_graphic_cards": "Iskanje grafičnih kartic"}

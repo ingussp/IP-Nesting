@@ -538,5 +538,4 @@
   "mark_holes_applied_s": "Pasirinktai daliai pažymėta %d skylių.",
   "mark_holes_dialog_failed": "Skylių žymėjimo dialogas nepavyko:\n",
   "mark_holes_read_selection_failed": "mark_holes: pasirinkimo skaitymas nepavyko:\n",
-  "mark_holes_button": "Pažymėti pasirinktos detalės skyles"
-}
+  "mark_holes_button": "Pažymėti pasirinktos detalės skyles", "show_gpus": "Rodyti GPU", "looking_for_graphic_cards": "Ieškoma vaizdo plokščių"}
