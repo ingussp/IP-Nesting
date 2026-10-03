@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "د ټاکل شوې برخې لپاره %d سوري په نښه شول.",
   "mark_holes_dialog_failed": "د سوریو د نښه کولو ډیالوګ ناکام شو:\n",
   "mark_holes_read_selection_failed": "mark_holes: د ټاکنې لوستل ناکام شو:\n",
-  "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول", "show_gpus": "GPU وښایئ", "looking_for_graphic_cards": "ګرافیک کارتونه لټول کېږي"}
+  "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول", "show_gpus": "GPU وښایئ", "looking_for_graphic_cards": "ګرافیک کارتونه لټول کېږي",
+  "nesting_wait_timed_seconds_s": "مهرباني وکړئ د برخو د ترتیب پر مهال انتظار وکړئ. د غوره ترتیب موندلو لپاره د %s ثانیو موده ټاکل شوې ده.", "nesting_wait_continuous_cancel_s": "برخې د وخت له محدودیت پرته ترتیبېږي. د بهیر د درولو لپاره «%s» کېکاږئ."}

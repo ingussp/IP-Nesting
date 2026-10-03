@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Pre vybraný diel bolo označených %d otvorov.",
   "mark_holes_dialog_failed": "Dialóg na označenie otvorov zlyhal:\n",
   "mark_holes_read_selection_failed": "mark_holes: čítanie výberu zlyhalo:\n",
-  "mark_holes_button": "Označiť otvory vybraného dielu", "show_gpus": "Zobraziť GPU", "looking_for_graphic_cards": "Vyhľadávanie grafických kariet"}
+  "mark_holes_button": "Označiť otvory vybraného dielu", "show_gpus": "Zobraziť GPU", "looking_for_graphic_cards": "Vyhľadávanie grafických kariet",
+  "nesting_wait_timed_seconds_s": "Počkajte, kým sa diely rozmiestnia. Na nájdenie najlepšieho rozmiestnenia bol zvolený interval %s sekúnd.", "nesting_wait_continuous_cancel_s": "Diely sa rozmiestňujú bez časového obmedzenia. Proces zastavíte tlačidlom „%s“."}

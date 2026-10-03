@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Ġew immarkati %d toqob għall-biċċa magħżula.",
   "mark_holes_dialog_failed": "Id-djalogu tal-immarkar tat-toqob falla:\n",
   "mark_holes_read_selection_failed": "mark_holes: il-qari tal-għażla falla:\n",
-  "mark_holes_button": "Immarka t-toqob tal-parti magħżula", "show_gpus": "Uri l-GPUs", "looking_for_graphic_cards": "Qed tfittex karti tal-grafika"}
+  "mark_holes_button": "Immarka t-toqob tal-parti magħżula", "show_gpus": "Uri l-GPUs", "looking_for_graphic_cards": "Qed tfittex karti tal-grafika",
+  "nesting_wait_timed_seconds_s": "Jekk jogħġbok stenna waqt li l-partijiet jitqiegħdu. Intgħażel intervall ta’ %s sekondi biex jinstab l-aħjar tqassim.", "nesting_wait_continuous_cancel_s": "Il-partijiet qed jitqiegħdu mingħajr limitu ta’ żmien. Agħfas “%s” biex twaqqaf il-proċess."}

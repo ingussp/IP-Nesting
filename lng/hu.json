@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "%d lyuk lett megjelölve a kiválasztott alkatrészhez.",
   "mark_holes_dialog_failed": "A lyukak jelölése párbeszédablak sikertelen volt:\n",
   "mark_holes_read_selection_failed": "mark_holes: a kijelölés olvasása sikertelen volt:\n",
-  "mark_holes_button": "Kiválasztott alkatrész furatainak jelölése", "show_gpus": "GPU-k megjelenítése", "looking_for_graphic_cards": "Grafikus kártyák keresése"}
+  "mark_holes_button": "Kiválasztott alkatrész furatainak jelölése", "show_gpus": "GPU-k megjelenítése", "looking_for_graphic_cards": "Grafikus kártyák keresése",
+  "nesting_wait_timed_seconds_s": "Kérjük, várjon az alkatrészek elrendezésére. A legjobb elrendezés kereséséhez %s másodperces időtartam lett kiválasztva.", "nesting_wait_continuous_cancel_s": "Az alkatrészek elrendezése időkorlát nélkül folyik. A folyamat leállításához nyomja meg a „%s” gombot."}

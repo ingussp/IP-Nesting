@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "%d Löcher für das ausgewählte Teil markiert.",
   "mark_holes_dialog_failed": "Dialog zum Markieren von Löchern fehlgeschlagen:\n",
   "mark_holes_read_selection_failed": "mark_holes: Lesen der Auswahl fehlgeschlagen:\n",
-  "mark_holes_button": "Löcher des gewählten Teils markieren", "show_gpus": "GPUs anzeigen", "looking_for_graphic_cards": "Grafikkarten werden gesucht"}
+  "mark_holes_button": "Löcher des gewählten Teils markieren", "show_gpus": "GPUs anzeigen", "looking_for_graphic_cards": "Grafikkarten werden gesucht",
+  "nesting_wait_timed_seconds_s": "Bitte warten Sie, während die Teile angeordnet werden. Für die Suche nach der besten Anordnung wurde ein Zeitraum von %s Sekunden gewählt.", "nesting_wait_continuous_cancel_s": "Die Teile werden ohne Zeitlimit angeordnet. Drücken Sie „%s“, um den Vorgang zu beenden."}

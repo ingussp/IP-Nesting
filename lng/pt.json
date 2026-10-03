@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Marcados %d furos para a peça selecionada.",
   "mark_holes_dialog_failed": "A caixa de diálogo de marcação de furos falhou:\n",
   "mark_holes_read_selection_failed": "mark_holes: falha ao ler a seleção:\n",
-  "mark_holes_button": "Marcar furos da peça selecionada", "show_gpus": "Mostrar GPUs", "looking_for_graphic_cards": "A procurar placas gráficas"}
+  "mark_holes_button": "Marcar furos da peça selecionada", "show_gpus": "Mostrar GPUs", "looking_for_graphic_cards": "A procurar placas gráficas",
+  "nesting_wait_timed_seconds_s": "Aguarde enquanto as peças são posicionadas. Foi selecionado um intervalo de %s segundos para procurar a melhor disposição.", "nesting_wait_continuous_cancel_s": "As peças são posicionadas sem limite de tempo. Prima «%s» para interromper o processo."}

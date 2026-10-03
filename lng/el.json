@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Σημειώθηκαν %d οπές για το επιλεγμένο τεμάχιο.",
   "mark_holes_dialog_failed": "Το παράθυρο σήμανσης οπών απέτυχε:\n",
   "mark_holes_read_selection_failed": "mark_holes: η ανάγνωση της επιλογής απέτυχε:\n",
-  "mark_holes_button": "Σημείωση οπών επιλεγμένου τεμαχίου", "show_gpus": "Εμφάνιση GPU", "looking_for_graphic_cards": "Αναζήτηση καρτών γραφικών"}
+  "mark_holes_button": "Σημείωση οπών επιλεγμένου τεμαχίου", "show_gpus": "Εμφάνιση GPU", "looking_for_graphic_cards": "Αναζήτηση καρτών γραφικών",
+  "nesting_wait_timed_seconds_s": "Περιμένετε όσο τοποθετούνται τα εξαρτήματα. Επιλέχθηκε διάστημα %s δευτερολέπτων για την εύρεση της καλύτερης διάταξης.", "nesting_wait_continuous_cancel_s": "Τα εξαρτήματα τοποθετούνται χωρίς χρονικό όριο. Πατήστε «%s» για να σταματήσετε τη διαδικασία."}

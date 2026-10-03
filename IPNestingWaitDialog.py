@@ -1,6 +1,6 @@
 """Non-blocking nesting progress window; closing it requests cancellation."""
 from PySide import QtGui, QtCore
-from IPNestingLanguages import tr, ui_widget, register_window
+from IPNestingLanguages import tr, ui_widget, ui_call, register_window
 
 
 class NestingWaitDialog(QtGui.QDialog):
@@ -24,6 +24,16 @@ class NestingWaitDialog(QtGui.QDialog):
         self.cancel_button.clicked.connect(self.reject)
         layout.addWidget(self.cancel_button)
         register_window(self)
+
+    def set_nesting_mode(self, mode, time_limit_seconds=0):
+        if mode == 'timed':
+            seconds = format(float(time_limit_seconds), '.15g')
+            message = tr('nesting_wait_timed_seconds_s') % seconds
+        elif mode == 'continuous':
+            message = tr('nesting_wait_continuous_cancel_s') % tr('common.cancel')
+        else:
+            message = tr('waiting_for_result_json')
+        ui_call(self.message, 'setText', message)
 
     def start_after_paint(self, callback):
         """Queue work only after the progress window has actually been painted."""

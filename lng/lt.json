@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Pasirinktai daliai pažymėta %d skylių.",
   "mark_holes_dialog_failed": "Skylių žymėjimo dialogas nepavyko:\n",
   "mark_holes_read_selection_failed": "mark_holes: pasirinkimo skaitymas nepavyko:\n",
-  "mark_holes_button": "Pažymėti pasirinktos detalės skyles", "show_gpus": "Rodyti GPU", "looking_for_graphic_cards": "Ieškoma vaizdo plokščių"}
+  "mark_holes_button": "Pažymėti pasirinktos detalės skyles", "show_gpus": "Rodyti GPU", "looking_for_graphic_cards": "Ieškoma vaizdo plokščių",
+  "nesting_wait_timed_seconds_s": "Palaukite, kol išdėstomos detalės. Geriausiam išdėstymui rasti pasirinktas %s sekundžių laiko intervalas.", "nesting_wait_continuous_cancel_s": "Detalės išdėstomos be laiko limito. Norėdami sustabdyti procesą, paspauskite „%s“."}

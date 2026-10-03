@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Marcáladh %d pholl don chuid roghnaithe.",
   "mark_holes_dialog_failed": "Theip ar an dialóg chun poill a mharcáil:\n",
   "mark_holes_read_selection_failed": "mark_holes: theip ar léamh an roghnúcháin:\n",
-  "mark_holes_button": "Marcáil poill na coda roghnaithe", "show_gpus": "Taispeáin GPUanna", "looking_for_graphic_cards": "Cártaí grafaice á lorg"}
+  "mark_holes_button": "Marcáil poill na coda roghnaithe", "show_gpus": "Taispeáin GPUanna", "looking_for_graphic_cards": "Cártaí grafaice á lorg",
+  "nesting_wait_timed_seconds_s": "Fan le do thoil agus na páirteanna á leagan amach. Roghnaíodh tréimhse %s soicind chun an leagan amach is fearr a aimsiú.", "nesting_wait_continuous_cancel_s": "Tá na páirteanna á leagan amach gan teorainn ama. Brúigh “%s” chun an próiseas a stopadh."}

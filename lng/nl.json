@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "%d gaten gemarkeerd voor het geselecteerde onderdeel.",
   "mark_holes_dialog_failed": "Het dialoogvenster voor het markeren van gaten is mislukt:\n",
   "mark_holes_read_selection_failed": "mark_holes: lezen van de selectie mislukt:\n",
-  "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel", "show_gpus": "GPU's tonen", "looking_for_graphic_cards": "Zoeken naar grafische kaarten"}
+  "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel", "show_gpus": "GPU's tonen", "looking_for_graphic_cards": "Zoeken naar grafische kaarten",
+  "nesting_wait_timed_seconds_s": "Wacht terwijl de onderdelen worden geplaatst. Er is een periode van %s seconden gekozen om de beste indeling te zoeken.", "nesting_wait_continuous_cancel_s": "De onderdelen worden zonder tijdslimiet geplaatst. Druk op “%s” om het proces te stoppen."}

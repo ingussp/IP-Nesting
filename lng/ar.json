@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "تم تحديد %d ثقبًا للجزء المحدد.",
   "mark_holes_dialog_failed": "فشل حوار تحديد الثقوب:\n",
   "mark_holes_read_selection_failed": "mark_holes: فشل قراءة التحديد:\n",
-  "mark_holes_button": "تحديد فتحات الجزء المحدد", "show_gpus": "عرض بطاقات الرسوميات", "looking_for_graphic_cards": "جارٍ البحث عن بطاقات الرسوميات"}
+  "mark_holes_button": "تحديد فتحات الجزء المحدد", "show_gpus": "عرض بطاقات الرسوميات", "looking_for_graphic_cards": "جارٍ البحث عن بطاقات الرسوميات",
+  "nesting_wait_timed_seconds_s": "يرجى الانتظار أثناء ترتيب الأجزاء. تم اختيار مدة %s ثانية للبحث عن أفضل توزيع للأجزاء.", "nesting_wait_continuous_cancel_s": "يجري ترتيب الأجزاء دون حد زمني. اضغط على «%s» لإيقاف العملية."}

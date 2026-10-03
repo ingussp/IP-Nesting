@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Tanlangan qism uchun %d ta teshik belgilandi.",
   "mark_holes_dialog_failed": "Teshiklarni belgilash oynasi muvaffaqiyatsiz tugadi:\n",
   "mark_holes_read_selection_failed": "mark_holes: tanlovni o'qish muvaffaqiyatsiz tugadi:\n",
-  "mark_holes_button": "Tanlangan qism teshiklarini belgilash", "show_gpus": "GPUlarni ko‘rsatish", "looking_for_graphic_cards": "Grafik kartalar qidirilmoqda"}
+  "mark_holes_button": "Tanlangan qism teshiklarini belgilash", "show_gpus": "GPUlarni ko‘rsatish", "looking_for_graphic_cards": "Grafik kartalar qidirilmoqda",
+  "nesting_wait_timed_seconds_s": "Qismlar joylashtirilayotganda kuting. Eng yaxshi joylashuvni topish uchun %s soniyalik vaqt tanlandi.", "nesting_wait_continuous_cancel_s": "Qismlar vaqt cheklovisiz joylashtirilmoqda. Jarayonni to‘xtatish uchun “%s” tugmasini bosing."}

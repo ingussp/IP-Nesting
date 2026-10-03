@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Markerede %d huller for den valgte del.",
   "mark_holes_dialog_failed": "Dialogen for markering af huller mislykkedes:\n",
   "mark_holes_read_selection_failed": "mark_holes: læsning af markering mislykkedes:\n",
-  "mark_holes_button": "Marker huller i den valgte del", "show_gpus": "Vis GPU'er", "looking_for_graphic_cards": "Søger efter grafikkort"}
+  "mark_holes_button": "Marker huller i den valgte del", "show_gpus": "Vis GPU'er", "looking_for_graphic_cards": "Søger efter grafikkort",
+  "nesting_wait_timed_seconds_s": "Vent venligst, mens delene placeres. Der er valgt et tidsrum på %s sekunder for at finde den bedste placering.", "nesting_wait_continuous_cancel_s": "Delene placeres uden tidsgrænse. Tryk på “%s” for at stoppe processen."}

@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "선택한 부품에 구멍 %d개를 표시했습니다.",
   "mark_holes_dialog_failed": "구멍 표시 대화상자가 실패했습니다:\n",
   "mark_holes_read_selection_failed": "mark_holes: 선택 읽기에 실패했습니다:\n",
-  "mark_holes_button": "선택한 부품의 구멍 표시", "show_gpus": "GPU 표시", "looking_for_graphic_cards": "그래픽 카드 검색 중"}
+  "mark_holes_button": "선택한 부품의 구멍 표시", "show_gpus": "GPU 표시", "looking_for_graphic_cards": "그래픽 카드 검색 중",
+  "nesting_wait_timed_seconds_s": "부품을 배치하는 동안 기다려 주세요. 최적의 배치를 찾기 위해 %s초의 시간이 선택되었습니다.", "nesting_wait_continuous_cancel_s": "시간 제한 없이 부품을 배치하고 있습니다. 작업을 중지하려면 “%s”을 누르세요."}

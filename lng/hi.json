@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "चयनित भाग के लिए %d छेद चिह्नित किए गए।",
   "mark_holes_dialog_failed": "छेद चिह्नित करने का संवाद विफल रहा:\n",
   "mark_holes_read_selection_failed": "mark_holes: चयन पढ़ना विफल रहा:\n",
-  "mark_holes_button": "चयनित भाग के छेद चिह्नित करें", "show_gpus": "GPU दिखाएँ", "looking_for_graphic_cards": "ग्राफिक्स कार्ड खोजे जा रहे हैं"}
+  "mark_holes_button": "चयनित भाग के छेद चिह्नित करें", "show_gpus": "GPU दिखाएँ", "looking_for_graphic_cards": "ग्राफिक्स कार्ड खोजे जा रहे हैं",
+  "nesting_wait_timed_seconds_s": "पुर्जे व्यवस्थित होने तक कृपया प्रतीक्षा करें। सर्वोत्तम विन्यास खोजने के लिए %s सेकंड का अंतराल चुना गया है।", "nesting_wait_continuous_cancel_s": "पुर्जे बिना समय सीमा के व्यवस्थित किए जा रहे हैं। प्रक्रिया रोकने के लिए “%s” दबाएँ।"}

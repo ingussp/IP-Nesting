@@ -119,7 +119,14 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(session['job_id'], result['job_id'])
 
     def test_timed_finishes(self):
-        self.export_and_start('timed')
+        panel = self.export_and_start('timed')
+        self.wait_until(lambda: self.manager.process is not None)
+        from IPNestingLanguages import tr
+        message = str(tr('nesting_wait_timed_seconds_s') % '0.1')
+        self.assertEqual(self.manager.wait_dialog.message.text(), message)
+        panel.mode_combo.currentText = lambda: 'continuous'
+        panel.time_limit_edit.text = lambda: '99'
+        self.assertEqual(self.manager.wait_dialog.message.text(), message)
         self.wait_until(lambda: self.manager._finished)
         self.assertFalse(self.errors)
         self.assertEqual(json.loads((self.root / 'result.json').read_text())['placed'], 20)
@@ -192,6 +199,8 @@ class WorkbenchTests(unittest.TestCase):
         self.wait_until(lambda: self.manager._imported_signature is not None)
         self.assertTrue(self.manager.is_running())
         self.assertFalse(self.manager._finished)
+        from IPNestingLanguages import tr
+        self.assertEqual(self.manager.wait_dialog.message.text(), str(tr('nesting_wait_continuous_cancel_s') % tr('common.cancel')))
         self.assertTrue(self.manager.wait_dialog.isVisible())
         self.assertFalse((history / 'old.json').exists())
         self.manager.wait_dialog.cancel_button.click()
