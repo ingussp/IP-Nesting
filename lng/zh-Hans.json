@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "已为选定零件标记 %d 个孔。",
   "mark_holes_dialog_failed": "标记孔对话框失败：\n",
   "mark_holes_read_selection_failed": "mark_holes: 读取选择失败：\n",
-  "mark_holes_button": "标记所选零件的孔", "show_gpus": "显示 GPU", "looking_for_graphic_cards": "正在查找显卡"}
+  "mark_holes_button": "标记所选零件的孔", "show_gpus": "显示 GPU", "looking_for_graphic_cards": "正在查找显卡",
+  "nesting_wait_timed_seconds_s": "正在排列零件，请稍候。已选择%s秒的时间段来寻找最佳排布。", "nesting_wait_continuous_cancel_s": "正在不限时排列零件。按“%s”停止过程。"}

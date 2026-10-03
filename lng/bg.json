@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Маркирани са %d отвора за избрания детайл.",
   "mark_holes_dialog_failed": "Диалогът за маркиране на отвори не успя:\n",
   "mark_holes_read_selection_failed": "mark_holes: четенето на избора не успя:\n",
-  "mark_holes_button": "Маркирай отворите на избраната част", "show_gpus": "Покажи GPU", "looking_for_graphic_cards": "Търсене на графични карти"}
+  "mark_holes_button": "Маркирай отворите на избраната част", "show_gpus": "Покажи GPU", "looking_for_graphic_cards": "Търсене на графични карти",
+  "nesting_wait_timed_seconds_s": "Моля, изчакайте подреждането на детайлите. Избран е интервал от %s секунди за намиране на най-доброто разположение.", "nesting_wait_continuous_cancel_s": "Детайлите се подреждат без ограничение във времето. Натиснете „%s“, за да спрете процеса."}

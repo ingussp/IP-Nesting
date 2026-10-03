@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "סומנו %d חורים עבור החלק הנבחר.",
   "mark_holes_dialog_failed": "תיבת הדו-שיח לסימון חורים נכשלה:\n",
   "mark_holes_read_selection_failed": "mark_holes: קריאת הבחירה נכשלה:\n",
-  "mark_holes_button": "סמן חורים בחלק הנבחר", "show_gpus": "הצגת GPU", "looking_for_graphic_cards": "מחפש כרטיסי מסך"}
+  "mark_holes_button": "סמן חורים בחלק הנבחר", "show_gpus": "הצגת GPU", "looking_for_graphic_cards": "מחפש כרטיסי מסך",
+  "nesting_wait_timed_seconds_s": "נא להמתין בזמן סידור החלקים. נבחר פרק זמן של %s שניות למציאת הסידור הטוב ביותר.", "nesting_wait_continuous_cancel_s": "החלקים מסודרים ללא הגבלת זמן. יש ללחוץ על ״%s״ כדי לעצור את התהליך."}

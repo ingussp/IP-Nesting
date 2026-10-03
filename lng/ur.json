@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "منتخب حصے کے لیے %d سوراخ نشان زد کیے گئے۔",
   "mark_holes_dialog_failed": "سوراخ نشان زد کرنے کا ڈائیلاگ ناکام رہا:\n",
   "mark_holes_read_selection_failed": "mark_holes: انتخاب پڑھنا ناکام رہا:\n",
-  "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں", "show_gpus": "GPU دکھائیں", "looking_for_graphic_cards": "گرافکس کارڈ تلاش کیے جا رہے ہیں"}
+  "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں", "show_gpus": "GPU دکھائیں", "looking_for_graphic_cards": "گرافکس کارڈ تلاش کیے جا رہے ہیں",
+  "nesting_wait_timed_seconds_s": "پرزوں کی ترتیب کے دوران براہ کرم انتظار کریں۔ بہترین ترتیب تلاش کرنے کے لیے %s سیکنڈ کا وقفہ منتخب کیا گیا ہے۔", "nesting_wait_continuous_cancel_s": "پرزے وقت کی حد کے بغیر ترتیب دیے جا رہے ہیں۔ عمل روکنے کے لیے ”%s“ دبائیں۔"}

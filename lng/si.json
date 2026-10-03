@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "තෝරාගත් කොටස සඳහා සිදුරු %dක් සලකුණු කරන ලදී.",
   "mark_holes_dialog_failed": "සිදුරු සලකුණු කිරීමේ සංවාදය අසාර්ථක විය:\n",
   "mark_holes_read_selection_failed": "mark_holes: තේරීම කියවීම අසාර්ථක විය:\n",
-  "mark_holes_button": "තෝරාගත් කොටසේ සිදුරු සලකුණු කරන්න", "show_gpus": "GPU පෙන්වන්න", "looking_for_graphic_cards": "ග්‍රැෆික් කාඩ්පත් සොයමින්"}
+  "mark_holes_button": "තෝරාගත් කොටසේ සිදුරු සලකුණු කරන්න", "show_gpus": "GPU පෙන්වන්න", "looking_for_graphic_cards": "ග්‍රැෆික් කාඩ්පත් සොයමින්",
+  "nesting_wait_timed_seconds_s": "කොටස් සකස් කරන තෙක් කරුණාකර රැඳී සිටින්න. හොඳම සැකැස්ම සෙවීමට තත්පර %s ක කාලයක් තෝරා ඇත.", "nesting_wait_continuous_cancel_s": "කාල සීමාවක් නොමැතිව කොටස් සකස් කරමින් පවතී. ක්‍රියාවලිය නවත්වීමට “%s” ඔබන්න."}

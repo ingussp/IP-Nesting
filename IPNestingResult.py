@@ -384,21 +384,9 @@ class NestingResultImporter(object):
             except Exception:
                 pass
 
-            try:
-                Gui.activateDocument(
-                    self.result_doc.Name
-                )
-
-                Gui.activeDocument().activeView().viewTop()
-                Gui.SendMsgToActiveView(
-                    "ViewFit"
-                )
-
-            except Exception:
-                pass
-
             if previous_doc is not None and previous_doc.Name in App.listDocuments():
                 App.closeDocument(previous_doc.Name)
+            self._show_result_view()
             if show_summary:
                 self._show_result_summary()
 
@@ -410,6 +398,29 @@ class NestingResultImporter(object):
                 + traceback.format_exc()
             )
             return False
+
+    def _show_result_view(self):
+        """Fit the result's own view after activation and viewport layout."""
+        name = self.result_doc.Name
+        try:
+            Gui.activateDocument(name)
+            view = Gui.getDocument(name).activeView()
+            view.viewTop()
+            view.fitAll()
+            if QtGui.QApplication.instance() is not None:
+                QtCore.QTimer.singleShot(0, lambda: self._fit_result_view(name))
+        except Exception:
+            pass  # Geometry import also supports headless FreeCAD.
+
+    def _fit_result_view(self, name):
+        if name not in App.listDocuments() or self.result_doc is None:
+            return  # A newer continuous result or a closed document superseded it.
+        try:
+            if self.result_doc.Name != name:
+                return
+            Gui.getDocument(name).activeView().fitAll()
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Maps
@@ -1296,11 +1307,22 @@ class NestingProcessManager(object):
             self.wait_dialog = NestingWaitDialog(self.stop_nesting, getattr(self.panel, "form", None))
             self.wait_dialog.setWindowModality(QtCore.Qt.WindowModal)
             self.wait_dialog.show()
+        self._update_wait_message()
         try:
             self.panel.run_btn.setEnabled(False)
             self.panel.stop_btn.setEnabled(True)
         except AttributeError:
             pass
+
+    def _update_wait_message(self, config=None):
+        if self.wait_dialog is None:
+            return
+        if config is None:
+            from IPNestingExport import build_nesting_config, _read_combo_text, _read_line_edit_float
+            config = build_nesting_config(
+                mode=_read_combo_text(self.panel, 'mode_combo', 'first'),
+                time_limit_seconds=_read_line_edit_float(self.panel, 'time_limit_edit', 0))
+        self.wait_dialog.set_nesting_mode(config.get('mode', 'first'), config.get('timeLimitSeconds', 0))
 
     def _queue_job_callback(self, callback, after_paint=False):
         generation = self._job_generation
@@ -1320,7 +1342,6 @@ class NestingProcessManager(object):
         self._finished = self._cancelled = False
         self._preparing = True
         self._show_wait()
-        self.wait_dialog.message.setText(tr('starting_nesting_cli_input_export').strip())
         self._queue_job_callback(lambda: self._begin_export(input_path), after_paint=True)
         return True
 
@@ -1470,6 +1491,7 @@ class NestingProcessManager(object):
             output = input_data.get("output", {})
             if output.get("json") != "result.json" or output.get("cancelFile") != expected_cancel:
                 raise ValueError("Unexpected workbench result/cancellation paths")
+            self._update_wait_message(input_data.get('config', {}))
             self.cancel_path = os.path.join(directory, expected_cancel)
             self.cli_path = self._find_nesting_cli_executable()
             if not self.cli_path:
@@ -1519,7 +1541,6 @@ class NestingProcessManager(object):
         self.process = process
         self._preparing = False
         if self.wait_dialog is not None:
-            self.wait_dialog.message.setText(tr('waiting_for_result_json'))
             self.wait_dialog.hide()
             self.wait_dialog.setWindowModality(QtCore.Qt.NonModal)
             self.wait_dialog.show()

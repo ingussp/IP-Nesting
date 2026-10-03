@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Zaznaczono %d otworów dla wybranego elementu.",
   "mark_holes_dialog_failed": "Okno zaznaczania otworów nie powiodło się:\n",
   "mark_holes_read_selection_failed": "mark_holes: odczyt zaznaczenia nie powiódł się:\n",
-  "mark_holes_button": "Zaznacz otwory wybranej części", "show_gpus": "Pokaż GPU", "looking_for_graphic_cards": "Wyszukiwanie kart graficznych"}
+  "mark_holes_button": "Zaznacz otwory wybranej części", "show_gpus": "Pokaż GPU", "looking_for_graphic_cards": "Wyszukiwanie kart graficznych",
+  "nesting_wait_timed_seconds_s": "Proszę czekać na rozmieszczenie części. Wybrano czas %s sekund na znalezienie najlepszego układu.", "nesting_wait_continuous_cancel_s": "Części są rozmieszczane bez limitu czasu. Naciśnij „%s”, aby zatrzymać proces."}

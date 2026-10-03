@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "নির্বাচিত অংশের জন্য %dটি ছিদ্র চিহ্নিত করা হয়েছে।",
   "mark_holes_dialog_failed": "ছিদ্র চিহ্নিতকরণ ডায়ালগ ব্যর্থ হয়েছে:\n",
   "mark_holes_read_selection_failed": "mark_holes: নির্বাচন পড়া ব্যর্থ হয়েছে:\n",
-  "mark_holes_button": "নির্বাচিত অংশের ছিদ্র চিহ্নিত করুন", "show_gpus": "GPU দেখান", "looking_for_graphic_cards": "গ্রাফিক্স কার্ড খোঁজা হচ্ছে"}
+  "mark_holes_button": "নির্বাচিত অংশের ছিদ্র চিহ্নিত করুন", "show_gpus": "GPU দেখান", "looking_for_graphic_cards": "গ্রাফিক্স কার্ড খোঁজা হচ্ছে",
+  "nesting_wait_timed_seconds_s": "অংশগুলো সাজানোর সময় অনুগ্রহ করে অপেক্ষা করুন। সেরা বিন্যাস খুঁজতে %s সেকেন্ড সময় বেছে নেওয়া হয়েছে।", "nesting_wait_continuous_cancel_s": "কোনো সময়সীমা ছাড়াই অংশগুলো সাজানো হচ্ছে। প্রক্রিয়াটি থামাতে “%s” চাপুন।"}

@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Označeno je %d rupa za odabrani dio.",
   "mark_holes_dialog_failed": "Dijalog za označavanje rupa nije uspio:\n",
   "mark_holes_read_selection_failed": "mark_holes: čitanje odabira nije uspjelo:\n",
-  "mark_holes_button": "Označi rupe odabranog dijela", "show_gpus": "Prikaži GPU", "looking_for_graphic_cards": "Traženje grafičkih kartica"}
+  "mark_holes_button": "Označi rupe odabranog dijela", "show_gpus": "Prikaži GPU", "looking_for_graphic_cards": "Traženje grafičkih kartica",
+  "nesting_wait_timed_seconds_s": "Pričekajte dok se dijelovi raspoređuju. Za pronalaženje najboljeg rasporeda odabran je interval od %s sekundi.", "nesting_wait_continuous_cancel_s": "Dijelovi se raspoređuju bez vremenskog ograničenja. Pritisnite „%s” za zaustavljanje postupka."}

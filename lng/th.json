@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "ทำเครื่องหมายรูแล้ว %d รูสำหรับชิ้นส่วนที่เลือก",
   "mark_holes_dialog_failed": "กล่องโต้ตอบทำเครื่องหมายรูล้มเหลว:\n",
   "mark_holes_read_selection_failed": "mark_holes: การอ่านส่วนที่เลือกล้มเหลว:\n",
-  "mark_holes_button": "ทำเครื่องหมายรูของชิ้นส่วนที่เลือก", "show_gpus": "แสดง GPU", "looking_for_graphic_cards": "กำลังค้นหาการ์ดกราฟิก"}
+  "mark_holes_button": "ทำเครื่องหมายรูของชิ้นส่วนที่เลือก", "show_gpus": "แสดง GPU", "looking_for_graphic_cards": "กำลังค้นหาการ์ดกราฟิก",
+  "nesting_wait_timed_seconds_s": "โปรดรอขณะจัดวางชิ้นส่วน เลือกช่วงเวลา %s วินาทีเพื่อค้นหาการจัดวางที่ดีที่สุด", "nesting_wait_continuous_cancel_s": "กำลังจัดวางชิ้นส่วนโดยไม่จำกัดเวลา กด “%s” เพื่อหยุดกระบวนการ"}

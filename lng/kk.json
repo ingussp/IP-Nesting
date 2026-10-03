@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "Таңдалған бөлшек үшін %d тесік белгіленді.",
   "mark_holes_dialog_failed": "Тесіктерді белгілеу диалогы сәтсіз аяқталды:\n",
   "mark_holes_read_selection_failed": "mark_holes: таңдауды оқу сәтсіз аяқталды:\n",
-  "mark_holes_button": "Таңдалған бөлшектің тесіктерін белгілеу", "show_gpus": "GPU көрсету", "looking_for_graphic_cards": "Графикалық карталар ізделуде"}
+  "mark_holes_button": "Таңдалған бөлшектің тесіктерін белгілеу", "show_gpus": "GPU көрсету", "looking_for_graphic_cards": "Графикалық карталар ізделуде",
+  "nesting_wait_timed_seconds_s": "Бөлшектер орналастырылғанша күтіңіз. Ең жақсы орналасуды табу үшін %s секунд уақыт таңдалды.", "nesting_wait_continuous_cancel_s": "Бөлшектер уақыт шектеуінсіз орналастырылады. Процесті тоқтату үшін «%s» түймесін басыңыз."}

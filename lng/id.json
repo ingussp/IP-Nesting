@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "%d lubang ditandai untuk bagian terpilih.",
   "mark_holes_dialog_failed": "Dialog penandaan lubang gagal:\n",
   "mark_holes_read_selection_failed": "mark_holes: pembacaan pilihan gagal:\n",
-  "mark_holes_button": "Tandai lubang bagian terpilih", "show_gpus": "Tampilkan GPU", "looking_for_graphic_cards": "Mencari kartu grafis"}
+  "mark_holes_button": "Tandai lubang bagian terpilih", "show_gpus": "Tampilkan GPU", "looking_for_graphic_cards": "Mencari kartu grafis",
+  "nesting_wait_timed_seconds_s": "Harap tunggu saat komponen disusun. Interval %s detik dipilih untuk mencari susunan terbaik.", "nesting_wait_continuous_cancel_s": "Komponen disusun tanpa batas waktu. Tekan “%s” untuk menghentikan proses."}

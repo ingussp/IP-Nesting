@@ -538,4 +538,5 @@
   "mark_holes_applied_s": "%d lubang ditanda untuk bahagian terpilih.",
   "mark_holes_dialog_failed": "Dialog penandaan lubang gagal:\n",
   "mark_holes_read_selection_failed": "mark_holes: pembacaan pilihan gagal:\n",
-  "mark_holes_button": "Tandakan lubang bahagian terpilih", "show_gpus": "Tunjukkan GPU", "looking_for_graphic_cards": "Mencari kad grafik"}
+  "mark_holes_button": "Tandakan lubang bahagian terpilih", "show_gpus": "Tunjukkan GPU", "looking_for_graphic_cards": "Mencari kad grafik",
+  "nesting_wait_timed_seconds_s": "Sila tunggu semasa bahagian disusun. Tempoh %s saat telah dipilih untuk mencari susunan terbaik.", "nesting_wait_continuous_cancel_s": "Bahagian disusun tanpa had masa. Tekan “%s” untuk menghentikan proses."}
