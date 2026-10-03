@@ -58,11 +58,35 @@ class GeometryTests(unittest.TestCase):
         NestingRelayoutManager().relayout_preview(self.doc)
         self.assertAlmostEqual(before.XLength,o.Shape.BoundBox.XLength)
         self.assertAlmostEqual(before.YLength,o.Shape.BoundBox.YLength)
-    def test_reject_disconnected_and_nonprismatic_parts(self):
+    def test_reject_disconnected_and_material_outside_profile(self):
         disconnected=Part.makeCompound([Part.makeBox(10,10,2),Part.makeBox(10,10,2,App.Vector(30,0,0))])
         with self.assertRaises(ValueError): E._extract_part_points(self.obj('Disconnected',disconnected))
-        blind=Part.makeBox(30,30,5).cut(Part.makeCylinder(5,2,App.Vector(15,15,3)))
-        with self.assertRaises(ValueError): E._extract_part_points(self.obj('BlindPocket',blind))
+        # A sphere between two small horizontal caps has a wider silhouette
+        # than those caps and must never be exported as that smaller profile.
+        bulge=Part.makeSphere(10).common(Part.makeBox(40,40,10,App.Vector(-20,-20,-5)))
+        with self.assertRaises(ValueError): E._extract_part_points(self.obj('Bulge',bulge))
+    def test_machined_panel_blind_holes_and_grooves_are_not_nesting_holes(self):
+        blank=Part.makeBox(600,400,18)
+        blind=Part.makeCylinder(5,8,App.Vector(30,30,10))
+        groove=Part.makeBox(600,5,3,App.Vector(0,100,15))
+        through=Part.makeCylinder(10,18,App.Vector(60,60,0))
+        obj=self.obj('MachinedPanel',blank.cut(blind).cut(groove).cut(through))
+        obj.Placement=App.Placement(App.Vector(100,6500,18),App.Rotation(App.Vector(1,0,0),180))
+        outer,holes,_=E._extract_part_contours(obj)
+        self.assertAlmostEqual(E._polygon_area(outer),600*400,places=3)
+        self.assertEqual(len(holes),1)
+        self.assertAlmostEqual(E._polygon_area(holes[0]),math.pi*100,delta=1)
+    def test_opposing_blind_holes_with_curved_floors_are_filled(self):
+        blank=Part.makeBox(40,40,18)
+        top=Part.makeCylinder(5,4,App.Vector(20,20,14)).fuse(Part.makeSphere(5,App.Vector(20,20,14)))
+        bottom=Part.makeCylinder(5,4,App.Vector(20,20,0)).fuse(Part.makeSphere(5,App.Vector(20,20,4)))
+        # Keep a material web at mid-height. Neither cap closes the apparent
+        # opening, so checking the complete hole column is essential.
+        top=top.common(Part.makeBox(40,40,8,App.Vector(0,0,10)))
+        bottom=bottom.common(Part.makeBox(40,40,8))
+        outer,holes,_=E._extract_part_contours(self.obj('CurvedBlind',blank.cut(top).cut(bottom)))
+        self.assertEqual(len(holes),0)
+        self.assertAlmostEqual(E._polygon_area(outer),1600,places=5)
     def test_export_rejects_missing_row_without_overwriting(self):
         self.obj('Box',Part.makeBox(30,10,2))
         class Item:

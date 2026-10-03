@@ -529,7 +529,8 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
     """Extract one planar profile, never projected side-wall wires.
 
     Shape already includes the object's Placement. Only flat profiles and
-    straight extrusions normal to XY are supported; reject ambiguous solids.
+    machined panels normal to XY are supported when their planar profile
+    encloses all material; reject shapes whose silhouette cannot be proven.
     """
     import Part
     shape = obj.Shape
@@ -539,22 +540,57 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
     if shape.Solids:
         if not flat_faces:
             raise ValueError("Align the part with the XY plane before nesting")
-        # The union of cap faces fills blind pockets instead of treating them
-        # as through holes. Non-prismatic solids fail the volume check below.
+        # Combine horizontal faces: pocket floors and the opposite panel face
+        # fill blind machining, while genuine through holes remain empty.
         caps = []
         for face in flat_faces:
             cap = face.copy()
             cap.translate(App.Vector(0, 0, -cap.BoundBox.ZMin))
+            u0, u1, v0, v1 = cap.ParameterRange
+            if cap.normalAt((u0 + u1) / 2, (v0 + v1) / 2).z < 0:
+                cap.reverse()
             caps.append(cap)
-        profile = caps[0]
+        # Boolean unions of coplanar faces can retain overlapping face
+        # partitions. Fuse thin solids instead, then take their bottom cap.
+        projected = caps[0].extrude(App.Vector(0, 0, 1))
         for cap in caps[1:]:
-            profile = profile.fuse(cap)
-        profile = profile.removeSplitter()
-        if len(profile.Faces) != 1:
+            projected = projected.fuse(cap.extrude(App.Vector(0, 0, 1)))
+        projected = projected.removeSplitter()
+        bottom = [f for f in projected.Faces
+                  if f.BoundBox.ZLength < 1e-7 and abs(f.BoundBox.ZMin) < 1e-7]
+        if not bottom:
             raise ValueError("A part must have one connected planar profile")
-        expected_volume = profile.Area * shape.BoundBox.ZLength
-        if abs(shape.Volume - expected_volume) > max(1e-6, expected_volume * 1e-7):
-            raise ValueError("Only flat profiles and straight extrusions are supported")
+        # Pocket floors may form islands inside an apparent hole. The column
+        # check below fills these holes; separate external solids will fail
+        # final containment instead of being silently omitted.
+        profile = max(bottom, key=lambda face: face.Area)
+        profile.reverse()  # bottom solid face points down; extrusion must point up
+        projected = profile.extrude(App.Vector(0, 0, 1))
+        thickness = shape.BoundBox.ZLength
+        volume_tolerance = max(1e-6, abs(shape.Volume) * 1e-9)
+        # A blind hole can have a curved floor, absent from flat_faces. Only
+        # expose a hole to nesting if its entire column contains no material.
+        cap_face = profile
+        for wire in cap_face.Wires:
+            if wire.isSame(cap_face.OuterWire):
+                continue
+            fill = Part.Face(wire)
+            column = fill.extrude(App.Vector(0, 0, thickness))
+            column.translate(App.Vector(0, 0, shape.BoundBox.ZMin))
+            if shape.common(column).Volume > volume_tolerance:
+                projected = projected.fuse(fill.extrude(App.Vector(0, 0, 1))).removeSplitter()
+        bottom = [f for f in projected.Faces
+                  if f.BoundBox.ZLength < 1e-7 and abs(f.BoundBox.ZMin) < 1e-7]
+        if len(bottom) != 1:
+            raise ValueError("A part must have one connected planar profile")
+        profile = bottom[0]
+        profile.reverse()
+        envelope = profile.extrude(App.Vector(0, 0, thickness))
+        envelope.translate(App.Vector(0, 0, shape.BoundBox.ZMin))
+        # Comparing equal volumes rejects legitimate grooves/drilling. Instead
+        # prove that no solid material lies outside the exported XY footprint.
+        if shape.cut(envelope).Volume > volume_tolerance:
+            raise ValueError("The part extends outside its planar nesting profile; align it with XY")
         wires = profile.Faces[0].Wires
     else:
         if shape.BoundBox.ZLength > 1e-7:

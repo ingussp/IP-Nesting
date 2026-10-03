@@ -125,6 +125,17 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(json.loads((self.root / 'result.json').read_text())['placed'], 20)
 
     def test_real_run_button_exports_and_launches(self):
+        # A cabinet panel with blind drilling, a groove and one through hole.
+        # Keep the displayed bottom/top orientation while exporting its footprint.
+        placement = self.source.Placement
+        shape = Part.makeBox(10, 20, 3)
+        shape = shape.cut(Part.makeCylinder(.6, 1, App.Vector(4, 6, 2)))
+        shape = shape.cut(Part.makeCylinder(.8, 3, App.Vector(6, 13, 0)))
+        shape = shape.cut(Part.makeBox(10, .5, .5, App.Vector(0, 10, 2.5)))
+        self.source.Shape = shape
+        self.source.Placement = placement
+        self.doc.recompute()
+        before = self.source.Shape.copy()
         import IPNestingGui as G
         panel = G.NestingTaskPanel()
         panel.preview_doc_name = self.doc.Name
@@ -162,6 +173,15 @@ class WorkbenchTests(unittest.TestCase):
         self.assertFalse(self.errors)
         self.assertEqual(json.loads((self.root / 'result.json').read_text())['placed'], 2)
         self.assertTrue(panel.isAllowedAlterDocument())
+        for name in ('Nesting_1', 'Nesting_2'):
+            after = self.manager.importer.result_doc.getObject(name).Shape
+            self.assertAlmostEqual(before.Volume, after.Volume)
+            for a, b in zip(before.Faces, after.Faces):
+                u0, u1, v0, v1 = a.ParameterRange
+                za = a.normalAt((u0+u1)/2, (v0+v1)/2).z
+                u0, u1, v0, v1 = b.ParameterRange
+                zb = b.normalAt((u0+u1)/2, (v0+v1)/2).z
+                self.assertAlmostEqual(za, zb)
         panel.form.deleteLater()
 
     def test_continuous_popup_cancel_and_history_cleanup(self):

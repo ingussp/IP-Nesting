@@ -15,3 +15,11 @@ UI thread; a single expensive geometry operation can still delay repainting.
 Cancel also works before export or while the operating system is creating the
 process. A cancelled late process is stopped before the workbench job lock is
 released. The CLI executable and nesting algorithms are unchanged.
+
+
+Machined panels with blind drilling and grooves use their complete XY footprint.
+The exporter proves that the footprint encloses all material instead of requiring
+an identical cross-section throughout the thickness. Only empty columns through
+the full thickness are exposed as holes. Original BREP geometry and face
+orientation are preserved for result placement; disconnected material and solids
+extending beyond the proven footprint remain rejected.
