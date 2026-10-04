@@ -1911,25 +1911,8 @@ class NestingTaskPanel:
         except Exception:
             pass
 
-    # --- Apply Grain blinking helpers (delegated to GrainUIController) ---
-    # Timer callback - delegates to grain controller.
-    def _on_apply_blink_tick(self):
-        """Timer callback - delegates to grain controller."""
-        self._grain._on_apply_blink_tick()
-    
-    # Start blinking - delegates to grain controller.
-    def _start_apply_blink(self):
-        """Start blinking - delegates to grain controller."""
-        self._grain._start_apply_blink()
-    
-    # Stop blinking - delegates to grain controller.
-    def _stop_apply_blink(self):
-        """Stop blinking - delegates to grain controller."""
-        self._grain._stop_apply_blink()
-    
-    # Update blinking state - delegates to grain controller.
     def _update_apply_blink_state(self):
-        """Update blinking state - delegates to grain controller."""
+        """Legacy preview hook: record current state without an Apply button or timer."""
         self._grain._update_apply_blink_state()
 
     # --- Grain arrow helpers (delegated to GrainUIController) ---
@@ -2041,13 +2024,9 @@ class NestingTaskPanel:
             except Exception:
                 pass
 
-            self.bulk_grain_apply_btn = ui_widget(QtGui.QPushButton, tr('apply_grain'))
-            self.bulk_grain_apply_btn.setMinimumWidth(100)
-            self.bulk_grain_apply_btn.clicked.connect(self.apply_change_grain)
             self.set_angle_btn = ui_widget(QtGui.QPushButton, tr('set_custom_angle'))
             self.set_angle_btn.setMinimumWidth(160)
             ui_call(self.set_angle_btn, 'setToolTip', tr('set_grain_angle_for_selected_grainarrow_objects'))
-            hbot.addWidget(self.bulk_grain_apply_btn)
             hbot.addWidget(self.set_angle_btn)
 
             try:
@@ -2921,9 +2900,9 @@ class NestingTaskPanel:
             pass
             
     # Update grain layout and perimeters - delegates to grain controller.
-    def update_grain_layout_and_perimeters(self):
-        """Update grain layout and perimeters - delegates to grain controller."""
-        self._grain.update_grain_layout_and_perimeters()
+    def update_grain_layout_and_perimeters(self, preserve_standard_layout=False):
+        """Update perimeters, optionally preserving the standard group's placements."""
+        self._grain.update_grain_layout_and_perimeters(preserve_standard_layout=preserve_standard_layout)
 
     # Fit every visible object in the active FreeCAD view after preview geometry changes.
     def _fit_all_views(self):
@@ -3228,15 +3207,13 @@ class NestingTaskPanel:
                 checkbox = grain_widget.findChild(QtGui.QCheckBox)
                 if checkbox is not None and checkbox.isChecked():
                     changed += 1
-                    # A grain-restricted part may only rotate 0 or 180
-                    # degrees, so pin the rotation cell accordingly.
-                    self._set_rotation_cell(row, "[0, 180]")
+                    # The controller saves the original rotations before pinning
+                    # this row to [0, 180], including for script-created rows.
 
             # The controller reads current Grain Direction checkboxes on every apply.
             # It also normalizes angles, redraws all arrows/perimeters and saves the
             # applied state. A second pass would process already-normalized geometry.
-            self.update_grain_layout_and_perimeters()
-            self._fit_all_views()
+            self._grain._apply_live_layout()
             self._update_apply_blink_state()
             App.Console.PrintMessage(
                 tr('apply_change_grain_applied_grain_to_d_rows') % changed
@@ -3649,9 +3626,9 @@ class NestingTaskPanel:
                     except Exception:
                         pass
                         
-                # Run the same pipeline as "Apply Grain"
+                # Apply the custom texture angle without moving standard parts.
                 try:
-                    self.update_grain_layout_and_perimeters()
+                    self.update_grain_layout_and_perimeters(preserve_standard_layout=True)
 
                     # Recenter all remaining parts after rotation and grain layout changes.
                     self._fit_all_views()
