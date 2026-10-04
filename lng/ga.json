@@ -541,5 +541,10 @@
   "mark_holes_button": "Marcáil poill na coda roghnaithe", "show_gpus": "Taispeáin GPUanna", "looking_for_graphic_cards": "Cártaí grafaice á lorg",
   "nesting_wait_timed_seconds_s": "Fan le do thoil agus na páirteanna á leagan amach. Roghnaíodh tréimhse %s soicind chun an leagan amach is fearr a aimsiú.", "nesting_wait_continuous_cancel_s": "Tá na páirteanna á leagan amach gan teorainn ama. Brúigh “%s” chun an próiseas a stopadh.",
   "default_rotations": "Líon réamhshocraithe treoshuíomhanna:",
-  "default_rotations_tooltip": "Líon na dtreoshuíomhanna a thástáiltear do gach páirt nua. D’fhéadfadh tuilleadh treoshuíomhanna an leagan amach a fheabhsú, ach méadaíonn siad an t-am ríofa."
+  "default_rotations_tooltip": "Líon na dtreoshuíomhanna a thástáiltear do gach páirt nua. D’fhéadfadh tuilleadh treoshuíomhanna an leagan amach a fheabhsú, ach méadaíonn siad an t-am ríofa.",
+  "mode.fast_first": "Tapa:first",
+  "mode.timed": "Le teorainn ama:timed",
+  "mode.continuous": "Leanúnach:continuous",
+  "contact_simplification_mm": "Simpliú le haghaidh teagmhála (mm):",
+  "contact_simplification_tooltip": "Simpliú comhriain sa CLI chun pointí teagmhála a lorg; ar leith ó neasúchán cuair FreeCAD."
 }

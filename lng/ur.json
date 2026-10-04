@@ -541,5 +541,10 @@
   "mark_holes_button": "منتخب حصے کے سوراخ نشان زد کریں", "show_gpus": "GPU دکھائیں", "looking_for_graphic_cards": "گرافکس کارڈ تلاش کیے جا رہے ہیں",
   "nesting_wait_timed_seconds_s": "پرزوں کی ترتیب کے دوران براہ کرم انتظار کریں۔ بہترین ترتیب تلاش کرنے کے لیے %s سیکنڈ کا وقفہ منتخب کیا گیا ہے۔", "nesting_wait_continuous_cancel_s": "پرزے وقت کی حد کے بغیر ترتیب دیے جا رہے ہیں۔ عمل روکنے کے لیے ”%s“ دبائیں۔",
   "default_rotations": "طے شدہ سمتوں کی تعداد:",
-  "default_rotations_tooltip": "ہر نئے پرزے کے لیے آزمائی جانے والی سمتوں کی تعداد۔ زیادہ سمتیں ترتیب بہتر کر سکتی ہیں، لیکن حساب کا وقت بڑھاتی ہیں۔"
+  "default_rotations_tooltip": "ہر نئے پرزے کے لیے آزمائی جانے والی سمتوں کی تعداد۔ زیادہ سمتیں ترتیب بہتر کر سکتی ہیں، لیکن حساب کا وقت بڑھاتی ہیں۔",
+  "mode.fast_first": "تیز:first",
+  "mode.timed": "وقت کی حد کے ساتھ:timed",
+  "mode.continuous": "مسلسل:continuous",
+  "contact_simplification_mm": "رابطے کے لیے سادہ بنانا (mm):",
+  "contact_simplification_tooltip": "رابطے کے نقاط تلاش کرنے کے لیے CLI خاکے کو سادہ بنانا؛ FreeCAD منحنی تقریب سے الگ۔"
 }

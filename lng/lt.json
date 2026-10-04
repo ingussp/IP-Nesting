@@ -541,5 +541,10 @@
   "mark_holes_button": "Pažymėti pasirinktos detalės skyles", "show_gpus": "Rodyti GPU", "looking_for_graphic_cards": "Ieškoma vaizdo plokščių",
   "nesting_wait_timed_seconds_s": "Palaukite, kol išdėstomos detalės. Geriausiam išdėstymui rasti pasirinktas %s sekundžių laiko intervalas.", "nesting_wait_continuous_cancel_s": "Detalės išdėstomos be laiko limito. Norėdami sustabdyti procesą, paspauskite „%s“.",
   "default_rotations": "Numatytasis orientacijų skaičius:",
-  "default_rotations_tooltip": "Kiekvienai naujai detalei tikrinamų orientacijų skaičius. Daugiau orientacijų gali pagerinti išdėstymą, bet pailgina skaičiavimą."
+  "default_rotations_tooltip": "Kiekvienai naujai detalei tikrinamų orientacijų skaičius. Daugiau orientacijų gali pagerinti išdėstymą, bet pailgina skaičiavimą.",
+  "mode.fast_first": "Greitai:first",
+  "mode.timed": "Su laiko limitu:timed",
+  "mode.continuous": "Nepertraukiamai:continuous",
+  "contact_simplification_mm": "Supaprastinimas kontaktams (mm):",
+  "contact_simplification_tooltip": "Kontūro supaprastinimas CLI kontaktiniams taškams ieškoti; atskiras nuo kreivių aproksimavimo FreeCAD."
 }

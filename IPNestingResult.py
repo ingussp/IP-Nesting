@@ -1318,9 +1318,9 @@ class NestingProcessManager(object):
         if self.wait_dialog is None:
             return
         if config is None:
-            from IPNestingExport import build_nesting_config, _read_combo_text, _read_line_edit_float
+            from IPNestingExport import build_nesting_config, _read_search_mode, _read_line_edit_float
             config = build_nesting_config(
-                mode=_read_combo_text(self.panel, 'mode_combo', 'first'),
+                mode=_read_search_mode(self.panel),
                 time_limit_seconds=_read_line_edit_float(self.panel, 'time_limit_edit', 0))
         self.wait_dialog.set_nesting_mode(config.get('mode', 'first'), config.get('timeLimitSeconds', 0))
 

@@ -94,7 +94,8 @@ def main():
             assert offcuts.layoutDirection() == direction
             assert parent.layoutDirection() == QtCore.Qt.LeftToRight
             assert panel.mode_combo.currentIndex() == 2
-            assert panel.mode_combo.currentText() == 'continuous'
+            assert panel.mode_combo.currentData() == 'continuous'
+            assert panel.mode_combo.currentText() == languages.tr('mode.continuous')
             assert panel.table.item(0, 0).text() == 'Settings'
             assert panel.table.item(0, 0).data(QtCore.Qt.UserRole) == 'TestPart'
             assert panel.table.item(0, 1).text() == '7'

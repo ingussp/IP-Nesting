@@ -541,5 +541,10 @@
   "mark_holes_button": "د ټاکل شوې برخې سوري په نښه کول", "show_gpus": "GPU وښایئ", "looking_for_graphic_cards": "ګرافیک کارتونه لټول کېږي",
   "nesting_wait_timed_seconds_s": "مهرباني وکړئ د برخو د ترتیب پر مهال انتظار وکړئ. د غوره ترتیب موندلو لپاره د %s ثانیو موده ټاکل شوې ده.", "nesting_wait_continuous_cancel_s": "برخې د وخت له محدودیت پرته ترتیبېږي. د بهیر د درولو لپاره «%s» کېکاږئ.",
   "default_rotations": "د لوریو تلواله شمېر:",
-  "default_rotations_tooltip": "د هرې نوې پرزې لپاره د ازمویل کېدونکو لوریو شمېر. ډېر لوري ښايي ترتیب ښه کړي، خو د محاسبې وخت زیاتوي."
+  "default_rotations_tooltip": "د هرې نوې پرزې لپاره د ازمویل کېدونکو لوریو شمېر. ډېر لوري ښايي ترتیب ښه کړي، خو د محاسبې وخت زیاتوي.",
+  "mode.fast_first": "چټک:first",
+  "mode.timed": "د وخت له محدودیت سره:timed",
+  "mode.continuous": "پرله‌پسې:continuous",
+  "contact_simplification_mm": "د تماس لپاره ساده کول (mm):",
+  "contact_simplification_tooltip": "د تماس ټکو د لټون لپاره په CLI کې د بهرنۍ کرښې ساده کول؛ د FreeCAD د کږو کرښو له نږدې کولو جلا دي."
 }

@@ -1282,6 +1282,20 @@ def _read_combo_text(panel, attr, default):
         return str(default)
 
 
+def _read_search_mode(panel, default='first'):
+    """Read the CLI identifier, independent of the combo's translated caption."""
+    widget = getattr(panel, 'mode_combo', None)
+    try:
+        value = widget.currentData()
+        if value in ('first', 'timed', 'continuous'):
+            return value
+    except (AttributeError, RuntimeError):
+        pass
+    # Compatibility with script-created panels that expose raw CLI text only.
+    value = _read_combo_text(panel, 'mode_combo', default)
+    return value if value in ('first', 'timed', 'continuous') else default
+
+
 # Read one panel combo box as an int, falling back to default.
 def _read_combo_int(panel, attr, default):
     try:
@@ -1410,7 +1424,7 @@ def export_nesting_steps(panel):
             threads = 1
 
         # Collect every nesting CLI search and GPU setting from the panel.
-        mode = _read_combo_text(panel, "mode_combo", "first")
+        mode = _read_search_mode(panel)
         time_limit_seconds = _read_line_edit_float(
             panel, "time_limit_edit", 0.0
         )
@@ -1418,10 +1432,15 @@ def export_nesting_steps(panel):
             panel, "round_seconds_edit", 30.0
         )
         trials = _read_combo_int(panel, "trials_combo", 2)
-        resolution = _read_line_edit_float(panel, "resolution_edit", 1.0)
-        step = _read_line_edit_int(panel, "step_edit", 1)
-        curve_tolerance = _read_line_edit_float(panel, "curve_edit", 0.3)
-        cache_rejects = _read_combo_bool(panel, "cache_combo", True)
+        if hasattr(panel, 'get_search_settings'):
+            search_settings = panel.get_search_settings()
+        else:
+            from IPNestingSettings import read_search_settings
+            search_settings = read_search_settings()
+        resolution = search_settings['resolution']
+        step = search_settings['bitmapSearchStepPx']
+        curve_tolerance = search_settings['curveTolerance']
+        cache_rejects = search_settings['cacheRejects']
         gpu_enabled = _read_combo_bool(panel, "gpu_enabled_combo", False)
         gpu_device = _read_combo_data_int(panel, "gpu_device_combo", -1)
         gpu_batch_size = _read_line_edit_int(panel, "gpu_batch_edit", 65536)

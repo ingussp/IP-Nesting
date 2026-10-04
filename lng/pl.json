@@ -541,5 +541,10 @@
   "mark_holes_button": "Zaznacz otwory wybranej części", "show_gpus": "Pokaż GPU", "looking_for_graphic_cards": "Wyszukiwanie kart graficznych",
   "nesting_wait_timed_seconds_s": "Proszę czekać na rozmieszczenie części. Wybrano czas %s sekund na znalezienie najlepszego układu.", "nesting_wait_continuous_cancel_s": "Części są rozmieszczane bez limitu czasu. Naciśnij „%s”, aby zatrzymać proces.",
   "default_rotations": "Domyślna liczba orientacji:",
-  "default_rotations_tooltip": "Liczba orientacji sprawdzanych dla każdej nowej części. Więcej orientacji może poprawić rozmieszczenie, ale wydłuża obliczenia."
+  "default_rotations_tooltip": "Liczba orientacji sprawdzanych dla każdej nowej części. Więcej orientacji może poprawić rozmieszczenie, ale wydłuża obliczenia.",
+  "mode.fast_first": "Szybki:first",
+  "mode.timed": "Z limitem czasu:timed",
+  "mode.continuous": "Ciągły:continuous",
+  "contact_simplification_mm": "Uproszczenie dla punktów styku (mm):",
+  "contact_simplification_tooltip": "Uproszczenie konturu w CLI do wyszukiwania punktów styku; niezależne od aproksymacji krzywych w FreeCAD."
 }

@@ -541,5 +541,10 @@
   "mark_holes_button": "Merkitse valitun osan reiät", "show_gpus": "Näytä GPU:t", "looking_for_graphic_cards": "Etsitään näytönohjaimia",
   "nesting_wait_timed_seconds_s": "Odota, kun osia sijoitellaan. Parhaan sijoittelun löytämiseksi on valittu %s sekunnin aikaväli.", "nesting_wait_continuous_cancel_s": "Osia sijoitellaan ilman aikarajaa. Pysäytä prosessi painamalla ”%s”.",
   "default_rotations": "Suuntien oletusmäärä:",
-  "default_rotations_tooltip": "Kullekin uudelle osalle kokeiltavien suuntien määrä. Useammat suunnat voivat parantaa sijoittelua mutta pidentävät laskenta-aikaa."
+  "default_rotations_tooltip": "Kullekin uudelle osalle kokeiltavien suuntien määrä. Useammat suunnat voivat parantaa sijoittelua mutta pidentävät laskenta-aikaa.",
+  "mode.fast_first": "Nopea:first",
+  "mode.timed": "Aikarajoitettu:timed",
+  "mode.continuous": "Jatkuva:continuous",
+  "contact_simplification_mm": "Kontaktien yksinkertaistus (mm):",
+  "contact_simplification_tooltip": "CLI:n ääriviivan yksinkertaistus kosketuspisteiden hakuun; erillinen FreeCADin käyrien likiarvosta."
 }
