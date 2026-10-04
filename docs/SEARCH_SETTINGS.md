@@ -4,11 +4,32 @@ The main panel contains the job's search mode, time budgets, placement strategie
 CPU and GPU settings. Mode captions are translated in all 50 languages while
 `input.json` and the saved `SearchMode` preference use the fixed CLI identifiers:
 
-| Mode in English | JSON identifier | Time limit | Round duration |
-| --- | --- | --- | --- |
-| Fast | `first` | Disabled | Disabled |
-| Timed | `timed` | Enabled | Enabled |
-| Continuous | `continuous` | Disabled | Enabled |
+| Mode in English | JSON identifier | Time limit | Round duration | Placement strategies |
+| --- | --- | --- | --- | --- |
+| Fast | `first` | Disabled | Disabled | Disabled |
+| Timed | `timed` | Enabled | Enabled | Enabled |
+| Continuous | `continuous` | Disabled | Enabled | Enabled |
+
+## Placement strategy sets
+
+The strategy selector displays translated words, while item data and JSON
+`trials` remain integers. The existing `Trials` preference remains a numeric
+string, so selections saved before this change restore correctly.
+
+| Caption in English | Exported `trials` | Compared strategies |
+| --- | --- | --- |
+| Compact | 1 | `compact` |
+| Compact + holes first | 2 | `compact`, `holes_first_rows` |
+| Compact + holes first + largest first | 3 | Those two plus `large_first` |
+| All strategies | 4 | Those three plus `small_first` |
+
+The CLI compares the selected set and retains its best validated layout; the
+number is a strategy count, not an individual strategy identifier. Fast mode
+ignores `trials` and always runs one largest-first, bottom-left strategy, so the
+selector and its label are disabled. Its selection is retained for switching
+back to Timed or Continuous. Changing language also preserves the numeric value.
+
+## Advanced settings
 
 The gear/Settings menu contains the advanced search settings directly below the
 contour approximation tolerance:

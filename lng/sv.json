@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Rundlängd (s):",
   "continuous_round_seconds_tooltip": "Budget i sekunder för varje timed/continuous optimeringsrunda.",
   "trials": "Placeringsstrategier:",
-  "trials_tooltip": "Antal oberoende placeringsstrategier (1..4).",
+  "trials_tooltip": "Jämför de valda strategierna och behåller den bästa layouten. Snabbläget använder en strategi: största delarna först från nedre vänstra hörnet, och ignorerar denna inställning.",
   "resolution_mm_per_px": "Upplösning (mm/px):",
   "resolution_mm_per_px_tooltip": "Bitmappens pixelstorlek i millimeter. Mindre värden ökar noggrannheten och minnesförbrukningen.",
   "bitmap_search_step_px": "Söksteg (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Tidsbegränsad",
   "mode.continuous": "Kontinuerlig",
   "contact_simplification_mm": "Förenkling för kontakter (mm):",
-  "contact_simplification_tooltip": "Konturförenkling i CLI för att söka kontaktpunkter; separat från kurvapproximation i FreeCAD."
+  "contact_simplification_tooltip": "Konturförenkling i CLI för att söka kontaktpunkter; separat från kurvapproximation i FreeCAD.",
+  "trials.compact": "Kompakt placering",
+  "trials.compact_holes": "Kompakt placering + delar med hål först",
+  "trials.compact_holes_large": "Kompakt placering + delar med hål först + största först",
+  "trials.all": "Alla strategier"
 }

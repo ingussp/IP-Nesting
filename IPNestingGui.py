@@ -17,7 +17,7 @@ import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
 from IPNestingExport import remember_hole_selection, current_selected_holes
-from IPNestingExport import normalize_rotation_text, _extract_part_contours, _read_boundary_deflection, _read_search_mode
+from IPNestingExport import normalize_rotation_text, _extract_part_contours, _read_boundary_deflection, _read_search_mode, _read_combo_int
 from IPNestingSettings import read_search_settings
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
@@ -129,7 +129,7 @@ class _ProportionalHeader(QtGui.QHeaderView):
 class NestingTaskPanel:
     # Nesting CLI settings exposed in the right-hand column, mapped to their
     # preference keys and defaults. "text" entries are QLineEdit fields, "combo"
-    # entries store current text (or stable mode data), and "bool" entries are
+    # entries store stable mode/trial data, and "bool" entries are
     # No/Yes combos. Advanced search controls live in the Settings menu.
     CLI_TEXT_SETTINGS = (
         ("time_limit_edit", "TimeLimitSeconds", "0"),
@@ -1663,6 +1663,7 @@ class NestingTaskPanel:
         combo = QtGui.QComboBox()
         ui_call(combo, 'addItems', list(items))
         combo.setCurrentIndex(int(default_index))
+        combo._setting_label = label_widget
 
         if tooltip:
             ui_call(
@@ -1714,10 +1715,14 @@ class NestingTaskPanel:
         self.trials_combo = self._create_combo_setting(
             lay,
             tr('trials'),
-            ["1", "2", "3", "4"],
+            [tr('trials.compact'), tr('trials.compact_holes'),
+             tr('trials.compact_holes_large'), tr('trials.all')],
             1,
             tr('trials_tooltip'),
         )
+        self.trials_label = self.trials_combo._setting_label
+        for index, count in enumerate((1, 2, 3, 4)):
+            self.trials_combo.setItemData(index, count)
 
         # GPU acceleration section.
         gpu_header = ui_widget(QtGui.QLabel, tr('gpu'))
@@ -1863,6 +1868,10 @@ class NestingTaskPanel:
             rounds_active = mode in ('timed', 'continuous')
             self._set_widget_enabled(self.round_seconds_edit, rounds_active)
             self._set_widget_enabled(self.round_seconds_label, rounds_active)
+            # Fast mode always runs its one large-first, bottom-left strategy.
+            # Retain the selected portfolio for switching back to timed/continuous.
+            self._set_widget_enabled(self.trials_combo, rounds_active)
+            self._set_widget_enabled(self.trials_label, rounds_active)
         except Exception:
             pass
 
@@ -4143,7 +4152,12 @@ class NestingTaskPanel:
                     continue
                 try:
                     saved = str(p.GetString(key, default))
-                    index = widget.findData(saved) if attr == 'mode_combo' else widget.findText(saved)
+                    if attr == 'mode_combo':
+                        index = widget.findData(saved)
+                    elif attr == 'trials_combo':
+                        index = widget.findData(int(saved))
+                    else:
+                        index = widget.findText(saved)
                     if index >= 0:
                         widget.setCurrentIndex(index)
                 except Exception:
@@ -4236,8 +4250,13 @@ class NestingTaskPanel:
                 if widget is None:
                     continue
                 try:
-                    value = _read_search_mode(self) if attr == 'mode_combo' else str(widget.currentText())
-                    p.SetString(key, value)
+                    if attr == 'mode_combo':
+                        value = _read_search_mode(self)
+                    elif attr == 'trials_combo':
+                        value = _read_combo_int(self, attr, 2)
+                    else:
+                        value = widget.currentText()
+                    p.SetString(key, str(value))
                 except Exception:
                     pass
 

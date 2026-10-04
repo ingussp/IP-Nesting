@@ -512,7 +512,7 @@
   "continuous_round_seconds": "مدة الجولة (ث):",
   "continuous_round_seconds_tooltip": "الميزانية بالثواني لكل جولة تحسين timed/continuous.",
   "trials": "استراتيجيات الوضع:",
-  "trials_tooltip": "عدد استراتيجيات التوضيع المستقلة (1..4).",
+  "trials_tooltip": "يقارن مجموعة الاستراتيجيات المحددة ويحفظ أفضل ترتيب. يستخدم الوضع السريع استراتيجية واحدة: الأكبر أولاً بدءاً من أسفل اليسار، ويتجاهل هذا الإعداد.",
   "resolution_mm_per_px": "الدقة (مم/بكسل):",
   "resolution_mm_per_px_tooltip": "حجم بكسل الخريطة النقطية بالملليمتر. تزيد القيم الأصغر الدقة واستهلاك الذاكرة.",
   "bitmap_search_step_px": "خطوة البحث (بكسل):",
@@ -546,5 +546,9 @@
   "mode.timed": "بحد زمني",
   "mode.continuous": "مستمر",
   "contact_simplification_mm": "تبسيط نقاط التلامس (mm):",
-  "contact_simplification_tooltip": "تبسيط المحيط في CLI للبحث عن نقاط التلامس؛ منفصل عن تقريب المنحنيات في FreeCAD."
+  "contact_simplification_tooltip": "تبسيط المحيط في CLI للبحث عن نقاط التلامس؛ منفصل عن تقريب المنحنيات في FreeCAD.",
+  "trials.compact": "ترتيب متراص",
+  "trials.compact_holes": "ترتيب متراص + القطع ذات الثقوب أولاً",
+  "trials.compact_holes_large": "ترتيب متراص + القطع ذات الثقوب أولاً + الأكبر أولاً",
+  "trials.all": "جميع الاستراتيجيات"
 }

@@ -522,7 +522,7 @@
   "search_mode_tooltip": "first stops at the first layout, timed optimizes for a time budget, continuous keeps improving and saves the best result.",
   "time_limit_seconds_tooltip": "Total search budget in seconds. Timed mode requires a positive value; first mode requires 0.",
   "continuous_round_seconds_tooltip": "Budget in seconds for each timed/continuous optimization round.",
-  "trials_tooltip": "Number of independent placement strategies (1..4).",
+  "trials_tooltip": "Compares the selected strategy set and keeps the best layout. Fast mode uses one largest-first, bottom-left strategy and ignores this setting.",
   "resolution_mm_per_px_tooltip": "Bitmap pixel size in millimetres. Smaller values increase precision and memory usage.",
   "bitmap_search_step_px_tooltip": "Minimum fine-search translation step in pixels (1..100000).",
   "curve_tolerance_mm_tooltip": "Contour simplification tolerance in millimetres.",
@@ -546,5 +546,9 @@
   "mode.timed": "Timed",
   "mode.continuous": "Continuous",
   "contact_simplification_mm": "Contact simplification (mm):",
-  "contact_simplification_tooltip": "CLI contour simplification for contact-point search; separate from FreeCAD curve approximation."
+  "contact_simplification_tooltip": "CLI contour simplification for contact-point search; separate from FreeCAD curve approximation.",
+  "trials.compact": "Compact",
+  "trials.compact_holes": "Compact + holes first",
+  "trials.compact_holes_large": "Compact + holes first + largest first",
+  "trials.all": "All strategies"
 }

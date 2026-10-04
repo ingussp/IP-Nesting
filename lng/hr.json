@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Trajanje kruga (s):",
   "continuous_round_seconds_tooltip": "Proračun u sekundama za svaki krug timed/continuous optimizacije.",
   "trials": "Strategije raspoređivanja:",
-  "trials_tooltip": "Broj neovisnih strategija raspoređivanja (1..4).",
+  "trials_tooltip": "Uspoređuje odabrani skup strategija i zadržava najbolji raspored. Brzi način koristi jednu strategiju: najveći dijelovi prvo od donjeg lijevog kuta, i zanemaruje ovu postavku.",
   "resolution_mm_per_px": "Razlučivost (mm/px):",
   "resolution_mm_per_px_tooltip": "Veličina piksela bitmape u milimetrima. Manje vrijednosti povećavaju preciznost i potrošnju memorije.",
   "bitmap_search_step_px": "Korak pretraživanja (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "S vremenskim ograničenjem",
   "mode.continuous": "Kontinuirano",
   "contact_simplification_mm": "Pojednostavljenje za kontakte (mm):",
-  "contact_simplification_tooltip": "Pojednostavljenje konture u CLI-ju za traženje kontaktnih točaka; odvojeno od aproksimacije krivulja u FreeCAD-u."
+  "contact_simplification_tooltip": "Pojednostavljenje konture u CLI-ju za traženje kontaktnih točaka; odvojeno od aproksimacije krivulja u FreeCAD-u.",
+  "trials.compact": "Kompaktan raspored",
+  "trials.compact_holes": "Kompaktan raspored + prvo dijelovi s otvorima",
+  "trials.compact_holes_large": "Kompaktan raspored + prvo dijelovi s otvorima + prvo najveći",
+  "trials.all": "Sve strategije"
 }

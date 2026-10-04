@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Duración de ronda (s):",
   "continuous_round_seconds_tooltip": "Presupuesto en segundos para cada ronda de optimización timed/continuous.",
   "trials": "Estrategias de colocación:",
-  "trials_tooltip": "Número de estrategias de colocación independientes (1..4).",
+  "trials_tooltip": "Compara el conjunto de estrategias seleccionado y conserva la mejor distribución. El modo rápido usa una sola estrategia: piezas mayores primero desde abajo a la izquierda, e ignora este ajuste.",
   "resolution_mm_per_px": "Resolución (mm/px):",
   "resolution_mm_per_px_tooltip": "Tamaño del píxel del mapa de bits en milímetros. Los valores menores aumentan la precisión y el consumo de memoria.",
   "bitmap_search_step_px": "Paso de búsqueda (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Con límite de tiempo",
   "mode.continuous": "Continuo",
   "contact_simplification_mm": "Simplificación para contactos (mm):",
-  "contact_simplification_tooltip": "Simplificación del contorno en el CLI para buscar puntos de contacto; independiente de la aproximación de curvas de FreeCAD."
+  "contact_simplification_tooltip": "Simplificación del contorno en el CLI para buscar puntos de contacto; independiente de la aproximación de curvas de FreeCAD.",
+  "trials.compact": "Colocación compacta",
+  "trials.compact_holes": "Colocación compacta + piezas con huecos primero",
+  "trials.compact_holes_large": "Colocación compacta + piezas con huecos primero + mayores primero",
+  "trials.all": "Todas las estrategias"
 }

@@ -512,7 +512,7 @@
   "continuous_round_seconds": "दौर अवधि (सेकंड):",
   "continuous_round_seconds_tooltip": "प्रत्येक timed/continuous अनुकूलन दौर के लिए सेकंड में बजट।",
   "trials": "रखाव रणनीतियाँ:",
-  "trials_tooltip": "स्वतंत्र प्लेसमेंट रणनीतियों की संख्या (1..4)।",
+  "trials_tooltip": "चयनित रणनीतियों की तुलना करके सर्वोत्तम विन्यास रखता है। त्वरित मोड में नीचे बाएँ कोने से सबसे बड़े भाग पहले रखने की एक रणनीति उपयोग होती है और यह सेटिंग अनदेखी होती है।",
   "resolution_mm_per_px": "रिज़ॉल्यूशन (mm/px):",
   "resolution_mm_per_px_tooltip": "बिटमैप पिक्सेल का आकार मिलीमीटर में। छोटे मान सटीकता और मेमोरी की खपत बढ़ाते हैं।",
   "bitmap_search_step_px": "खोज चरण (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "समय सीमा के साथ",
   "mode.continuous": "निरंतर",
   "contact_simplification_mm": "संपर्क के लिए सरलीकरण (mm):",
-  "contact_simplification_tooltip": "संपर्क बिंदुओं की खोज के लिए CLI परिरेखा सरलीकरण; FreeCAD वक्र सन्निकटन से अलग।"
+  "contact_simplification_tooltip": "संपर्क बिंदुओं की खोज के लिए CLI परिरेखा सरलीकरण; FreeCAD वक्र सन्निकटन से अलग।",
+  "trials.compact": "सघन विन्यास",
+  "trials.compact_holes": "सघन विन्यास + छेद वाले भाग पहले",
+  "trials.compact_holes_large": "सघन विन्यास + छेद वाले भाग पहले + सबसे बड़े पहले",
+  "trials.all": "सभी रणनीतियाँ"
 }

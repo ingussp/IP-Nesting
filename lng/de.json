@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Rundendauer (s):",
   "continuous_round_seconds_tooltip": "Budget in Sekunden für jede timed/continuous Optimierungsrunde.",
   "trials": "Platzierungsstrategien:",
-  "trials_tooltip": "Anzahl unabhängiger Platzierungsstrategien (1..4).",
+  "trials_tooltip": "Vergleicht die ausgewählten Strategien und behält die beste Anordnung. Der Schnellmodus verwendet eine Strategie: größte Teile zuerst von unten links, und ignoriert diese Einstellung.",
   "resolution_mm_per_px": "Auflösung (mm/px):",
   "resolution_mm_per_px_tooltip": "Pixelgröße der Bitmap in Millimetern. Kleinere Werte erhöhen die Genauigkeit und den Speicherbedarf.",
   "bitmap_search_step_px": "Suchschritt (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Zeitbegrenzt",
   "mode.continuous": "Kontinuierlich",
   "contact_simplification_mm": "Kontaktkontur-Vereinfachung (mm):",
-  "contact_simplification_tooltip": "CLI-Konturvereinfachung für die Kontaktpunktsuche; unabhängig von der FreeCAD-Kurvenapproximation."
+  "contact_simplification_tooltip": "CLI-Konturvereinfachung für die Kontaktpunktsuche; unabhängig von der FreeCAD-Kurvenapproximation.",
+  "trials.compact": "Kompakte Anordnung",
+  "trials.compact_holes": "Kompakte Anordnung + Lochteile zuerst",
+  "trials.compact_holes_large": "Kompakte Anordnung + Lochteile zuerst + größte zuerst",
+  "trials.all": "Alle Strategien"
 }

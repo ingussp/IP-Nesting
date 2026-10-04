@@ -1296,8 +1296,15 @@ def _read_search_mode(panel, default='first'):
     return value if value in ('first', 'timed', 'continuous') else default
 
 
-# Read one panel combo box as an int, falling back to default.
+# Prefer stable integer item data; raw numeric captions remain supported for scripts.
 def _read_combo_int(panel, attr, default):
+    try:
+        widget = getattr(panel, attr, None)
+        value = widget.currentData() if widget is not None else None
+        if value is not None:
+            return int(value)
+    except (AttributeError, TypeError, ValueError, RuntimeError):
+        pass
     try:
         return int(_read_combo_text(panel, attr, default))
     except Exception:

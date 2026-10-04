@@ -512,7 +512,7 @@
   "continuous_round_seconds": "دورانیہ (سیکنڈ):",
   "continuous_round_seconds_tooltip": "ہر timed/continuous اصلاحی دور کے لیے سیکنڈ میں بجٹ۔",
   "trials": "جگہ دینے کی حکمت عملیاں:",
-  "trials_tooltip": "آزاد جگہ دینے کی حکمت عملیوں کی تعداد (1..4)۔",
+  "trials_tooltip": "منتخب حکمت عملیوں کے مجموعے کا موازنہ کرکے بہترین ترتیب محفوظ کرتا ہے۔ تیز موڈ ایک حکمت عملی استعمال کرتا ہے: نچلے بائیں کونے سے سب سے بڑے حصے پہلے رکھتا ہے، اور اس ترتیب کو نظرانداز کرتا ہے۔",
   "resolution_mm_per_px": "ریزولوشن (mm/px):",
   "resolution_mm_per_px_tooltip": "بٹ میپ پکسل کا سائز ملی میٹر میں۔ چھوٹی قدریں درستگی اور میموری کا استعمال بڑھاتی ہیں۔",
   "bitmap_search_step_px": "تلاش کا قدم (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "وقت کی حد کے ساتھ",
   "mode.continuous": "مسلسل",
   "contact_simplification_mm": "رابطے کے لیے سادہ بنانا (mm):",
-  "contact_simplification_tooltip": "رابطے کے نقاط تلاش کرنے کے لیے CLI خاکے کو سادہ بنانا؛ FreeCAD منحنی تقریب سے الگ۔"
+  "contact_simplification_tooltip": "رابطے کے نقاط تلاش کرنے کے لیے CLI خاکے کو سادہ بنانا؛ FreeCAD منحنی تقریب سے الگ۔",
+  "trials.compact": "گھنی ترتیب",
+  "trials.compact_holes": "گھنی ترتیب + سوراخ والے حصے پہلے",
+  "trials.compact_holes_large": "گھنی ترتیب + سوراخ والے حصے پہلے + سب سے بڑے پہلے",
+  "trials.all": "تمام حکمت عملیاں"
 }

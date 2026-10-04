@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Kör időtartama (s):",
   "continuous_round_seconds_tooltip": "Másodpercben mért keret minden timed/continuous optimalizálási körhöz.",
   "trials": "Elhelyezési stratégiák:",
-  "trials_tooltip": "Független elhelyezési stratégiák száma (1..4).",
+  "trials_tooltip": "Összehasonlítja a kiválasztott stratégiákat, és megtartja a legjobb elrendezést. A gyors mód egy stratégiát használ: a legnagyobb alkatrészeket először, bal alulról helyezi el, és figyelmen kívül hagyja ezt a beállítást.",
   "resolution_mm_per_px": "Felbontás (mm/px):",
   "resolution_mm_per_px_tooltip": "A bittérkép képpontmérete milliméterben. A kisebb értékek növelik a pontosságot és a memóriahasználatot.",
   "bitmap_search_step_px": "Keresési lépés (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Időkorlátos",
   "mode.continuous": "Folyamatos",
   "contact_simplification_mm": "Egyszerűsítés érintkezéshez (mm):",
-  "contact_simplification_tooltip": "Kontúregyszerűsítés a CLI-ben az érintkezési pontok kereséséhez; külön a FreeCAD görbeközelítésétől."
+  "contact_simplification_tooltip": "Kontúregyszerűsítés a CLI-ben az érintkezési pontok kereséséhez; külön a FreeCAD görbeközelítésétől.",
+  "trials.compact": "Tömör elhelyezés",
+  "trials.compact_holes": "Tömör elhelyezés + lyukas alkatrészek először",
+  "trials.compact_holes_large": "Tömör elhelyezés + lyukas alkatrészek először + legnagyobbak először",
+  "trials.all": "Minden stratégia"
 }

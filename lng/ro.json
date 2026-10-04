@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Durata rundei (s):",
   "continuous_round_seconds_tooltip": "Buget în secunde pentru fiecare rundă de optimizare timed/continuous.",
   "trials": "Strategii de amplasare:",
-  "trials_tooltip": "Număr de strategii independente de amplasare (1..4).",
+  "trials_tooltip": "Compară setul de strategii selectat și păstrează cea mai bună dispunere. Modul rapid folosește o singură strategie: piesele cele mai mari întâi din colțul stâng de jos, și ignoră această setare.",
   "resolution_mm_per_px": "Rezoluție (mm/px):",
   "resolution_mm_per_px_tooltip": "Dimensiunea pixelului hărții raster în milimetri. Valorile mai mici măresc precizia și consumul de memorie.",
   "bitmap_search_step_px": "Pas de căutare (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Cu limită de timp",
   "mode.continuous": "Continuu",
   "contact_simplification_mm": "Simplificare pentru contacte (mm):",
-  "contact_simplification_tooltip": "Simplificarea conturului în CLI pentru căutarea punctelor de contact; distinctă de aproximarea curbelor în FreeCAD."
+  "contact_simplification_tooltip": "Simplificarea conturului în CLI pentru căutarea punctelor de contact; distinctă de aproximarea curbelor în FreeCAD.",
+  "trials.compact": "Amplasare compactă",
+  "trials.compact_holes": "Amplasare compactă + întâi piesele cu găuri",
+  "trials.compact_holes_large": "Amplasare compactă + întâi piesele cu găuri + întâi cele mai mari",
+  "trials.all": "Toate strategiile"
 }

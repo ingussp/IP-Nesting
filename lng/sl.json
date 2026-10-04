@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Trajanje kroga (s):",
   "continuous_round_seconds_tooltip": "Proračun v sekundah za vsak krog timed/continuous optimizacije.",
   "trials": "Strategije razporejanja:",
-  "trials_tooltip": "Število neodvisnih strategij postavitve (1..4).",
+  "trials_tooltip": "Primerja izbrani nabor strategij in ohrani najboljšo razporeditev. Hitri način uporablja eno strategijo: največji deli najprej iz spodnjega levega kota, in prezre to nastavitev.",
   "resolution_mm_per_px": "Ločljivost (mm/px):",
   "resolution_mm_per_px_tooltip": "Velikost slikovne pike bitne slike v milimetrih. Manjše vrednosti povečajo natančnost in porabo pomnilnika.",
   "bitmap_search_step_px": "Korak iskanja (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Časovno omejeno",
   "mode.continuous": "Neprekinjeno",
   "contact_simplification_mm": "Poenostavitev za stike (mm):",
-  "contact_simplification_tooltip": "Poenostavitev obrisa v CLI za iskanje stičnih točk; ločena od približka krivulj v FreeCAD."
+  "contact_simplification_tooltip": "Poenostavitev obrisa v CLI za iskanje stičnih točk; ločena od približka krivulj v FreeCAD.",
+  "trials.compact": "Kompaktna razporeditev",
+  "trials.compact_holes": "Kompaktna razporeditev + najprej deli z odprtinami",
+  "trials.compact_holes_large": "Kompaktna razporeditev + najprej deli z odprtinami + najprej največji",
+  "trials.all": "Vse strategije"
 }

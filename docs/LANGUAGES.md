@@ -13,7 +13,7 @@ the supplied September 2026 screenshot. English names are sorted alphabetically
 down six columns, or seven on wider screens, followed by native names. Scrolling
 keeps the chooser usable on smaller displays. Search accepts either name or code.
 
-All 50 entries have a separate JSON catalog with the same 551 message keys.
+All 50 entries have a separate JSON catalog with the same 555 message keys.
 The catalogs include translated labels, dialog text, tooltips and diagnostics.
 Technical identifiers (such as `Shape.Area`, function names and file names),
 format placeholders and genuine cognates can remain identical to English.

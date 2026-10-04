@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Tagal ng round (s):",
   "continuous_round_seconds_tooltip": "Budget sa segundo para sa bawat timed/continuous optimization round.",
   "trials": "Mga estratehiya sa paglalagay:",
-  "trials_tooltip": "Bilang ng mga independiyenteng estratehiya ng paglalagay (1..4).",
+  "trials_tooltip": "Inihahambing ang napiling pangkat ng mga estratehiya at pinapanatili ang pinakamahusay na pagkakaayos. Ang mabilis na mode ay gumagamit ng isang estratehiya: pinakamalaki muna mula sa ibabang kaliwa, at hindi ginagamit ang setting na ito.",
   "resolution_mm_per_px": "Resolusyon (mm/px):",
   "resolution_mm_per_px_tooltip": "Laki ng pixel ng bitmap sa milimetro. Pinapataas ng mas maliliit na halaga ang katumpakan at paggamit ng memorya.",
   "bitmap_search_step_px": "Hakbang ng paghahanap (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "May limitasyon sa oras",
   "mode.continuous": "Tuloy-tuloy",
   "contact_simplification_mm": "Pagpapasimple para sa contact (mm):",
-  "contact_simplification_tooltip": "Pagpapasimple ng tabas sa CLI para maghanap ng mga punto ng contact; hiwalay sa pagtatantya ng mga kurba sa FreeCAD."
+  "contact_simplification_tooltip": "Pagpapasimple ng tabas sa CLI para maghanap ng mga punto ng contact; hiwalay sa pagtatantya ng mga kurba sa FreeCAD.",
+  "trials.compact": "Siksik na pagkakaayos",
+  "trials.compact_holes": "Siksik na pagkakaayos + may butas muna",
+  "trials.compact_holes_large": "Siksik na pagkakaayos + may butas muna + pinakamalaki muna",
+  "trials.all": "Lahat ng estratehiya"
 }

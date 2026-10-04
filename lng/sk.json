@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Trvanie kola (s):",
   "continuous_round_seconds_tooltip": "Rozpočet v sekundách pre každé kolo timed/continuous optimalizácie.",
   "trials": "Stratégie rozmiestnenia:",
-  "trials_tooltip": "Počet nezávislých stratégií umiestnenia (1..4).",
+  "trials_tooltip": "Porovná vybranú sadu stratégií a zachová najlepšie rozmiestnenie. Rýchly režim používa jedinú stratégiu: najväčšie diely od ľavého dolného rohu, a toto nastavenie ignoruje.",
   "resolution_mm_per_px": "Rozlíšenie (mm/px):",
   "resolution_mm_per_px_tooltip": "Veľkosť pixela bitmapy v milimetroch. Menšie hodnoty zvyšujú presnosť a spotrebu pamäte.",
   "bitmap_search_step_px": "Krok vyhľadávania (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "S časovým limitom",
   "mode.continuous": "Nepretržite",
   "contact_simplification_mm": "Zjednodušenie pre kontakty (mm):",
-  "contact_simplification_tooltip": "Zjednodušenie obrysu v CLI na hľadanie kontaktných bodov; oddelené od aproximácie kriviek vo FreeCAD."
+  "contact_simplification_tooltip": "Zjednodušenie obrysu v CLI na hľadanie kontaktných bodov; oddelené od aproximácie kriviek vo FreeCAD.",
+  "trials.compact": "Kompaktné rozmiestnenie",
+  "trials.compact_holes": "Kompaktné rozmiestnenie + najprv diely s otvormi",
+  "trials.compact_holes_large": "Kompaktné rozmiestnenie + najprv diely s otvormi + najprv najväčšie",
+  "trials.all": "Všetky stratégie"
 }

@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Raund müddəti (san):",
   "continuous_round_seconds_tooltip": "Hər timed/continuous optimallaşdırma raundu üçün saniyələrlə büdcə.",
   "trials": "Yerləşdirmə strategiyaları:",
-  "trials_tooltip": "Müstəqil yerləşdirmə strategiyalarının sayı (1..4).",
+  "trials_tooltip": "Seçilmiş strategiyalar toplusunu müqayisə edir və ən yaxşı düzülüşü saxlayır. Sürətli rejim böyük hissələri əvvəlcə aşağı sol küncdən yerləşdirən bir strategiyadan istifadə edir və bu ayarı nəzərə almır.",
   "resolution_mm_per_px": "İcazə (mm/px):",
   "resolution_mm_per_px_tooltip": "Bit xəritəsinin piksel ölçüsü millimetrlə. Daha kiçik qiymətlər dəqiqliyi və yaddaş istifadəsini artırır.",
   "bitmap_search_step_px": "Axtarış addımı (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Vaxt məhdudiyyətli",
   "mode.continuous": "Davamlı",
   "contact_simplification_mm": "Təmas üçün sadələşdirmə (mm):",
-  "contact_simplification_tooltip": "Təmas nöqtələrini axtarmaq üçün CLI konturunun sadələşdirilməsi; FreeCAD əyrilərinin yaxınlaşdırılmasından ayrıdır."
+  "contact_simplification_tooltip": "Təmas nöqtələrini axtarmaq üçün CLI konturunun sadələşdirilməsi; FreeCAD əyrilərinin yaxınlaşdırılmasından ayrıdır.",
+  "trials.compact": "Kompakt yerləşdirmə",
+  "trials.compact_holes": "Kompakt yerləşdirmə + əvvəl dəlikli hissələr",
+  "trials.compact_holes_large": "Kompakt yerləşdirmə + əvvəl dəlikli hissələr + əvvəl böyük hissələr",
+  "trials.all": "Bütün strategiyalar"
 }

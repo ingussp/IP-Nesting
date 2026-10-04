@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Délka kola (s):",
   "continuous_round_seconds_tooltip": "Rozpočet v sekundách pro každé kolo timed/continuous optimalizace.",
   "trials": "Strategie rozmístění:",
-  "trials_tooltip": "Počet nezávislých strategií rozmístění (1..4).",
+  "trials_tooltip": "Porovná vybranou sadu strategií a zachová nejlepší rozmístění. Rychlý režim používá jedinou strategii: největší díly od levého dolního rohu, a toto nastavení ignoruje.",
   "resolution_mm_per_px": "Rozlišení (mm/px):",
   "resolution_mm_per_px_tooltip": "Velikost pixelu bitmapy v milimetrech. Menší hodnoty zvyšují přesnost a spotřebu paměti.",
   "bitmap_search_step_px": "Krok hledání (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "S časovým limitem",
   "mode.continuous": "Nepřetržitě",
   "contact_simplification_mm": "Zjednodušení pro kontakty (mm):",
-  "contact_simplification_tooltip": "Zjednodušení obrysu v CLI pro hledání kontaktních bodů; oddělené od aproximace křivek ve FreeCAD."
+  "contact_simplification_tooltip": "Zjednodušení obrysu v CLI pro hledání kontaktních bodů; oddělené od aproximace křivek ve FreeCAD.",
+  "trials.compact": "Kompaktní rozmístění",
+  "trials.compact_holes": "Kompaktní rozmístění + nejprve díly s otvory",
+  "trials.compact_holes_large": "Kompaktní rozmístění + nejprve díly s otvory + nejprve největší",
+  "trials.all": "Všechny strategie"
 }

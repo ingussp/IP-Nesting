@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Durée de manche (s) :",
   "continuous_round_seconds_tooltip": "Budget en secondes pour chaque manche d'optimisation timed/continuous.",
   "trials": "Stratégies de placement :",
-  "trials_tooltip": "Nombre de stratégies de placement indépendantes (1..4).",
+  "trials_tooltip": "Compare les stratégies sélectionnées et conserve la meilleure disposition. Le mode rapide utilise une seule stratégie : les plus grandes pièces d’abord depuis le coin inférieur gauche, et ignore ce réglage.",
   "resolution_mm_per_px": "Résolution (mm/px) :",
   "resolution_mm_per_px_tooltip": "Taille d’un pixel du bitmap en millimètres. Des valeurs plus petites augmentent la précision et la consommation de mémoire.",
   "bitmap_search_step_px": "Pas de recherche (px) :",
@@ -546,5 +546,9 @@
   "mode.timed": "Limité dans le temps",
   "mode.continuous": "Continu",
   "contact_simplification_mm": "Simplification pour les contacts (mm) :",
-  "contact_simplification_tooltip": "Simplification du contour par le CLI pour rechercher les points de contact ; distincte de l’approximation des courbes de FreeCAD."
+  "contact_simplification_tooltip": "Simplification du contour par le CLI pour rechercher les points de contact ; distincte de l’approximation des courbes de FreeCAD.",
+  "trials.compact": "Placement compact",
+  "trials.compact_holes": "Placement compact + pièces trouées d’abord",
+  "trials.compact_holes_large": "Placement compact + pièces trouées d’abord + plus grandes d’abord",
+  "trials.all": "Toutes les stratégies"
 }
