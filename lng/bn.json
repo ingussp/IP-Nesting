@@ -512,7 +512,7 @@
   "continuous_round_seconds": "রাউন্ডের সময়কাল (s):",
   "continuous_round_seconds_tooltip": "প্রতিটি timed/continuous অপ্টিমাইজেশন রাউন্ডের জন্য সেকেন্ডে বাজেট।",
   "trials": "স্থাপনের কৌশল:",
-  "trials_tooltip": "স্বাধীন স্থাপন কৌশলের সংখ্যা (1..4)।",
+  "trials_tooltip": "নির্বাচিত কৌশলগুলো তুলনা করে সেরা বিন্যাস রাখে। দ্রুত মোডে নিচের বাম কোণ থেকে বড় অংশ আগে রাখার একটি কৌশল ব্যবহৃত হয়; এই সেটিং উপেক্ষা করা হয়।",
   "resolution_mm_per_px": "রেজোলিউশন (mm/px):",
   "resolution_mm_per_px_tooltip": "বিটম্যাপ পিক্সেলের আকার মিলিমিটারে। ছোট মান নির্ভুলতা ও মেমরির ব্যবহার বাড়ায়।",
   "bitmap_search_step_px": "অনুসন্ধান ধাপ (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "সময়সীমাসহ",
   "mode.continuous": "অবিরাম",
   "contact_simplification_mm": "সংস্পর্শের জন্য সরলীকরণ (mm):",
-  "contact_simplification_tooltip": "সংস্পর্শ বিন্দু খোঁজার জন্য CLI কনট্যুর সরলীকরণ; FreeCAD বক্ররেখার আসন্নায়ন থেকে আলাদা।"
+  "contact_simplification_tooltip": "সংস্পর্শ বিন্দু খোঁজার জন্য CLI কনট্যুর সরলীকরণ; FreeCAD বক্ররেখার আসন্নায়ন থেকে আলাদা।",
+  "trials.compact": "ঘন বিন্যাস",
+  "trials.compact_holes": "ঘন বিন্যাস + ছিদ্রযুক্ত অংশ আগে",
+  "trials.compact_holes_large": "ঘন বিন্যাস + ছিদ্রযুক্ত অংশ আগে + বড় অংশ আগে",
+  "trials.all": "সব কৌশল"
 }

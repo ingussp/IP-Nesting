@@ -512,7 +512,7 @@
   "continuous_round_seconds": "轮次时长（秒）:",
   "continuous_round_seconds_tooltip": "每个 timed/continuous 优化轮次以秒为单位的预算。",
   "trials": "放置策略数量：",
-  "trials_tooltip": "独立放置策略的数量（1..4）。",
+  "trials_tooltip": "比较所选策略组合并保留最佳排布。快速模式仅使用从左下角开始、优先放置大零件的单一策略，并忽略此设置。",
   "resolution_mm_per_px": "分辨率（毫米/像素）:",
   "resolution_mm_per_px_tooltip": "位图像素尺寸，单位为毫米。数值越小，精度越高，内存占用也越大。",
   "bitmap_search_step_px": "搜索步长（像素）:",
@@ -546,5 +546,9 @@
   "mode.timed": "限时",
   "mode.continuous": "连续",
   "contact_simplification_mm": "接触轮廓简化（mm）：",
-  "contact_simplification_tooltip": "CLI 为搜索接触点而简化轮廓；与 FreeCAD 曲线近似独立。"
+  "contact_simplification_tooltip": "CLI 为搜索接触点而简化轮廓；与 FreeCAD 曲线近似独立。",
+  "trials.compact": "紧凑排布",
+  "trials.compact_holes": "紧凑排布 + 带孔零件优先",
+  "trials.compact_holes_large": "紧凑排布 + 带孔零件优先 + 大零件优先",
+  "trials.all": "所有策略"
 }

@@ -512,7 +512,7 @@
   "continuous_round_seconds": "ラウンド時間 (秒):",
   "continuous_round_seconds_tooltip": "各 timed/continuous 最適化ラウンドの予算（秒）。",
   "trials": "配置戦略数:",
-  "trials_tooltip": "独立した配置戦略の数 (1..4)。",
+  "trials_tooltip": "選択した戦略の組み合わせを比較し、最良の配置を保持します。高速モードでは左下から大きい部品を先に配置する単一の戦略を使用し、この設定を無視します。",
   "resolution_mm_per_px": "解像度 (mm/px):",
   "resolution_mm_per_px_tooltip": "ビットマップのピクセル寸法（ミリメートル）。値を小さくすると精度とメモリ使用量が増加します。",
   "bitmap_search_step_px": "検索ステップ (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "時間制限",
   "mode.continuous": "連続",
   "contact_simplification_mm": "接触点探索用の簡略化 (mm):",
-  "contact_simplification_tooltip": "CLI で接触点を探索するための輪郭簡略化です。FreeCAD の曲線近似とは別の設定です。"
+  "contact_simplification_tooltip": "CLI で接触点を探索するための輪郭簡略化です。FreeCAD の曲線近似とは別の設定です。",
+  "trials.compact": "密集配置",
+  "trials.compact_holes": "密集配置 + 穴のある部品を優先",
+  "trials.compact_holes_large": "密集配置 + 穴のある部品を優先 + 大きい部品を優先",
+  "trials.all": "すべての戦略"
 }

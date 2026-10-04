@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Tur davomiyligi (s):",
   "continuous_round_seconds_tooltip": "Har bir timed/continuous optimallashtirish turi uchun sekundlarda byudjet.",
   "trials": "Joylashtirish strategiyalari:",
-  "trials_tooltip": "Mustaqil joylashtirish strategiyalari soni (1..4).",
+  "trials_tooltip": "Tanlangan strategiyalar to‘plamini taqqoslaydi va eng yaxshi joylashuvni saqlaydi. Tezkor rejim bitta strategiyadan foydalanadi: avval eng katta detallar pastki chap burchakdan joylashtiriladi va bu sozlama e’tiborga olinmaydi.",
   "resolution_mm_per_px": "Aniqlik (mm/px):",
   "resolution_mm_per_px_tooltip": "Rastr pikselining o‘lchami millimetrda. Kichikroq qiymatlar aniqlik va xotira sarfini oshiradi.",
   "bitmap_search_step_px": "Qidiruv qadami (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Vaqt chegarasi bilan",
   "mode.continuous": "Uzluksiz",
   "contact_simplification_mm": "Tegish nuqtalari uchun soddalashtirish (mm):",
-  "contact_simplification_tooltip": "Tegish nuqtalarini qidirish uchun CLI konturini soddalashtirish; FreeCAD egri chiziqlari approksimatsiyasidan alohida."
+  "contact_simplification_tooltip": "Tegish nuqtalarini qidirish uchun CLI konturini soddalashtirish; FreeCAD egri chiziqlari approksimatsiyasidan alohida.",
+  "trials.compact": "Zich joylashtirish",
+  "trials.compact_holes": "Zich joylashtirish + avval teshikli detallar",
+  "trials.compact_holes_large": "Zich joylashtirish + avval teshikli detallar + avval eng kattalar",
+  "trials.all": "Barcha strategiyalar"
 }

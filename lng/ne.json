@@ -512,7 +512,7 @@
   "continuous_round_seconds": "राउन्ड अवधि (सेकेन्ड):",
   "continuous_round_seconds_tooltip": "प्रत्येक timed/continuous अनुकूलन राउन्डको लागि सेकेन्डमा बजेट।",
   "trials": "राख्ने रणनीतिहरू:",
-  "trials_tooltip": "स्वतन्त्र स्थाननिर्धारण रणनीतिहरूको संख्या (1..4)।",
+  "trials_tooltip": "चयन गरिएका रणनीतिहरू तुलना गरी उत्कृष्ट विन्यास राख्छ। द्रुत मोडले तल्लो बायाँ कुनाबाट ठूला भाग पहिले राख्ने एउटै रणनीति प्रयोग गर्छ र यो सेटिङ बेवास्ता गर्छ।",
   "resolution_mm_per_px": "रिजोल्युसन (mm/px):",
   "resolution_mm_per_px_tooltip": "बिटम्याप पिक्सेलको आकार मिलिमिटरमा। साना मानहरूले शुद्धता र मेमोरी खपत बढाउँछन्।",
   "bitmap_search_step_px": "खोज चरण (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "समय सीमासहित",
   "mode.continuous": "निरन्तर",
   "contact_simplification_mm": "सम्पर्कका लागि सरलीकरण (mm):",
-  "contact_simplification_tooltip": "सम्पर्क बिन्दु खोज्न CLI बाह्यरेखा सरलीकरण; FreeCAD वक्र सन्निकटनबाट अलग।"
+  "contact_simplification_tooltip": "सम्पर्क बिन्दु खोज्न CLI बाह्यरेखा सरलीकरण; FreeCAD वक्र सन्निकटनबाट अलग।",
+  "trials.compact": "सघन विन्यास",
+  "trials.compact_holes": "सघन विन्यास + प्वाल भएका भाग पहिले",
+  "trials.compact_holes_large": "सघन विन्यास + प्वाल भएका भाग पहिले + सबैभन्दा ठूला पहिले",
+  "trials.all": "सबै रणनीतिहरू"
 }

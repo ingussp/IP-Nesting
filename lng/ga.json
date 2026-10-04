@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Fad babhta (s):",
   "continuous_round_seconds_tooltip": "Buiséad i soicindí do gach babhta optamaithe timed/continuous.",
   "trials": "Straitéisí leagain amach:",
-  "trials_tooltip": "Líon na straitéisí socrúcháin neamhspleácha (1..4).",
+  "trials_tooltip": "Déanann sé comparáid idir na straitéisí roghnaithe agus coinníonn sé an leagan amach is fearr. Úsáideann an mód tapa straitéis amháin: na páirteanna is mó ar dtús ón gcúinne íochtair ar chlé, agus déanann sé neamhaird den socrú seo.",
   "resolution_mm_per_px": "Taifeach (mm/px):",
   "resolution_mm_per_px_tooltip": "Méid picteilín na léarscáile giotán i milliméadair. Méadaíonn luachanna níos lú an cruinneas agus úsáid na cuimhne.",
   "bitmap_search_step_px": "Céim chuardaigh (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Le teorainn ama",
   "mode.continuous": "Leanúnach",
   "contact_simplification_mm": "Simpliú le haghaidh teagmhála (mm):",
-  "contact_simplification_tooltip": "Simpliú comhriain sa CLI chun pointí teagmhála a lorg; ar leith ó neasúchán cuair FreeCAD."
+  "contact_simplification_tooltip": "Simpliú comhriain sa CLI chun pointí teagmhála a lorg; ar leith ó neasúchán cuair FreeCAD.",
+  "trials.compact": "Leagan amach dlúth",
+  "trials.compact_holes": "Leagan amach dlúth + páirteanna le poill ar dtús",
+  "trials.compact_holes_large": "Leagan amach dlúth + páirteanna le poill ar dtús + na cinn is mó ar dtús",
+  "trials.all": "Gach straitéis"
 }

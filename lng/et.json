@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Ringi kestus (s):",
   "continuous_round_seconds_tooltip": "Eelarve sekundites iga timed/continuous optimeerimisringi kohta.",
   "trials": "Paigutusstrateegiad:",
-  "trials_tooltip": "Sõltumatute paigutusstrateegiate arv (1..4).",
+  "trials_tooltip": "Võrdleb valitud strateegiate kogumit ja säilitab parima paigutuse. Kiirrežiim kasutab üht strateegiat: suuremad detailid esimesena alumisest vasakust nurgast, ning eirab seda seadistust.",
   "resolution_mm_per_px": "Eraldusvõime (mm/px):",
   "resolution_mm_per_px_tooltip": "Rasterkaardi piksli suurus millimeetrites. Väiksemad väärtused suurendavad täpsust ja mälukasutust.",
   "bitmap_search_step_px": "Otsingusamm (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Ajapiiranguga",
   "mode.continuous": "Pidev",
   "contact_simplification_mm": "Lihtsustamine kontaktide jaoks (mm):",
-  "contact_simplification_tooltip": "Kontuuri lihtsustamine CLI-s kontaktpunktide otsimiseks; eraldi FreeCADi kõverate lähendamisest."
+  "contact_simplification_tooltip": "Kontuuri lihtsustamine CLI-s kontaktpunktide otsimiseks; eraldi FreeCADi kõverate lähendamisest.",
+  "trials.compact": "Kompaktne paigutus",
+  "trials.compact_holes": "Kompaktne paigutus + avadega detailid enne",
+  "trials.compact_holes_large": "Kompaktne paigutus + avadega detailid enne + suuremad enne",
+  "trials.all": "Kõik strateegiad"
 }

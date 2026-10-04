@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Kierroksen kesto (s):",
   "continuous_round_seconds_tooltip": "Budjetti sekunteina jokaiselle timed/continuous optimointikierrokselle.",
   "trials": "Sijoittelustrategiat:",
-  "trials_tooltip": "Itsenäisten sijoittelustrategioiden määrä (1..4).",
+  "trials_tooltip": "Vertaa valittuja strategioita ja säilyttää parhaan sijoittelun. Nopea tila käyttää yhtä strategiaa: suurimmat osat ensin vasemmasta alakulmasta, ja ohittaa tämän asetuksen.",
   "resolution_mm_per_px": "Tarkkuus (mm/px):",
   "resolution_mm_per_px_tooltip": "Bittikartan pikselikoko millimetreinä. Pienemmät arvot lisäävät tarkkuutta ja muistinkulutusta.",
   "bitmap_search_step_px": "Hakuaskel (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Aikarajoitettu",
   "mode.continuous": "Jatkuva",
   "contact_simplification_mm": "Kontaktien yksinkertaistus (mm):",
-  "contact_simplification_tooltip": "CLI:n ääriviivan yksinkertaistus kosketuspisteiden hakuun; erillinen FreeCADin käyrien likiarvosta."
+  "contact_simplification_tooltip": "CLI:n ääriviivan yksinkertaistus kosketuspisteiden hakuun; erillinen FreeCADin käyrien likiarvosta.",
+  "trials.compact": "Tiivis sijoittelu",
+  "trials.compact_holes": "Tiivis sijoittelu + reiälliset osat ensin",
+  "trials.compact_holes_large": "Tiivis sijoittelu + reiälliset osat ensin + suurimmat ensin",
+  "trials.all": "Kaikki strategiat"
 }

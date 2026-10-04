@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Czas trwania rundy (s):",
   "continuous_round_seconds_tooltip": "Budżet w sekundach dla każdej rundy optymalizacji timed/continuous.",
   "trials": "Strategie rozmieszczania:",
-  "trials_tooltip": "Liczba niezależnych strategii rozmieszczania (1..4).",
+  "trials_tooltip": "Porównuje wybrany zestaw strategii i zachowuje najlepszy układ. Tryb szybki używa jednej strategii: największe części najpierw od lewego dolnego rogu, i ignoruje to ustawienie.",
   "resolution_mm_per_px": "Rozdzielczość (mm/px):",
   "resolution_mm_per_px_tooltip": "Rozmiar piksela bitmapy w milimetrach. Mniejsze wartości zwiększają dokładność i zużycie pamięci.",
   "bitmap_search_step_px": "Krok wyszukiwania (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Z limitem czasu",
   "mode.continuous": "Ciągły",
   "contact_simplification_mm": "Uproszczenie dla punktów styku (mm):",
-  "contact_simplification_tooltip": "Uproszczenie konturu w CLI do wyszukiwania punktów styku; niezależne od aproksymacji krzywych w FreeCAD."
+  "contact_simplification_tooltip": "Uproszczenie konturu w CLI do wyszukiwania punktów styku; niezależne od aproksymacji krzywych w FreeCAD.",
+  "trials.compact": "Kompaktowe rozmieszczenie",
+  "trials.compact_holes": "Kompaktowe rozmieszczenie + najpierw części z otworami",
+  "trials.compact_holes_large": "Kompaktowe rozmieszczenie + najpierw części z otworami + najpierw największe",
+  "trials.all": "Wszystkie strategie"
 }

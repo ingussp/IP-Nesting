@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Durasi ronde (s):",
   "continuous_round_seconds_tooltip": "Anggaran dalam detik untuk setiap ronde optimasi timed/continuous.",
   "trials": "Strategi penempatan:",
-  "trials_tooltip": "Jumlah strategi penempatan independen (1..4).",
+  "trials_tooltip": "Membandingkan kumpulan strategi yang dipilih dan menyimpan tata letak terbaik. Mode cepat memakai satu strategi: komponen terbesar dahulu dari kiri bawah, dan mengabaikan pengaturan ini.",
   "resolution_mm_per_px": "Resolusi (mm/px):",
   "resolution_mm_per_px_tooltip": "Ukuran piksel bitmap dalam milimeter. Nilai lebih kecil meningkatkan ketelitian dan penggunaan memori.",
   "bitmap_search_step_px": "Langkah pencarian (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Batas waktu",
   "mode.continuous": "Berkelanjutan",
   "contact_simplification_mm": "Penyederhanaan untuk kontak (mm):",
-  "contact_simplification_tooltip": "Penyederhanaan kontur CLI untuk mencari titik kontak; terpisah dari pendekatan kurva FreeCAD."
+  "contact_simplification_tooltip": "Penyederhanaan kontur CLI untuk mencari titik kontak; terpisah dari pendekatan kurva FreeCAD.",
+  "trials.compact": "Penempatan rapat",
+  "trials.compact_holes": "Penempatan rapat + komponen berlubang dahulu",
+  "trials.compact_holes_large": "Penempatan rapat + komponen berlubang dahulu + terbesar dahulu",
+  "trials.all": "Semua strategi"
 }

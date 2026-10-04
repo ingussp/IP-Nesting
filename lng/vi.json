@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Thời lượng vòng (giây):",
   "continuous_round_seconds_tooltip": "Ngân sách tính bằng giây cho mỗi vòng tối ưu timed/continuous.",
   "trials": "Chiến lược bố trí:",
-  "trials_tooltip": "Số chiến lược sắp xếp độc lập (1..4).",
+  "trials_tooltip": "So sánh nhóm chiến lược đã chọn và giữ bố trí tốt nhất. Chế độ nhanh dùng một chiến lược: chi tiết lớn nhất trước từ góc dưới bên trái, và bỏ qua thiết lập này.",
   "resolution_mm_per_px": "Độ phân giải (mm/px):",
   "resolution_mm_per_px_tooltip": "Kích thước điểm ảnh bitmap tính bằng milimét. Giá trị nhỏ hơn tăng độ chính xác và lượng bộ nhớ sử dụng.",
   "bitmap_search_step_px": "Bước tìm kiếm (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Có giới hạn thời gian",
   "mode.continuous": "Liên tục",
   "contact_simplification_mm": "Đơn giản hóa cho tiếp xúc (mm):",
-  "contact_simplification_tooltip": "Đơn giản hóa đường bao trong CLI để tìm điểm tiếp xúc; riêng biệt với xấp xỉ đường cong của FreeCAD."
+  "contact_simplification_tooltip": "Đơn giản hóa đường bao trong CLI để tìm điểm tiếp xúc; riêng biệt với xấp xỉ đường cong của FreeCAD.",
+  "trials.compact": "Xếp gọn",
+  "trials.compact_holes": "Xếp gọn + chi tiết có lỗ trước",
+  "trials.compact_holes_large": "Xếp gọn + chi tiết có lỗ trước + lớn nhất trước",
+  "trials.all": "Tất cả chiến lược"
 }

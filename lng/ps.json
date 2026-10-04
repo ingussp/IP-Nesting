@@ -512,7 +512,7 @@
   "continuous_round_seconds": "د پړاو موده (ثانیې):",
   "continuous_round_seconds_tooltip": "د هر timed/continuous اصلاح پړاو لپاره په ثانیو کې بودیجه.",
   "trials": "د ځای پر ځای کولو تګلارې:",
-  "trials_tooltip": "د خپلواکو ځای پرځای کولو ستراتیژیو شمېر (1..4).",
+  "trials_tooltip": "د ټاکل شوو ستراتیژیو ټولګه پرتله کوي او غوره ترتیب ساتي. چټک حالت یوه ستراتیژي کاروي: لومړی لویې برخې له لاندې کیڼ کونج څخه ځای پر ځای کوي او دا تنظیم له پامه غورځوي.",
   "resolution_mm_per_px": "رېزولوشن (mm/px):",
   "resolution_mm_per_px_tooltip": "د بټمېپ د پکسل اندازه په ملي‌متر. کوچني ارزښتونه دقت او د حافظې مصرف زیاتوي.",
   "bitmap_search_step_px": "د لټون ګام (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "د وخت له محدودیت سره",
   "mode.continuous": "پرله‌پسې",
   "contact_simplification_mm": "د تماس لپاره ساده کول (mm):",
-  "contact_simplification_tooltip": "د تماس ټکو د لټون لپاره په CLI کې د بهرنۍ کرښې ساده کول؛ د FreeCAD د کږو کرښو له نږدې کولو جلا دي."
+  "contact_simplification_tooltip": "د تماس ټکو د لټون لپاره په CLI کې د بهرنۍ کرښې ساده کول؛ د FreeCAD د کږو کرښو له نږدې کولو جلا دي.",
+  "trials.compact": "ګڼ ترتیب",
+  "trials.compact_holes": "ګڼ ترتیب + لومړی سوري لرونکې برخې",
+  "trials.compact_holes_large": "ګڼ ترتیب + لومړی سوري لرونکې برخې + لومړی تر ټولو لویې",
+  "trials.all": "ټولې ستراتیژۍ"
 }

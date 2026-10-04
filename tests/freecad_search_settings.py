@@ -99,12 +99,48 @@ class SearchSettingsIntegration(unittest.TestCase):
                     self.assertEqual(panel.time_limit_label.isEnabled(), timed)
                     self.assertEqual(panel.round_seconds_edit.isEnabled(), rounds)
                     self.assertEqual(panel.round_seconds_label.isEnabled(), rounds)
+                    self.assertEqual(panel.trials_combo.isEnabled(), rounds)
+                    self.assertEqual(panel.trials_label.isEnabled(), rounds)
         # Restoring a saved identifier works with a translated display caption.
         L.set_language('lv')
         self.preferences.values['SearchMode'] = 'timed'
         restored = self.make_panel()
         self.assertEqual(restored.mode_combo.currentData(), 'timed')
         self.assertEqual(restored.mode_combo.currentText(), 'Ar laika limitu')
+
+    def test_strategy_captions_preserve_counts_preferences_and_fast_mode_selection(self):
+        panel = self.panel
+        keys = ('trials.compact', 'trials.compact_holes', 'trials.compact_holes_large', 'trials.all')
+        self.assertEqual(panel.trials_combo.currentData(), 2)
+        for language, _ in L.LANGUAGES:
+            L.set_language(language)
+            for index, key in enumerate(keys):
+                with self.subTest(language=language, trials=index + 1):
+                    panel.trials_combo.setCurrentIndex(index)
+                    self.assertEqual(panel.trials_combo.currentText(), str(L.tr(key)))
+                    self.assertEqual(panel.trials_combo.currentData(), index + 1)
+                    self.assertEqual(E._read_combo_int(panel, 'trials_combo', 2), index + 1)
+                    self.assertEqual(self.preferences.values['Trials'], str(index + 1))
+                    panel.mode_combo.setCurrentIndex(0)
+                    self.assertFalse(panel.trials_combo.isEnabled())
+                    self.assertEqual(panel.trials_combo.currentData(), index + 1)
+                    panel.mode_combo.setCurrentIndex(2)
+                    self.assertTrue(panel.trials_combo.isEnabled())
+                    self.assertEqual(panel.trials_combo.currentData(), index + 1)
+        L.set_language('lv')
+        self.preferences.values['Trials'] = '3'
+        restored = self.make_panel()
+        self.assertEqual(restored.trials_combo.currentData(), 3)
+        self.assertEqual(restored.trials_combo.currentText(), str(L.tr(keys[2])))
+        restored.mode_combo.setCurrentIndex(0)
+        restored.form.resize(1100, 850)
+        APPLICATION.processEvents()
+        output = ROOT.parent / 'ip-search-settings-tests'
+        output.mkdir(exist_ok=True)
+        restored.form.grab().save(str(output / 'main-panel-fast-lv.png'))
+        restored.mode_combo.setCurrentIndex(1)
+        APPLICATION.processEvents()
+        restored.form.grab().save(str(output / 'main-panel-strategies-lv.png'))
 
     def test_settings_menu_order_live_values_and_real_json_export(self):
         panel = self.panel
@@ -163,6 +199,13 @@ class SearchSettingsIntegration(unittest.TestCase):
                 self.assertEqual(config['cacheRejects'], True)
                 self.assertEqual(config['curveTolerance'], .08)
                 self.assertEqual(self.preferences.values['BoundaryResolution'], '0.01')
+                for trials_index in range(4):
+                    panel.trials_combo.setCurrentIndex(trials_index)
+                    self.assertTrue(E.execute_nesting(panel), errors)
+                    config = json.loads((self.folder / 'input.json').read_text(encoding='utf-8'))['config']
+                    self.assertEqual(config['mode'], code)
+                    self.assertEqual(config['trials'], trials_index + 1)
+                    self.assertIsInstance(config['trials'], int)
         L.show_settings()
         self.assertEqual(L._menu._bitmap_resolution_spin.value(), .125)
         self.assertEqual(L._menu._search_step_spin.value(), 7)

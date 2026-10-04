@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Tempoh pusingan (s):",
   "continuous_round_seconds_tooltip": "Bajet dalam saat untuk setiap pusingan pengoptimuman timed/continuous.",
   "trials": "Strategi penempatan:",
-  "trials_tooltip": "Bilangan strategi penempatan bebas (1..4).",
+  "trials_tooltip": "Membandingkan set strategi yang dipilih dan menyimpan susunan terbaik. Mod pantas menggunakan satu strategi: bahagian terbesar dahulu dari kiri bawah, dan mengabaikan tetapan ini.",
   "resolution_mm_per_px": "Resolusi (mm/px):",
   "resolution_mm_per_px_tooltip": "Saiz piksel bitmap dalam milimeter. Nilai lebih kecil meningkatkan ketepatan dan penggunaan memori.",
   "bitmap_search_step_px": "Langkah carian (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Had masa",
   "mode.continuous": "Berterusan",
   "contact_simplification_mm": "Pemudahan untuk sentuhan (mm):",
-  "contact_simplification_tooltip": "Pemudahan kontur CLI untuk mencari titik sentuhan; berasingan daripada penghampiran lengkung FreeCAD."
+  "contact_simplification_tooltip": "Pemudahan kontur CLI untuk mencari titik sentuhan; berasingan daripada penghampiran lengkung FreeCAD.",
+  "trials.compact": "Susunan padat",
+  "trials.compact_holes": "Susunan padat + bahagian berlubang dahulu",
+  "trials.compact_holes_large": "Susunan padat + bahagian berlubang dahulu + terbesar dahulu",
+  "trials.all": "Semua strategi"
 }

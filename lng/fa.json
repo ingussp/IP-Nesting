@@ -512,7 +512,7 @@
   "continuous_round_seconds": "مدت دور (ثانیه):",
   "continuous_round_seconds_tooltip": "بودجه به ثانیه برای هر دور بهینه‌سازی timed/continuous.",
   "trials": "راهبردهای جای‌گذاری:",
-  "trials_tooltip": "تعداد راهبردهای مستقل چیدمان (1..4).",
+  "trials_tooltip": "مجموعه راهبردهای انتخاب‌شده را مقایسه و بهترین چیدمان را حفظ می‌کند. حالت سریع از یک راهبرد استفاده می‌کند: بزرگ‌ترین قطعات اول از پایین چپ؛ این تنظیم نادیده گرفته می‌شود.",
   "resolution_mm_per_px": "وضوح (mm/px):",
   "resolution_mm_per_px_tooltip": "اندازهٔ پیکسل نقشهٔ بیتی بر حسب میلی‌متر. مقادیر کوچک‌تر دقت و مصرف حافظه را افزایش می‌دهند.",
   "bitmap_search_step_px": "گام جستجو (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "با محدودیت زمان",
   "mode.continuous": "پیوسته",
   "contact_simplification_mm": "ساده‌سازی برای تماس (mm):",
-  "contact_simplification_tooltip": "ساده‌سازی خط پیرامونی در CLI برای جست‌وجوی نقاط تماس؛ جدا از تقریب منحنی‌ها در FreeCAD."
+  "contact_simplification_tooltip": "ساده‌سازی خط پیرامونی در CLI برای جست‌وجوی نقاط تماس؛ جدا از تقریب منحنی‌ها در FreeCAD.",
+  "trials.compact": "چیدمان فشرده",
+  "trials.compact_holes": "چیدمان فشرده + قطعات سوراخ‌دار اول",
+  "trials.compact_holes_large": "چیدمان فشرده + قطعات سوراخ‌دار اول + بزرگ‌ترین‌ها اول",
+  "trials.all": "همه راهبردها"
 }

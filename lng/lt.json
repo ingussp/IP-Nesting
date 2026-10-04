@@ -512,7 +512,7 @@
   "continuous_round_seconds": "Raundo trukmė (s):",
   "continuous_round_seconds_tooltip": "Biudžetas sekundėmis kiekvienam timed/continuous optimizavimo raundui.",
   "trials": "Išdėstymo strategijos:",
-  "trials_tooltip": "Nepriklausomų išdėstymo strategijų skaičius (1..4).",
+  "trials_tooltip": "Palygina pasirinktą strategijų rinkinį ir išsaugo geriausią išdėstymą. Greitasis režimas naudoja vieną strategiją: didžiausios detalės pirmiausia nuo apatinio kairiojo kampo, ir nepaiso šio nustatymo.",
   "resolution_mm_per_px": "Skiriamoji geba (mm/px):",
   "resolution_mm_per_px_tooltip": "Rastro pikselio dydis milimetrais. Mažesnės reikšmės didina tikslumą ir atminties sąnaudas.",
   "bitmap_search_step_px": "Paieškos žingsnis (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "Su laiko limitu",
   "mode.continuous": "Nepertraukiamai",
   "contact_simplification_mm": "Supaprastinimas kontaktams (mm):",
-  "contact_simplification_tooltip": "Kontūro supaprastinimas CLI kontaktiniams taškams ieškoti; atskiras nuo kreivių aproksimavimo FreeCAD."
+  "contact_simplification_tooltip": "Kontūro supaprastinimas CLI kontaktiniams taškams ieškoti; atskiras nuo kreivių aproksimavimo FreeCAD.",
+  "trials.compact": "Kompaktiškas išdėstymas",
+  "trials.compact_holes": "Kompaktiškas išdėstymas + pirmiausia detalės su angomis",
+  "trials.compact_holes_large": "Kompaktiškas išdėstymas + pirmiausia detalės su angomis + pirmiausia didžiausios",
+  "trials.all": "Visos strategijos"
 }

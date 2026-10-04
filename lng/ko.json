@@ -512,7 +512,7 @@
   "continuous_round_seconds": "라운드 지속 시간 (초):",
   "continuous_round_seconds_tooltip": "각 timed/continuous 최적화 라운드의 초 단위 예산.",
   "trials": "배치 전략 수:",
-  "trials_tooltip": "독립적인 배치 전략의 수 (1..4).",
+  "trials_tooltip": "선택한 전략 조합을 비교하여 최상의 배치를 유지합니다. 빠른 모드는 왼쪽 아래부터 큰 부품을 먼저 배치하는 단일 전략을 사용하며 이 설정을 무시합니다.",
   "resolution_mm_per_px": "해상도 (mm/px):",
   "resolution_mm_per_px_tooltip": "비트맵 픽셀 크기(밀리미터)입니다. 값이 작을수록 정밀도와 메모리 사용량이 증가합니다.",
   "bitmap_search_step_px": "검색 단계 (px):",
@@ -546,5 +546,9 @@
   "mode.timed": "시간 제한",
   "mode.continuous": "연속",
   "contact_simplification_mm": "접촉점 탐색용 단순화 (mm):",
-  "contact_simplification_tooltip": "접촉점 탐색을 위한 CLI 윤곽 단순화입니다. FreeCAD 곡선 근사와 별개의 설정입니다."
+  "contact_simplification_tooltip": "접촉점 탐색을 위한 CLI 윤곽 단순화입니다. FreeCAD 곡선 근사와 별개의 설정입니다.",
+  "trials.compact": "밀집 배치",
+  "trials.compact_holes": "밀집 배치 + 구멍 있는 부품 우선",
+  "trials.compact_holes_large": "밀집 배치 + 구멍 있는 부품 우선 + 큰 부품 우선",
+  "trials.all": "모든 전략"
 }

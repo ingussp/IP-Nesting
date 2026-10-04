@@ -141,6 +141,24 @@ class BuildNestingConfigTests(unittest.TestCase):
             panel = types.SimpleNamespace(mode_combo=types.SimpleNamespace(currentText=lambda: mode))
             self.assertEqual(self.export._read_search_mode(panel), mode)
 
+    def test_strategy_counts_use_integer_data_with_translated_captions(self):
+        for count in (1, 2, 3, 4):
+            panel = types.SimpleNamespace(trials_combo=types.SimpleNamespace(
+                currentData=lambda: count, currentText=lambda: 'translated caption'))
+            trials = self.export._read_combo_int(panel, 'trials_combo', 2)
+            self.assertEqual(trials, count)
+            self.assertEqual(self.export.build_nesting_config(trials=trials)['trials'], count)
+
+    def test_raw_numeric_strategy_captions_remain_compatible(self):
+        for count in (1, 2, 3, 4):
+            panel = types.SimpleNamespace(trials_combo=types.SimpleNamespace(currentText=lambda: str(count)))
+            self.assertEqual(self.export._read_combo_int(panel, 'trials_combo', 2), count)
+
+    def test_invalid_strategy_control_uses_default(self):
+        panel = types.SimpleNamespace(trials_combo=types.SimpleNamespace(
+            currentData=lambda: None, currentText=lambda: 'invalid'))
+        self.assertEqual(self.export._read_combo_int(panel, 'trials_combo', 2), 2)
+
 
 if __name__ == '__main__':
     unittest.main()
