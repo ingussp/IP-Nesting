@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Hissələr yerləşdirilərkən gözləyin. Ən yaxşı düzülüşü tapmaq üçün %s saniyəlik müddət seçilib.", "nesting_wait_continuous_cancel_s": "Hissələr vaxt məhdudiyyəti olmadan yerləşdirilir. Prosesi dayandırmaq üçün “%s” düyməsini basın.",
   "default_rotations": "Standart istiqamətlərin sayı:",
   "default_rotations_tooltip": "Hər yeni detal üçün yoxlanılan istiqamətlərin sayı. Daha çox istiqamət yerləşdirməni yaxşılaşdıra bilər, lakin hesablama vaxtını artırır.",
-  "mode.fast_first": "Sürətli:first",
-  "mode.timed": "Vaxt məhdudiyyətli:timed",
-  "mode.continuous": "Davamlı:continuous",
+  "mode.fast_first": "Sürətli",
+  "mode.timed": "Vaxt məhdudiyyətli",
+  "mode.continuous": "Davamlı",
   "contact_simplification_mm": "Təmas üçün sadələşdirmə (mm):",
   "contact_simplification_tooltip": "Təmas nöqtələrini axtarmaq üçün CLI konturunun sadələşdirilməsi; FreeCAD əyrilərinin yaxınlaşdırılmasından ayrıdır."
 }

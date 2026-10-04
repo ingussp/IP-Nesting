@@ -126,8 +126,8 @@ class BuildNestingConfigTests(unittest.TestCase):
         )
 
     def test_translated_modes_use_item_data_for_export(self):
-        for identifier, caption in (('first', 'Ātri:first'), ('timed', 'Ar laika limitu:timed'),
-                                    ('continuous', 'Nepārtraukti:continuous')):
+        for identifier, caption in (('first', 'Ātri'), ('timed', 'Ar laika limitu'),
+                                    ('continuous', 'Nepārtraukti')):
             panel = types.SimpleNamespace(mode_combo=types.SimpleNamespace(
                 currentData=lambda: identifier, currentText=lambda: caption))
             self.assertEqual(self.export._read_search_mode(panel), identifier)

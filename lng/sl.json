@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Počakajte, da se deli razporedijo. Za iskanje najboljše razporeditve je izbran interval %s sekund.", "nesting_wait_continuous_cancel_s": "Deli se razporejajo brez časovne omejitve. Za ustavitev postopka pritisnite »%s«.",
   "default_rotations": "Privzeto število usmeritev:",
   "default_rotations_tooltip": "Število usmeritev, ki se preverijo za vsak nov del. Več usmeritev lahko izboljša razporeditev, vendar podaljša izračun.",
-  "mode.fast_first": "Hitro:first",
-  "mode.timed": "Časovno omejeno:timed",
-  "mode.continuous": "Neprekinjeno:continuous",
+  "mode.fast_first": "Hitro",
+  "mode.timed": "Časovno omejeno",
+  "mode.continuous": "Neprekinjeno",
   "contact_simplification_mm": "Poenostavitev za stike (mm):",
   "contact_simplification_tooltip": "Poenostavitev obrisa v CLI za iskanje stičnih točk; ločena od približka krivulj v FreeCAD."
 }

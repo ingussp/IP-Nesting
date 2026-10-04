@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Kérjük, várjon az alkatrészek elrendezésére. A legjobb elrendezés kereséséhez %s másodperces időtartam lett kiválasztva.", "nesting_wait_continuous_cancel_s": "Az alkatrészek elrendezése időkorlát nélkül folyik. A folyamat leállításához nyomja meg a „%s” gombot.",
   "default_rotations": "Alapértelmezett tájolásszám:",
   "default_rotations_tooltip": "Az új alkatrészeknél vizsgált tájolások száma. Több tájolás javíthatja az elrendezést, de növeli a számítási időt.",
-  "mode.fast_first": "Gyors:first",
-  "mode.timed": "Időkorlátos:timed",
-  "mode.continuous": "Folyamatos:continuous",
+  "mode.fast_first": "Gyors",
+  "mode.timed": "Időkorlátos",
+  "mode.continuous": "Folyamatos",
   "contact_simplification_mm": "Egyszerűsítés érintkezéshez (mm):",
   "contact_simplification_tooltip": "Kontúregyszerűsítés a CLI-ben az érintkezési pontok kereséséhez; külön a FreeCAD görbeközelítésétől."
 }

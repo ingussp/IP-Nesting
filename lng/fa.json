@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "لطفاً هنگام چیدمان قطعات منتظر بمانید. بازه‌ای به مدت %s ثانیه برای یافتن بهترین چیدمان انتخاب شده است.", "nesting_wait_continuous_cancel_s": "قطعات بدون محدودیت زمانی چیده می‌شوند. برای توقف فرایند، «%s» را فشار دهید.",
   "default_rotations": "تعداد جهت‌گیری‌های پیش‌فرض:",
   "default_rotations_tooltip": "تعداد جهت‌گیری‌هایی که برای هر قطعهٔ جدید آزمایش می‌شود. جهت‌گیری‌های بیشتر ممکن است چیدمان را بهتر کند، اما زمان محاسبه را افزایش می‌دهد.",
-  "mode.fast_first": "سریع:first",
-  "mode.timed": "با محدودیت زمان:timed",
-  "mode.continuous": "پیوسته:continuous",
+  "mode.fast_first": "سریع",
+  "mode.timed": "با محدودیت زمان",
+  "mode.continuous": "پیوسته",
   "contact_simplification_mm": "ساده‌سازی برای تماس (mm):",
   "contact_simplification_tooltip": "ساده‌سازی خط پیرامونی در CLI برای جست‌وجوی نقاط تماس؛ جدا از تقریب منحنی‌ها در FreeCAD."
 }

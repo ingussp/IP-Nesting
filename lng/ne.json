@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "भागहरू मिलाइँदै गर्दा कृपया पर्खनुहोस्। उत्तम व्यवस्था खोज्न %s सेकेन्डको समय अन्तराल छानिएको छ।", "nesting_wait_continuous_cancel_s": "समय सीमा बिना भागहरू मिलाइँदै छन्। प्रक्रिया रोक्न “%s” थिच्नुहोस्।",
   "default_rotations": "पूर्वनिर्धारित अभिमुखीकरण सङ्ख्या:",
   "default_rotations_tooltip": "हरेक नयाँ पुर्जाका लागि जाँचिने अभिमुखीकरणको सङ्ख्या। धेरै अभिमुखीकरणले विन्यास सुधार्न सक्छ, तर गणना समय बढाउँछ।",
-  "mode.fast_first": "छिटो:first",
-  "mode.timed": "समय सीमासहित:timed",
-  "mode.continuous": "निरन्तर:continuous",
+  "mode.fast_first": "छिटो",
+  "mode.timed": "समय सीमासहित",
+  "mode.continuous": "निरन्तर",
   "contact_simplification_mm": "सम्पर्कका लागि सरलीकरण (mm):",
   "contact_simplification_tooltip": "सम्पर्क बिन्दु खोज्न CLI बाह्यरेखा सरलीकरण; FreeCAD वक्र सन्निकटनबाट अलग।"
 }

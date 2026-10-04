@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Harap tunggu saat komponen disusun. Interval %s detik dipilih untuk mencari susunan terbaik.", "nesting_wait_continuous_cancel_s": "Komponen disusun tanpa batas waktu. Tekan “%s” untuk menghentikan proses.",
   "default_rotations": "Jumlah orientasi bawaan:",
   "default_rotations_tooltip": "Jumlah orientasi yang diuji untuk setiap komponen baru. Lebih banyak orientasi dapat memperbaiki tata letak, tetapi menambah waktu perhitungan.",
-  "mode.fast_first": "Cepat:first",
-  "mode.timed": "Batas waktu:timed",
-  "mode.continuous": "Berkelanjutan:continuous",
+  "mode.fast_first": "Cepat",
+  "mode.timed": "Batas waktu",
+  "mode.continuous": "Berkelanjutan",
   "contact_simplification_mm": "Penyederhanaan untuk kontak (mm):",
   "contact_simplification_tooltip": "Penyederhanaan kontur CLI untuk mencari titik kontak; terpisah dari pendekatan kurva FreeCAD."
 }

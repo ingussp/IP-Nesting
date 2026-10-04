@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "部品を配置しています。しばらくお待ちください。最適な配置を探すため、%s秒の時間枠が選択されています。", "nesting_wait_continuous_cancel_s": "時間制限なしで部品を配置しています。処理を停止するには「%s」を押してください。",
   "default_rotations": "既定の配置方向数:",
   "default_rotations_tooltip": "新しく追加した各部品について試す方向の数です。方向数を増やすと配置が改善する可能性がありますが、計算時間が長くなります。",
-  "mode.fast_first": "高速:first",
-  "mode.timed": "時間制限:timed",
-  "mode.continuous": "連続:continuous",
+  "mode.fast_first": "高速",
+  "mode.timed": "時間制限",
+  "mode.continuous": "連続",
   "contact_simplification_mm": "接触点探索用の簡略化 (mm):",
   "contact_simplification_tooltip": "CLI で接触点を探索するための輪郭簡略化です。FreeCAD の曲線近似とは別の設定です。"
 }

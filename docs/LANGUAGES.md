@@ -22,8 +22,8 @@ service. The completed catalogs include offline machine-assisted translations.
 Automated validation checks coverage and formatting, not linguistic accuracy;
 native-speaker review of the technical terminology is still recommended.
 
-The search-mode combo shows translated captions (`Fast:first`, `Timed:timed`,
-`Continuous:continuous` in English). Each item's data contains its fixed CLI
+The search-mode combo shows translated captions (`Fast`, `Timed`,
+`Continuous` in English). Each item's data contains its fixed CLI
 identifier. Always read that data for export, persistence, control enablement
 and progress messages; never infer the identifier from a translated caption.
 

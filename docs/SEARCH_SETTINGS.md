@@ -6,9 +6,9 @@ CPU and GPU settings. Mode captions are translated in all 50 languages while
 
 | Mode in English | JSON identifier | Time limit | Round duration |
 | --- | --- | --- | --- |
-| Fast:first | `first` | Disabled | Disabled |
-| Timed:timed | `timed` | Enabled | Enabled |
-| Continuous:continuous | `continuous` | Disabled | Enabled |
+| Fast | `first` | Disabled | Disabled |
+| Timed | `timed` | Enabled | Enabled |
+| Continuous | `continuous` | Disabled | Enabled |
 
 The gear/Settings menu contains the advanced search settings directly below the
 contour approximation tolerance:

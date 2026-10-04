@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Vent venligst, mens delene placeres. Der er valgt et tidsrum på %s sekunder for at finde den bedste placering.", "nesting_wait_continuous_cancel_s": "Delene placeres uden tidsgrænse. Tryk på “%s” for at stoppe processen.",
   "default_rotations": "Standardantal orienteringer:",
   "default_rotations_tooltip": "Antal orienteringer, der afprøves for hver ny del. Flere orienteringer kan forbedre placeringen, men øger beregningstiden.",
-  "mode.fast_first": "Hurtig:first",
-  "mode.timed": "Tidsbegrænset:timed",
-  "mode.continuous": "Kontinuerlig:continuous",
+  "mode.fast_first": "Hurtig",
+  "mode.timed": "Tidsbegrænset",
+  "mode.continuous": "Kontinuerlig",
   "contact_simplification_mm": "Forenkling til kontaktpunkter (mm):",
   "contact_simplification_tooltip": "Konturforenkling i CLI til søgning efter kontaktpunkter; adskilt fra kurvetilnærmelsen i FreeCAD."
 }

@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "נא להמתין בזמן סידור החלקים. נבחר פרק זמן של %s שניות למציאת הסידור הטוב ביותר.", "nesting_wait_continuous_cancel_s": "החלקים מסודרים ללא הגבלת זמן. יש ללחוץ על ״%s״ כדי לעצור את התהליך.",
   "default_rotations": "מספר כיוונים כברירת מחדל:",
   "default_rotations_tooltip": "מספר הכיוונים הנבדקים עבור כל חלק חדש. יותר כיוונים עשויים לשפר את הפריסה, אך מאריכים את זמן החישוב.",
-  "mode.fast_first": "מהיר:first",
-  "mode.timed": "מוגבל בזמן:timed",
-  "mode.continuous": "רציף:continuous",
+  "mode.fast_first": "מהיר",
+  "mode.timed": "מוגבל בזמן",
+  "mode.continuous": "רציף",
   "contact_simplification_mm": "פישוט למגע (mm):",
   "contact_simplification_tooltip": "פישוט קו המתאר ב-CLI לחיפוש נקודות מגע; נפרד מקירוב העקומות ב-FreeCAD."
 }

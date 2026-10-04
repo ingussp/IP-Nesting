@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Aguarde enquanto as peças são posicionadas. Foi selecionado um intervalo de %s segundos para procurar a melhor disposição.", "nesting_wait_continuous_cancel_s": "As peças são posicionadas sem limite de tempo. Prima «%s» para interromper o processo.",
   "default_rotations": "Orientações predefinidas:",
   "default_rotations_tooltip": "Número de orientações testadas para cada nova peça. Mais orientações podem melhorar a disposição, mas aumentam o tempo de cálculo.",
-  "mode.fast_first": "Rápido:first",
-  "mode.timed": "Com limite de tempo:timed",
-  "mode.continuous": "Contínuo:continuous",
+  "mode.fast_first": "Rápido",
+  "mode.timed": "Com limite de tempo",
+  "mode.continuous": "Contínuo",
   "contact_simplification_mm": "Simplificação para contactos (mm):",
   "contact_simplification_tooltip": "Simplificação do contorno no CLI para procurar pontos de contacto; distinta da aproximação de curvas do FreeCAD."
 }
