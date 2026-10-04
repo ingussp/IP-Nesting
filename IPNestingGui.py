@@ -3471,7 +3471,13 @@ class NestingTaskPanel:
             if not arrow_names:
                 return
                 
-            initial_angle = 0
+            # The layout consumes GrainAngleDeg and resets it after alignment.
+            # Keep the accepted UI angle separately for each preview copy.
+            previous_angles = {}
+            for nm in arrow_names:
+                part = p_doc.getObject(nm[len("GrainArrow_"):])
+                previous_angles[nm] = int(getattr(part, 'IPNestingCustomAngleDeg', 0)) % 360
+            initial_angle = previous_angles[arrow_names[0]]
                 
             initial_placements = {}
             for nm in arrow_names:
@@ -3516,25 +3522,13 @@ class NestingTaskPanel:
                     part_labels.append(str(ao))
 
             parent = QtGui.QApplication.activeWindow()
-            last_ui_angle = int(initial_angle) % 360
             
-            # Apply the incremental dial-angle change around each arrow bounding-box centre.
+            # Preview the change from each part's own accepted angle.
             def _apply_angle_to_arrows(angle_deg):
-                nonlocal last_ui_angle
                 try:
                     ui_angle = int(angle_deg) % 360
                 except Exception:
                     ui_angle = 0
-
-                delta_ui = ui_angle - last_ui_angle
-                if delta_ui > 180:
-                    delta_ui -= 360
-                elif delta_ui < -180:
-                    delta_ui += 360
-
-                last_ui_angle = ui_angle
-
-                rotZ = App.Rotation(App.Vector(0, 0, 1), float(delta_ui))
 
                 for nm in arrow_names:
                     try:
@@ -3546,11 +3540,13 @@ class NestingTaskPanel:
                         if center is None:
                             continue
 
+                        delta_ui = (ui_angle - previous_angles[nm]) % 360
+                        rotZ = App.Rotation(App.Vector(0, 0, 1), float(delta_ui))
                         P_move = App.Placement(App.Vector(-center.x, -center.y, -center.z), App.Rotation())
                         P_rot  = App.Placement(App.Vector(0, 0, 0), rotZ)
                         P_back = App.Placement(center, App.Rotation())
 
-                        o.Placement = P_back.multiply(P_rot.multiply(P_move.multiply(o.Placement)))
+                        o.Placement = P_back.multiply(P_rot.multiply(P_move.multiply(initial_placements[nm])))
                     except Exception:
                         continue
 
@@ -3603,7 +3599,7 @@ class NestingTaskPanel:
                     final_angle = 0
 
                 for nm in arrow_names:
-                    # NEW: also save angle on the PART object referenced by this GrainArrow_<partName>
+                    # Apply only the difference; accepting the same angle is a no-op.
                     try:
                         if isinstance(nm, str) and nm.startswith("GrainArrow_"):
                             part_name = nm[len("GrainArrow_"):]
@@ -3620,7 +3616,12 @@ class NestingTaskPanel:
                                     except Exception:
                                         pass
                                 try:
-                                    part_obj.GrainAngleDeg = int(final_angle) % 360
+                                    part_obj.GrainAngleDeg = (final_angle - previous_angles[nm]) % 360
+                                    if not hasattr(part_obj, 'IPNestingCustomAngleDeg'):
+                                        part_obj.addProperty('App::PropertyInteger',
+                                                             'IPNestingCustomAngleDeg', 'IPNesting')
+                                        part_obj.setEditorMode('IPNestingCustomAngleDeg', 2)
+                                    part_obj.IPNestingCustomAngleDeg = final_angle
                                 except Exception:
                                     pass
                     except Exception:

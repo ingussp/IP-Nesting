@@ -91,6 +91,9 @@ class GrainUIController:
             if not hasattr(obj, 'GrainAngleDeg'):
                 obj.addProperty('App::PropertyInteger', 'GrainAngleDeg', 'IPNesting',
                                 tr('absolute_grain_angle_in_degrees_vs_x'))
+            # An explicit axis choice or texture toggle starts a new angle baseline.
+            if hasattr(obj, 'IPNestingCustomAngleDeg'):
+                obj.removeProperty('IPNestingCustomAngleDeg')
             obj.GrainAngleDeg = 90 if str(axis).upper() == 'Y' else 0
 
     def _apply_live_layout(self):
