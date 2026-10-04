@@ -198,6 +198,26 @@ class LanguageTests(unittest.TestCase):
             with self.subTest(language=code):
                 self.assertTrue(all(translated[key] != en[key] for key in distinctive))
 
+    # Operational identifiers retain their code meaning in every language.
+    def test_technical_identifiers_and_rotation_axes(self):
+        # These are implementation identifiers, not prose to translate. Losing
+        # them obscures which axis, CLI mode or topology collection is meant.
+        required = {
+            'search_mode_tooltip': ('first', 'timed', 'continuous'),
+            'select_which_parts_will_be_rotated_in_the_xy_plane_when_parts_are_added_the_alignment_algo':
+                ('X', 'Y', 'Z', 'XY', '90', '180'),
+            'topology_counts_solids_d_shells_d_faces_d_wires_d_edges_d_vertices_d':
+                ('Solids=', 'Shells=', 'Faces=', 'Wires=', 'Edges=', 'Vertices='),
+            'shape_local_boundbox': ('BoundBox',),
+            'gpu_enabled_tooltip': ('OpenCL',),
+        }
+        for code, _ in self.module.LANGUAGES:
+            catalog = json.loads((ROOT / 'lng' / (code + '.json')).read_text(encoding='utf-8'))
+            for key, tokens in required.items():
+                with self.subTest(language=code, key=key):
+                    for token in tokens:
+                        self.assertIn(token, catalog[key])
+
     # Perimeter cleanup recognizes saved labels independently of the current language.
     def test_perimeter_aliases(self):
         labels = self.module.perimeter_labels('Parts with texture direction')
