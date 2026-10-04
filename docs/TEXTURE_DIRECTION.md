@@ -14,6 +14,18 @@ the original rotation specification. The standard group is not repacked during
 these checkbox/axis/custom-angle operations, so restored positions are preserved.
 
 Accepting a Custom angle aligns and repacks the texture group immediately.
+Each preview copy retains its accepted custom angle independently of the
+transient grain alignment angle. Reopening the dialog starts at that saved
+value. Changing 37 to 52 degrees applies only the 15-degree difference; accepting
+the same value does not rotate the part again. Arrow previews use the same
+per-part difference and Cancel restores their original placements without
+changing the saved angle.
+
+For multiple selected rows, the dialog starts at the first selected copy's
+saved angle and OK applies the chosen target angle to each selected copy,
+using each copy's own previous value. An explicit X/Y choice starts a new
+custom-angle baseline at zero. Unchecking Texture Direction clears the saved
+custom angle along with restoring the original placement.
 Unchecking Texture Direction also undoes that rotation; it does not merely set
 the arrow to X. Cancelling the angle dialog retains the current texture layout.
 The saved placement is removed on return, so a later check uses the part's
@@ -29,3 +41,7 @@ Run `tests/freecad_grain_controls.py` with FreeCAD's bundled Python. It exercise
 real checkbox signals, part geometry, perimeters, individual and bulk axis
 changes, the accepted/cancelled angle dialog, legacy row name storage, distinct
 copy rotations, return ordering, and a second check after manual repositioning.
+
+Regression coverage includes reopening, unchanged acceptance, angle differences,
+359/1-degree wrapping, cancellation after a visible arrow preview, distinct
+row angles, axis resets and texture off/on resets.

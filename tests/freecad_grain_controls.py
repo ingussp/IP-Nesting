@@ -81,20 +81,21 @@ class TextureControlsTests(unittest.TestCase):
             self.assertLessEqual(bounds.YMin, part.YMin)
             self.assertGreaterEqual(bounds.YMax, part.YMax)
 
-    def set_custom_angle(self, angle, accept=True):
+    def set_custom_angle(self, angle, accept=True, preview=False):
         original = G.GrainAngleDialog
+        observed = {}
         def dialog(**kwargs):
             result = original(**kwargs)
+            observed["initial"] = result.spin.value()
             def finish():
                 result.spin.setValue(angle)
-                if accept:
-                    result.accept()
-                else:
-                    result.reject()
+                close = result.accept if accept else result.reject
+                QtCore.QTimer.singleShot(120 if preview else 0, close)
             QtCore.QTimer.singleShot(0, finish)
             return result
         with patch.object(G, 'GrainAngleDialog', side_effect=dialog):
             self.panel.set_angle_btn.click()
+        return observed["initial"]
 
     def test_checkbox_moves_all_copies_immediately_and_restores_every_placement(self):
         row, parts, cb, _, custom = self.add_row('Panel', copies=2)
@@ -194,6 +195,71 @@ class TextureControlsTests(unittest.TestCase):
         self.assertEqual(parts[0].GrainAngleDeg, 0)
         cb.setChecked(False)
         self.assert_placement(parts[0], original)
+
+    def assert_rotation(self, obj, expected):
+        for axis in (App.Vector(1, 0, 0), App.Vector(0, 1, 0), App.Vector(0, 0, 1)):
+            self.assertLess((obj.Placement.Rotation.multVec(axis) - expected.multVec(axis)).Length, 1e-8)
+
+    def test_reopen_uses_saved_angle_and_applies_only_difference_to_all_copies(self):
+        _, parts, cb, _, custom = self.add_row('Remember', copies=2)
+        cb.setChecked(True)
+        baseline = [obj.Placement.Rotation for obj in parts]
+        custom.setChecked(True)
+        previous = 0
+        for angle in (37, 37, 52, 359, 1, 0):
+            self.assertEqual(self.set_custom_angle(angle), previous)
+            for obj, rotation in zip(parts, baseline):
+                expected = App.Rotation(App.Vector(0, 0, 1), -angle).multiply(rotation)
+                self.assert_rotation(obj, expected)
+                self.assertEqual(obj.IPNestingCustomAngleDeg, angle)
+            previous = angle
+
+    def test_cancel_after_previous_angle_restores_arrow_and_keeps_saved_angle(self):
+        _, parts, cb, _, custom = self.add_row('RememberCancel')
+        cb.setChecked(True)
+        custom.setChecked(True)
+        self.set_custom_angle(37)
+        before = self.placement(parts[0])
+        arrow = self.document.getObject('GrainArrow_' + parts[0].Name)
+        arrow_before = self.placement(arrow)
+        self.assertEqual(self.set_custom_angle(89, accept=False, preview=True), 37)
+        self.assert_placement(parts[0], before)
+        self.assert_placement(arrow, arrow_before)
+        self.assertEqual(parts[0].IPNestingCustomAngleDeg, 37)
+        self.assertEqual(self.set_custom_angle(37), 37)
+        self.assert_placement(parts[0], before)
+
+    def test_axis_change_and_texture_toggle_reset_custom_angle_baseline(self):
+        _, parts, cb, axis, custom = self.add_row('ResetAngle')
+        original = self.placement(parts[0])
+        cb.setChecked(True)
+        custom.setChecked(True)
+        self.set_custom_angle(37)
+        axis.setCurrentIndex(1)
+        self.assertEqual(self.set_custom_angle(12), 0)
+        cb.setChecked(False)
+        self.assert_placement(parts[0], original)
+        self.assertFalse(hasattr(parts[0], 'IPNestingCustomAngleDeg'))
+        cb.setChecked(True)
+        custom.setChecked(True)
+        self.assertEqual(self.set_custom_angle(5), 0)
+
+    def test_multiple_rows_use_their_own_previous_angles(self):
+        _, a, ca, _, custom_a = self.add_row('A')
+        _, b, cb, _, custom_b = self.add_row('B')
+        ca.setChecked(True)
+        cb.setChecked(True)
+        baseline = [obj.Placement.Rotation for obj in a + b]
+        custom_a.setChecked(True)
+        self.set_custom_angle(37)
+        custom_a.setChecked(False)
+        custom_b.setChecked(True)
+        self.assertEqual(self.set_custom_angle(12), 0)
+        custom_a.setChecked(True)
+        self.assertEqual(self.set_custom_angle(52, preview=True), 37)
+        for obj, rotation in zip(a + b, baseline):
+            self.assert_rotation(obj, App.Rotation(App.Vector(0, 0, 1), -52).multiply(rotation))
+            self.assertEqual(obj.IPNestingCustomAngleDeg, 52)
 
 
 if __name__ == '__main__':
