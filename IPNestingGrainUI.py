@@ -1,6 +1,6 @@
 """
 IPNestingGrainUI - Grain UI controller extracted from IPNestingGui.
-Manages grain checkbox/combobox state, blinking Apply Grain button, and grain arrows.
+Applies texture checkbox/axis changes immediately and restores original placements.
 """
 from IPNestingLanguages import tr
 
@@ -25,474 +25,170 @@ class GrainUIController:
     Operates on a panel instance (NestingTaskPanel).
     """
 
-    # Initialize the grain UI controller.
     def __init__(self, panel):
-        """
-        Initialize the grain UI controller.
-
-        Args:
-            panel: NestingTaskPanel instance
-        """
         self.panel = panel
-        
-        # Snapshot of checkbox states when "Apply Grain" was last pressed
         self._last_applied_grain_state = None
 
-        # Setup blinking Apply Grain timer
-        try:
-            self._apply_blink_timer = QtCore.QTimer()
-            self._apply_blink_timer.setInterval(500)
-            self._apply_blink_timer.timeout.connect(self._on_apply_blink_tick)
-            self._apply_blink_state = False
-            try:
-                self._apply_original_style = panel.bulk_grain_apply_btn.styleSheet()
-            except Exception:
-                self._apply_original_style = ""
-            # ensure initial state correct
-            self._update_apply_blink_state()
-        except Exception:
-            # ignore if timer setup fails in some environment
-            self._apply_blink_timer = None
-            self._apply_original_style = ""
+    def _rows(self):
+        """Yield data rows and every associated preview copy, including legacy rows."""
+        for row in range(self.panel.table.rowCount() - self.panel.control_rows):
+            item = self.panel.table.item(row, 0)
+            if item is None:
+                continue
+            names = item.data(QtCore.Qt.UserRole + 1)
+            if isinstance(names, str):
+                try:
+                    names = json.loads(names)
+                except (ValueError, TypeError):
+                    names = None
+            if not isinstance(names, (list, tuple)) or not names:
+                primary = item.data(QtCore.Qt.UserRole)
+                names = [primary] if primary else []
+            widget = self.panel.table.cellWidget(row, 4)
+            if widget is None:
+                continue
+            yield row, list(names), widget.findChild(QtGui.QCheckBox), widget.findChild(QtGui.QComboBox)
 
-    # --- Apply Grain blinking helpers ---
-    # Timer callback that toggles orange border on Apply Grain button.
-    def _on_apply_blink_tick(self):
-        """Timer callback that toggles orange border on Apply Grain button."""
-        try:
-            if not hasattr(self, "_apply_blink_timer") or self._apply_blink_timer is None:
-                return
-            # toggle state
-            try:
-                if self._apply_blink_state:
-                    # restore original
-                    self.panel.bulk_grain_apply_btn.setStyleSheet(self._apply_original_style or "")
-                    self._apply_blink_state = False
-                else:
-                    # set orange 1px border while preserving existing style if any
-                    base = (self._apply_original_style + "; ") if self._apply_original_style else ""
-                    self.panel.bulk_grain_apply_btn.setStyleSheet(base + "border:1px solid orange;")
-                    self._apply_blink_state = True
-            except Exception:
-                pass
-        except Exception:
-            App.Console.PrintError(tr('apply_blink_tick_error') + traceback.format_exc())
-
-    # Start the Apply Grain highlight timer if it is available and inactive.
-    def _start_apply_blink(self):
-        """
-        Start the Apply Grain highlight timer if it is available and inactive.
-        """
-        try:
-            if hasattr(self, "_apply_blink_timer") and self._apply_blink_timer is not None:
-                if not self._apply_blink_timer.isActive():
-                    # ensure we start with the highlighted state immediately
-                    try:
-                        base = (self._apply_original_style + "; ") if self._apply_original_style else ""
-                        self.panel.bulk_grain_apply_btn.setStyleSheet(base + "border:1px solid orange;")
-                        self._apply_blink_state = True
-                    except Exception:
-                        pass
-                    self._apply_blink_timer.start()
-        except Exception:
-            App.Console.PrintError(tr('failed_to_start_apply_blink') + traceback.format_exc())
-
-    # Stop blinking timer and restore button style.
-    def _stop_apply_blink(self):
-        """Stop blinking timer and restore button style."""
-        try:
-            if hasattr(self, "_apply_blink_timer") and self._apply_blink_timer is not None:
-                if self._apply_blink_timer.isActive():
-                    self._apply_blink_timer.stop()
-            try:
-                self.panel.bulk_grain_apply_btn.setStyleSheet(self._apply_original_style or "")
-                self._apply_blink_state = False
-            except Exception:
-                pass
-        except Exception:
-            App.Console.PrintError(tr('failed_to_stop_apply_blink') + traceback.format_exc())
-
-    # Return a stable snapshot of grain checkbox states for all data rows. Use tuple of
-    # (row_index, is_checked) so we can compare later.
     def _get_current_grain_state(self):
-        """
-        Return a stable snapshot of grain checkbox states for all data rows.
-        Use tuple of (row_index, is_checked) so we can compare later.
-        """
-        try:
-            data_rows = self.panel.table.rowCount() - self.panel.control_rows
-            state = []
-            for r in range(data_rows):
-                checked = False
-                try:
-                    grain_widget = self.panel.table.cellWidget(r, 4)
-                    if grain_widget:
-                        cb = grain_widget.findChild(QtGui.QCheckBox)
-                        checked = bool(cb and cb.isChecked())
-                except Exception:
-                    checked = False
-                state.append((r, checked))
-            return tuple(state)
-        except Exception:
-            return tuple()
+        return tuple((row, bool(cb and cb.isChecked())) for row, _, cb, _ in self._rows())
 
-    # Blink Apply Grain button only when there are UNSAVED changes in grain checkboxes compared
-    # to the last-applied snapshot.
     def _update_apply_blink_state(self):
-        """
-        Blink Apply Grain button only when there are UNSAVED changes in grain checkboxes
-        compared to the last-applied snapshot.
-        """
-        try:
-            current = self._get_current_grain_state()
+        """Compatibility hook for preview edits; there is no pending Apply action."""
+        self._last_applied_grain_state = self._get_current_grain_state()
 
-            # If we have never applied yet:
-            # - blink if any checkbox is checked (user is making a selection)
-            if self._last_applied_grain_state is None:
-                any_checked = any(chk for (_, chk) in current)
-                if any_checked:
-                    self._start_apply_blink()
-                else:
-                    self._stop_apply_blink()
-                return
+    @staticmethod
+    def _remember_standard_placement(obj, rotations):
+        """Save the complete pre-texture placement once per checked interval."""
+        if obj is None or hasattr(obj, 'IPNestingStandardPlacement'):
+            return
+        obj.addProperty('App::PropertyPlacement', 'IPNestingStandardPlacement', 'IPNesting')
+        obj.IPNestingStandardPlacement = obj.Placement
+        obj.setEditorMode('IPNestingStandardPlacement', 2)
+        obj.addProperty('App::PropertyString', 'IPNestingStandardRotations', 'IPNesting')
+        obj.IPNestingStandardRotations = rotations
+        obj.setEditorMode('IPNestingStandardRotations', 2)
 
-            # After we have applied:
-            # - blink only if state differs from the last applied snapshot
-            is_dirty = (current != self._last_applied_grain_state)
-            if is_dirty:
-                self._start_apply_blink()
-            else:
-                self._stop_apply_blink()
+    def _restore_standard_placement(self, obj):
+        if obj is None:
+            return None
+        rotations = getattr(obj, 'IPNestingStandardRotations', None)
+        if hasattr(obj, 'IPNestingStandardPlacement'):
+            obj.Placement = obj.IPNestingStandardPlacement
+            obj.removeProperty('IPNestingStandardPlacement')
+        else:
+            # Older preview objects only retained their original rotation.
+            self._restore_saved_std_rotation(obj)
+        if hasattr(obj, 'IPNestingStandardRotations'):
+            obj.removeProperty('IPNestingStandardRotations')
+        return rotations
 
-        except Exception:
-            App.Console.PrintError(tr('failed_to_update_apply_blink_state') + traceback.format_exc())
+    @staticmethod
+    def _set_axis(doc, names, axis):
+        for name in names:
+            obj = doc.getObject(name)
+            if obj is None:
+                continue
+            if not hasattr(obj, 'GrainAngleDeg'):
+                obj.addProperty('App::PropertyInteger', 'GrainAngleDeg', 'IPNesting',
+                                tr('absolute_grain_angle_in_degrees_vs_x'))
+            obj.GrainAngleDeg = 90 if str(axis).upper() == 'Y' else 0
 
-    # --- Grain arrow helpers (connect widgets + callbacks) ---
-    # Update row arrows and grain angles; save or restore standard rotation as grain is toggled.
+    def _apply_live_layout(self):
+        self.update_grain_layout_and_perimeters(preserve_standard_layout=True)
+        # The layout aligns all grain arrows with X; keep the bulk selector in sync.
+        combo = getattr(self.panel, 'bulk_grain_combo', None)
+        if combo is not None:
+            blocked = combo.blockSignals(True)
+            try:
+                combo.setCurrentIndex(0)
+            finally:
+                combo.blockSignals(blocked)
+        self.panel._fit_all_views()
+
     def _on_grain_checkbox_state_changed(self, preview_obj_name, grain_cb, grain_combo, state):
-        """Callback for per-row grain checkbox state change."""
+        """Move checked parts immediately; unchecking restores each copy exactly."""
         try:
-            if GrainPreparer is None:
+            if GrainPreparer is None or self.panel.preview_doc_name not in App.listDocuments():
                 return
-            # Read the actual checkbox state instead of comparing
-            # PySide enum values, which differ between FreeCAD versions.
-            try:
-                checked = bool(
-                    grain_cb.isChecked()
-                )
-            except Exception:
-                checked = (
-                    int(state)
-                    == int(QtCore.Qt.Checked)
-                )
-            # find row matching preview_obj_name and apply to all preview copies stored for that row
-            row_count = self.panel.table.rowCount() - self.panel.control_rows
-            for r in range(row_count):
-                try:
-                    itm = self.panel.table.item(r, 0)
-                    if not itm:
-                        continue
-                    try:
-                        primary = itm.data(QtCore.Qt.UserRole)
-                    except Exception:
-                        primary = None
-                    # match by primary or by contained list
-                    matches = False
-                    if primary == preview_obj_name:
-                        matches = True
-                    else:
-                        try:
-                            list_data = itm.data(QtCore.Qt.UserRole + 1)
-                            if list_data:
-                                if isinstance(list_data, list):
-                                    names_list = list_data
-                                else:
-                                    names_list = json.loads(list_data)
-                                if preview_obj_name in names_list:
-                                    matches = True
-                        except Exception:
-                            pass
-                    if not matches:
-                        continue
-
-                    # collect all preview object names for this row
-                    names = []
-                    try:
-                        ld = itm.data(QtCore.Qt.UserRole + 1)
-                        if ld:
-                            if isinstance(ld, list):
-                                names = list(ld)
-                            else:
-                                names = json.loads(ld)
-                    except Exception:
-                        try:
-                            p = itm.data(QtCore.Qt.UserRole)
-                            if p:
-                                names = [p]
-                        except Exception:
-                            names = []
-
-                    axis = "X"
-
-                    try:
-                        axis = str(
-                            grain_combo.currentText()
-                        ).strip().upper()
-                    except Exception:
-                        axis = "X"
-
-                    if axis not in (
-                        "X",
-                        "Y"
-                    ):
-                        axis = "X"
-
-                    # inside _on_grain_checkbox_state_changed, after you compute `names`:
-
-                    p_doc = App.getDocument(self.panel.preview_doc_name) if self.panel.preview_doc_name in App.listDocuments() else None
-
-                    if checked:
-                        # Save once: use the first (pattern) object as reference
-                        try:
-                            if p_doc and names:
-                                pat = p_doc.getObject(names[0])
-                                self._ensure_saved_std_rotation(pat)
-                        except Exception:
-                            pass
-                    else:
-                        # Restore standard rotation for all copies (pattern applies to all)
-                        try:
-                            if p_doc and names:
-                                # Prefer reading from pattern object; if it has saved rotation, apply to all
-                                pat = p_doc.getObject(names[0])
-                                if pat and hasattr(pat, "IPNestingStdRotAngleDeg"):
-                                    # build rotation from pattern and apply to every copy
-                                    ax = float(getattr(pat, "IPNestingStdRotAxisX", 0.0))
-                                    ay = float(getattr(pat, "IPNestingStdRotAxisY", 0.0))
-                                    az = float(getattr(pat, "IPNestingStdRotAxisZ", 1.0))
-                                    ang = float(getattr(pat, "IPNestingStdRotAngleDeg", 0.0))
-                                    restored_rot = App.Rotation(App.Vector(ax, ay, az), float(ang))
-
-                                    for n in names:
-                                        o = p_doc.getObject(n)
-                                        if not o:
-                                            continue
-                                        base = o.Placement.Base
-                                        o.Placement = App.Placement(base, restored_rot)
-                                else:
-                                    # fallback: try restore per-object (if you later decide to store per-object)
-                                    for n in names:
-                                        o = p_doc.getObject(n)
-                                        if o:
-                                            self._restore_saved_std_rotation(o)
-                        except Exception:
-                            pass
-
-                        # After restoring orientation, you likely want immediate visual + perimeter correctness
-                        try:
-                            self.panel.update_grain_layout_and_perimeters()
-                        except Exception:
-                            pass
-                    
-                    for n in names:
-                        try:
-                            if checked:
-                                GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, n, enable=True, axis=axis)
-                            else:
-                                GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
-                        except Exception:
-                            App.Console.PrintError(tr('grain_checkbox_per_object_update_failed_for_s') % (str(n),) + traceback.format_exc())
-                            
-                        # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
-                        try:
-                            part_obj = App.getDocument(self.panel.preview_doc_name).getObject(n)
-                            if part_obj:
-                                if not hasattr(part_obj, "GrainAngleDeg"):
-                                    try:
-                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", tr('absolute_grain_angle_in_degrees_vs_x'))
-                                    except Exception:
-                                        pass
-                                part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
-                        except Exception:
-                            pass
-                    try:
-                        p_doc = App.getDocument(
-                            self.panel.preview_doc_name
-                        )
-
-                        if p_doc:
-                            p_doc.recompute()
-
-                        Gui.updateGui()
-
-                        # The unchecked part was moved during the layout update;
-                        # fit after arrows and perimeters have also been rebuilt.
-                        if not checked:
-                            try:
-                                self.panel._fit_all_views()
-                            except Exception:
-                                pass
-
-                    except Exception:
-                        pass
-                    break
-                except Exception:
+            doc = App.getDocument(self.panel.preview_doc_name)
+            checked = grain_cb.isChecked()
+            for row, names, _, combo in self._rows():
+                if preview_obj_name not in names:
                     continue
-
-            # The unchecked path already updates layout and fits the view above.
-
-            # update blinking button state
-            try:
-                self._update_apply_blink_state()
-            except Exception:
-                pass
+                if checked:
+                    item = self.panel.table.item(row, 2)
+                    rotations = item.text() if item is not None else str(self.panel.get_default_rotations())
+                    for name in names:
+                        self._remember_standard_placement(doc.getObject(name), rotations)
+                    self.panel._set_rotation_cell(row, '[0, 180]')
+                    self._set_axis(doc, names, combo.currentText() if combo else 'X')
+                else:
+                    rotations = None
+                    for name in names:
+                        saved = self._restore_standard_placement(doc.getObject(name))
+                        if saved is not None and rotations is None:
+                            rotations = saved
+                        GrainPreparer.remove_grain_arrow(doc.Name, name)
+                    self._set_axis(doc, names, 'X')
+                    if combo is not None:
+                        blocked = combo.blockSignals(True)
+                        try:
+                            combo.setCurrentIndex(0)
+                        finally:
+                            combo.blockSignals(blocked)
+                    custom_widget = self.panel.table.cellWidget(row, 5)
+                    custom = custom_widget.findChild(QtGui.QCheckBox) if custom_widget else None
+                    if custom is not None:
+                        custom.setChecked(False)
+                    self.panel._set_rotation_cell(row, rotations if rotations is not None
+                                                  else str(self.panel.get_default_rotations()))
+                doc.recompute()
+                self._apply_live_layout()
+                break
         except Exception:
             App.Console.PrintError(tr('grain_checkbox_callback_failed') + traceback.format_exc())
 
-    # Update stored X/Y grain angles and redraw or remove the row arrows.
     def _on_grain_axis_changed(self, preview_obj_name, grain_cb, grain_combo, index):
-        """Callback for per-row grain axis combobox change (redraw only if checked)."""
+        """Apply X/Y changes immediately to the checked row's entire copy set."""
         try:
-            if GrainPreparer is None:
+            if not grain_cb.isChecked() or self.panel.preview_doc_name not in App.listDocuments():
                 return
-            row_count = self.panel.table.rowCount() - self.panel.control_rows
-            for r in range(row_count):
-                try:
-                    itm = self.panel.table.item(r, 0)
-                    if not itm:
-                        continue
-                    try:
-                        primary = itm.data(QtCore.Qt.UserRole)
-                    except Exception:
-                        primary = None
-                    matches = False
-                    if primary == preview_obj_name:
-                        matches = True
-                    else:
-                        try:
-                            list_data = itm.data(QtCore.Qt.UserRole + 1)
-                            if list_data:
-                                if isinstance(list_data, list):
-                                    names_list = list_data
-                                else:
-                                    names_list = json.loads(list_data)
-                                if preview_obj_name in names_list:
-                                    matches = True
-                        except Exception:
-                            pass
-                    if not matches:
-                        continue
-
-                    names = []
-                    try:
-                        ld = itm.data(QtCore.Qt.UserRole + 1)
-                        if ld:
-                            if isinstance(ld, list):
-                                names = list(ld)
-                            else:
-                                names = json.loads(ld)
-                    except Exception:
-                        try:
-                            p = itm.data(QtCore.Qt.UserRole)
-                            if p:
-                                names = [p]
-                        except Exception:
-                            names = []
-
-                    try:
-                        checked = grain_cb.isChecked()
-                    except Exception:
-                        checked = False
-
-                    axis = grain_combo.currentText() if hasattr(grain_combo, "currentText") else "X"
-                    for n in names:
-                        try:
-                            if checked:
-                                GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, n, enable=True, axis=axis)
-                            else:
-                                GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, n)
-                        except Exception:
-                            App.Console.PrintError(tr('grain_axis_per_object_update_failed_for_s') % (str(n),) + traceback.format_exc())
-                        # keep part object's GrainAngleDeg in sync with checkbox/axis (absolute vs +X)
-                        try:
-                            part_obj = App.getDocument(self.panel.preview_doc_name).getObject(n)
-                            if part_obj:
-                                if not hasattr(part_obj, "GrainAngleDeg"):
-                                    try:
-                                        part_obj.addProperty("App::PropertyInteger", "GrainAngleDeg", "IPNesting", tr('absolute_grain_angle_in_degrees_vs_x'))
-                                    except Exception:
-                                        pass
-                                part_obj.GrainAngleDeg = 0 if axis.upper() == "X" else 90
-                        except Exception:
-                            pass
+            doc = App.getDocument(self.panel.preview_doc_name)
+            for _, names, _, _ in self._rows():
+                if preview_obj_name in names:
+                    self._set_axis(doc, names, grain_combo.currentText())
+                    self._apply_live_layout()
                     break
-                except Exception:
-                    continue
         except Exception:
             App.Console.PrintError(tr('grain_axis_callback_failed') + traceback.format_exc())
 
-    # Wire per-row grain checkbox and combobox to callbacks (safe using partial).
     def _connect_grain_widgets(self, grain_cb, grain_combo, preview_obj_name):
-        """Wire per-row grain checkbox and combobox to callbacks (safe using partial)."""
-        try:
-            grain_cb.stateChanged.connect(partial(self._on_grain_checkbox_state_changed,
-                                                 preview_obj_name, grain_cb, grain_combo))
-            grain_combo.currentIndexChanged.connect(partial(self._on_grain_axis_changed,
-                                                           preview_obj_name, grain_cb, grain_combo))
-        except Exception:
-            App.Console.PrintError(tr('failed_to_connect_grain_widgets') + traceback.format_exc())
+        grain_cb.stateChanged.connect(partial(self._on_grain_checkbox_state_changed,
+                                             preview_obj_name, grain_cb, grain_combo))
+        grain_combo.currentIndexChanged.connect(partial(self._on_grain_axis_changed,
+                                                       preview_obj_name, grain_cb, grain_combo))
 
-    # When bottom bulk combobox is changed, set per-row combobox only for checked rows and
-    # update arrows.
     def _on_bulk_grain_changed(self, index):
-        """When bottom bulk combobox is changed, set per-row combobox only for checked rows and update arrows."""
+        """Apply the axis to all checked rows, then rebuild the preview only once."""
         try:
-            axis = self.panel.bulk_grain_combo.currentText() if hasattr(self.panel, "bulk_grain_combo") else "X"
-            data_rows = self.panel.table.rowCount() - self.panel.control_rows
-            for r in range(data_rows):
-                try:
-                    grain_widget = self.panel.table.cellWidget(r, 4)
-                    if not grain_widget:
-                        continue
-                    cb = grain_widget.findChild(QtGui.QCheckBox)
-                    combo = grain_widget.findChild(QtGui.QComboBox)
-                    # only change per-row combo for rows where checkbox is checked
-                    if cb and cb.isChecked() and combo:
-                        try:
-                            combo.blockSignals(True)
-                            idx = 0 if axis.upper() == "X" else 1
-                            combo.setCurrentIndex(idx)
-                        except Exception:
-                            pass
-                        finally:
-                            try:
-                                combo.blockSignals(False)
-                            except Exception:
-                                pass
-                        # update arrows for all preview objects in that row
-                        name_item = self.panel.table.item(r, 0)
-                        if not name_item:
-                            continue
-                        primary = name_item.data(QtCore.Qt.UserRole)
-                        names = []
-                        try:
-                            ld = name_item.data(QtCore.Qt.UserRole + 1)
-                            if ld:
-                                if isinstance(ld, list):
-                                    names = list(ld)
-                                else:
-                                    names = json.loads(ld)
-                        except Exception:
-                            if primary:
-                                names = [primary]
-                        for n in names:
-                            try:
-                                if GrainPreparer is not None:
-                                    GrainPreparer.update_grain_arrow(self.panel.preview_doc_name, n, enable=True, axis=axis)
-                            except Exception:
-                                App.Console.PrintError(tr('bulk_change_failed_to_update_arrow_for_s') % (str(n),) + traceback.format_exc())
-                except Exception:
+            if self.panel.preview_doc_name not in App.listDocuments():
+                return
+            doc = App.getDocument(self.panel.preview_doc_name)
+            axis = self.panel.bulk_grain_combo.currentText()
+            changed = False
+            for _, names, cb, combo in self._rows():
+                if cb is None or not cb.isChecked():
                     continue
+                if combo is not None:
+                    blocked = combo.blockSignals(True)
+                    try:
+                        combo.setCurrentIndex(1 if axis == 'Y' else 0)
+                    finally:
+                        combo.blockSignals(blocked)
+                self._set_axis(doc, names, axis)
+                changed = True
+            if changed:
+                self._apply_live_layout()
         except Exception:
             App.Console.PrintError(tr('bulk_grain_changed_callback_failed') + traceback.format_exc())
 
@@ -513,7 +209,7 @@ class GrainUIController:
         return int(delta)
     
     # Align grain parts to +X, pack both groups and separate their labelled perimeters.
-    def update_grain_layout_and_perimeters(self):
+    def update_grain_layout_and_perimeters(self, preserve_standard_layout=False):
         """
         Split standard and grain parts, align grain to +X and pack both groups.
 
@@ -571,6 +267,11 @@ class GrainUIController:
                     pass
 
                 if is_grain:
+                    item = self.panel.table.item(r, 2)
+                    rotations = item.text() if item is not None else str(self.panel.get_default_rotations())
+                    for nm in names:
+                        self._remember_standard_placement(p_doc.getObject(nm), rotations)
+                    self.panel._set_rotation_cell(r, '[0, 180]')
                     grain_parts.extend(names)
 
                     # remember per-object axis so we can redraw arrows correctly after moving parts
@@ -636,7 +337,7 @@ class GrainUIController:
             except Exception:
                 red_anchor_y = None
 
-            if standard_parts:
+            if standard_parts and not preserve_standard_layout:
                 try:
                     target_y_red = red_anchor_y if red_anchor_y is not None else 0.0
                     GrainPreparer.pack_grain_parts(
@@ -954,10 +655,9 @@ class GrainUIController:
                     + traceback.format_exc()
                 )
             
-            # After successful apply/layout update, record snapshot and stop blinking
+            # Record the checkbox state after the immediate layout update.
             try:
                 self._last_applied_grain_state = self._get_current_grain_state()
-                self._stop_apply_blink()
             except Exception:
                 pass
 
