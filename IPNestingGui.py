@@ -17,7 +17,8 @@ import Part
 from IPNestingRelayout import NestingRelayoutManager
 from functools import partial
 from IPNestingExport import remember_hole_selection, current_selected_holes
-from IPNestingExport import normalize_rotation_text, _extract_part_contours, _read_boundary_deflection
+from IPNestingExport import normalize_rotation_text, _extract_part_contours, _read_boundary_deflection, _read_search_mode
+from IPNestingSettings import read_search_settings
 from IPNestingGrainUI import GrainUIController
 from IPNestingPreviewDoc import PreviewDocManager
 from IPNestingGrainAngleDialog import GrainAngleDialog
@@ -128,13 +129,11 @@ class _ProportionalHeader(QtGui.QHeaderView):
 class NestingTaskPanel:
     # Nesting CLI settings exposed in the right-hand column, mapped to their
     # preference keys and defaults. "text" entries are QLineEdit fields, "combo"
-    # entries store their current text, and "bool" entries are No/Yes combos.
+    # entries store current text (or stable mode data), and "bool" entries are
+    # No/Yes combos. Advanced search controls live in the Settings menu.
     CLI_TEXT_SETTINGS = (
         ("time_limit_edit", "TimeLimitSeconds", "0"),
         ("round_seconds_edit", "ContinuousRoundSeconds", "30"),
-        ("resolution_edit", "Resolution", "1.0"),
-        ("step_edit", "SearchStepPx", "1"),
-        ("curve_edit", "CurveTolerance", "0.3"),
         ("gpu_batch_edit", "GpuBatchSize", "65536"),
     )
     CLI_COMBO_SETTINGS = (
@@ -142,7 +141,6 @@ class NestingTaskPanel:
         ("trials_combo", "Trials", "2"),
     )
     CLI_BOOL_SETTINGS = (
-        ("cache_combo", "CacheRejects", True),
         ("gpu_enabled_combo", "GpuEnabled", False),
     )
 
@@ -1691,10 +1689,13 @@ class NestingTaskPanel:
         self.mode_combo = self._create_combo_setting(
             lay,
             tr('search_mode'),
-            ["first", "timed", "continuous"],
+            [tr('mode.fast_first'), tr('mode.timed'), tr('mode.continuous')],
             0,
             tr('search_mode_tooltip'),
         )
+
+        for index, mode in enumerate(('first', 'timed', 'continuous')):
+            self.mode_combo.setItemData(index, mode)
 
         self.time_limit_edit, self.time_limit_label = self.create_input_in_layout(
             lay,
@@ -1716,34 +1717,6 @@ class NestingTaskPanel:
             ["1", "2", "3", "4"],
             1,
             tr('trials_tooltip'),
-        )
-
-        self.resolution_edit, _ = self.create_input_in_layout(
-            lay,
-            tr('resolution_mm_per_px'),
-            "1.0",
-            tr('resolution_mm_per_px_tooltip'),
-        )
-
-        self.step_edit, _ = self.create_input_in_layout(
-            lay,
-            tr('bitmap_search_step_px'),
-            "1",
-            tr('bitmap_search_step_px_tooltip'),
-        )
-
-        self.curve_edit, _ = self.create_input_in_layout(
-            lay,
-            tr('curve_tolerance_mm'),
-            "0.3",
-            tr('curve_tolerance_mm_tooltip'),
-        )
-
-        self.cache_combo = self._create_boolean_setting(
-            lay,
-            tr('cache_rejects'),
-            True,
-            tr('cache_rejects_tooltip'),
         )
 
         # GPU acceleration section.
@@ -1881,12 +1854,15 @@ class NestingTaskPanel:
         try:
             mode = "timed"
             try:
-                mode = str(self.mode_combo.currentText()).strip().lower()
+                mode = _read_search_mode(self)
             except Exception:
                 pass
             timed_active = mode == "timed"
             self._set_widget_enabled(self.time_limit_edit, timed_active)
             self._set_widget_enabled(self.time_limit_label, timed_active)
+            rounds_active = mode in ('timed', 'continuous')
+            self._set_widget_enabled(self.round_seconds_edit, rounds_active)
+            self._set_widget_enabled(self.round_seconds_label, rounds_active)
         except Exception:
             pass
 
@@ -4166,7 +4142,8 @@ class NestingTaskPanel:
                 if widget is None:
                     continue
                 try:
-                    index = widget.findText(str(p.GetString(key, default)))
+                    saved = str(p.GetString(key, default))
+                    index = widget.findData(saved) if attr == 'mode_combo' else widget.findText(saved)
                     if index >= 0:
                         widget.setCurrentIndex(index)
                 except Exception:
@@ -4259,7 +4236,8 @@ class NestingTaskPanel:
                 if widget is None:
                     continue
                 try:
-                    p.SetString(key, str(widget.currentText()))
+                    value = _read_search_mode(self) if attr == 'mode_combo' else str(widget.currentText())
+                    p.SetString(key, value)
                 except Exception:
                     pass
 
@@ -4325,6 +4303,10 @@ class NestingTaskPanel:
                 tr('update_dimension_value_from_field_failed')
                 + traceback.format_exc()
             )
+
+    def get_search_settings(self):
+        """Read menu settings at export time, including edits made with this panel open."""
+        return read_search_settings(self._prefs())
 
     # Return the configured boundary resolution in millimetres.
     def get_boundary_resolution_mm(self):

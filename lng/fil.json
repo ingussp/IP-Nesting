@@ -541,5 +541,10 @@
   "mark_holes_button": "Markahan ang mga butas ng napiling piyesa", "show_gpus": "Ipakita ang mga GPU", "looking_for_graphic_cards": "Naghahanap ng mga graphics card",
   "nesting_wait_timed_seconds_s": "Maghintay habang inaayos ang mga bahagi. Napili ang %s segundo upang mahanap ang pinakamahusay na ayos.", "nesting_wait_continuous_cancel_s": "Inaayos ang mga bahagi nang walang takdang oras. Pindutin ang “%s” upang ihinto ang proseso.",
   "default_rotations": "Default na bilang ng oryentasyon:",
-  "default_rotations_tooltip": "Bilang ng oryentasyong sinusubukan para sa bawat bagong piyesa. Maaaring mapabuti ng mas maraming oryentasyon ang pagkakaayos ngunit humahaba ang oras ng pagkalkula."
+  "default_rotations_tooltip": "Bilang ng oryentasyong sinusubukan para sa bawat bagong piyesa. Maaaring mapabuti ng mas maraming oryentasyon ang pagkakaayos ngunit humahaba ang oras ng pagkalkula.",
+  "mode.fast_first": "Mabilis:first",
+  "mode.timed": "May limitasyon sa oras:timed",
+  "mode.continuous": "Tuloy-tuloy:continuous",
+  "contact_simplification_mm": "Pagpapasimple para sa contact (mm):",
+  "contact_simplification_tooltip": "Pagpapasimple ng tabas sa CLI para maghanap ng mga punto ng contact; hiwalay sa pagtatantya ng mga kurba sa FreeCAD."
 }

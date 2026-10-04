@@ -541,5 +541,10 @@
   "mark_holes_button": "Märgi valitud detaili avad", "show_gpus": "Näita GPU-sid", "looking_for_graphic_cards": "Graafikakaartide otsimine",
   "nesting_wait_timed_seconds_s": "Palun oodake, kuni detaile paigutatakse. Parima paigutuse leidmiseks valiti %s sekundi pikkune ajavahemik.", "nesting_wait_continuous_cancel_s": "Detaile paigutatakse ilma ajapiiranguta. Protsessi peatamiseks vajutage „%s“.",
   "default_rotations": "Vaikimisi orientatsioonide arv:",
-  "default_rotations_tooltip": "Iga uue detaili puhul katsetatavate orientatsioonide arv. Rohkem orientatsioone võib parandada paigutust, kuid pikendab arvutusaega."
+  "default_rotations_tooltip": "Iga uue detaili puhul katsetatavate orientatsioonide arv. Rohkem orientatsioone võib parandada paigutust, kuid pikendab arvutusaega.",
+  "mode.fast_first": "Kiire:first",
+  "mode.timed": "Ajapiiranguga:timed",
+  "mode.continuous": "Pidev:continuous",
+  "contact_simplification_mm": "Lihtsustamine kontaktide jaoks (mm):",
+  "contact_simplification_tooltip": "Kontuuri lihtsustamine CLI-s kontaktpunktide otsimiseks; eraldi FreeCADi kõverate lähendamisest."
 }

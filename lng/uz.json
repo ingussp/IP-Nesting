@@ -541,5 +541,10 @@
   "mark_holes_button": "Tanlangan qism teshiklarini belgilash", "show_gpus": "GPUlarni ko‘rsatish", "looking_for_graphic_cards": "Grafik kartalar qidirilmoqda",
   "nesting_wait_timed_seconds_s": "Qismlar joylashtirilayotganda kuting. Eng yaxshi joylashuvni topish uchun %s soniyalik vaqt tanlandi.", "nesting_wait_continuous_cancel_s": "Qismlar vaqt cheklovisiz joylashtirilmoqda. Jarayonni to‘xtatish uchun “%s” tugmasini bosing.",
   "default_rotations": "Standart yo‘nalishlar soni:",
-  "default_rotations_tooltip": "Har bir yangi detal uchun tekshiriladigan yo‘nalishlar soni. Ko‘proq yo‘nalish joylashuvni yaxshilashi mumkin, ammo hisoblash vaqtini oshiradi."
+  "default_rotations_tooltip": "Har bir yangi detal uchun tekshiriladigan yo‘nalishlar soni. Ko‘proq yo‘nalish joylashuvni yaxshilashi mumkin, ammo hisoblash vaqtini oshiradi.",
+  "mode.fast_first": "Tez:first",
+  "mode.timed": "Vaqt chegarasi bilan:timed",
+  "mode.continuous": "Uzluksiz:continuous",
+  "contact_simplification_mm": "Tegish nuqtalari uchun soddalashtirish (mm):",
+  "contact_simplification_tooltip": "Tegish nuqtalarini qidirish uchun CLI konturini soddalashtirish; FreeCAD egri chiziqlari approksimatsiyasidan alohida."
 }

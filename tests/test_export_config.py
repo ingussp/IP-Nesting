@@ -125,6 +125,22 @@ class BuildNestingConfigTests(unittest.TestCase):
             self.export.build_nesting_config(mode='bogus')['mode'], 'first'
         )
 
+    def test_translated_modes_use_item_data_for_export(self):
+        for identifier, caption in (('first', 'Ātri:first'), ('timed', 'Ar laika limitu:timed'),
+                                    ('continuous', 'Nepārtraukti:continuous')):
+            panel = types.SimpleNamespace(mode_combo=types.SimpleNamespace(
+                currentData=lambda: identifier, currentText=lambda: caption))
+            self.assertEqual(self.export._read_search_mode(panel), identifier)
+            config = self.export.build_nesting_config(
+                mode=self.export._read_search_mode(panel), time_limit_seconds=30)
+            self.assertEqual(config['mode'], identifier)
+            self.assertEqual(config['timeLimitSeconds'], 30 if identifier == 'timed' else 0)
+
+    def test_script_panels_keep_raw_mode_compatibility(self):
+        for mode in ('first', 'timed', 'continuous'):
+            panel = types.SimpleNamespace(mode_combo=types.SimpleNamespace(currentText=lambda: mode))
+            self.assertEqual(self.export._read_search_mode(panel), mode)
+
 
 if __name__ == '__main__':
     unittest.main()

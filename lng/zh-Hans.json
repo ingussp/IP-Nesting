@@ -541,5 +541,10 @@
   "mark_holes_button": "标记所选零件的孔", "show_gpus": "显示 GPU", "looking_for_graphic_cards": "正在查找显卡",
   "nesting_wait_timed_seconds_s": "正在排列零件，请稍候。已选择%s秒的时间段来寻找最佳排布。", "nesting_wait_continuous_cancel_s": "正在不限时排列零件。按“%s”停止过程。",
   "default_rotations": "默认方向数量：",
-  "default_rotations_tooltip": "为每个新添加的零件测试的方向数量。更多方向可能改善排样效果，但会增加计算时间。"
+  "default_rotations_tooltip": "为每个新添加的零件测试的方向数量。更多方向可能改善排样效果，但会增加计算时间。",
+  "mode.fast_first": "快速:first",
+  "mode.timed": "限时:timed",
+  "mode.continuous": "连续:continuous",
+  "contact_simplification_mm": "接触轮廓简化（mm）：",
+  "contact_simplification_tooltip": "CLI 为搜索接触点而简化轮廓；与 FreeCAD 曲线近似独立。"
 }

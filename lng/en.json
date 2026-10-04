@@ -541,4 +541,10 @@
   "mark_holes_dialog_failed": "Mark holes dialog failed:\n",
   "mark_holes_read_selection_failed": "mark_holes: read selection failed:\n",
   "mark_holes_button": "Mark selected part holes", "show_gpus": "Show GPUs", "looking_for_graphic_cards": "Looking for graphic cards",
-  "nesting_wait_timed_seconds_s": "Please wait while parts are being arranged. An interval of %s seconds was selected to find the best part layout.", "nesting_wait_continuous_cancel_s": "Parts are being arranged without a time limit. Press “%s” to stop the process."}
+  "nesting_wait_timed_seconds_s": "Please wait while parts are being arranged. An interval of %s seconds was selected to find the best part layout.", "nesting_wait_continuous_cancel_s": "Parts are being arranged without a time limit. Press “%s” to stop the process.",
+  "mode.fast_first": "Fast:first",
+  "mode.timed": "Timed:timed",
+  "mode.continuous": "Continuous:continuous",
+  "contact_simplification_mm": "Contact simplification (mm):",
+  "contact_simplification_tooltip": "CLI contour simplification for contact-point search; separate from FreeCAD curve approximation."
+}

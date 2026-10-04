@@ -541,5 +541,10 @@
   "mark_holes_button": "تحديد فتحات الجزء المحدد", "show_gpus": "عرض بطاقات الرسوميات", "looking_for_graphic_cards": "جارٍ البحث عن بطاقات الرسوميات",
   "nesting_wait_timed_seconds_s": "يرجى الانتظار أثناء ترتيب الأجزاء. تم اختيار مدة %s ثانية للبحث عن أفضل توزيع للأجزاء.", "nesting_wait_continuous_cancel_s": "يجري ترتيب الأجزاء دون حد زمني. اضغط على «%s» لإيقاف العملية.",
   "default_rotations": "عدد الاتجاهات الافتراضي:",
-  "default_rotations_tooltip": "عدد الاتجاهات التي تُختبر لكل قطعة جديدة. قد تحسّن زيادة الاتجاهات الترتيب، لكنها تزيد زمن الحساب."
+  "default_rotations_tooltip": "عدد الاتجاهات التي تُختبر لكل قطعة جديدة. قد تحسّن زيادة الاتجاهات الترتيب، لكنها تزيد زمن الحساب.",
+  "mode.fast_first": "سريع:first",
+  "mode.timed": "بحد زمني:timed",
+  "mode.continuous": "مستمر:continuous",
+  "contact_simplification_mm": "تبسيط نقاط التلامس (mm):",
+  "contact_simplification_tooltip": "تبسيط المحيط في CLI للبحث عن نقاط التلامس؛ منفصل عن تقريب المنحنيات في FreeCAD."
 }

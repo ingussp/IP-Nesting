@@ -433,7 +433,7 @@ def _menu_control_action(menu, label_text, control):
     container = QtGui.QWidget(menu)
     row = QtGui.QHBoxLayout(container)
     row.setContentsMargins(14, 6, 14, 6)
-    label = QtGui.QLabel(str(label_text), container)
+    label = ui_widget(QtGui.QLabel, label_text, container)
     label.setMinimumWidth(170)
     row.addWidget(label)
     row.addStretch(1)
@@ -490,6 +490,56 @@ def show_settings():
     )
     resolution_spin.valueChanged.connect(_set_boundary_resolution_mm)
     _menu._resolution_spin = resolution_spin
+
+    # Search controls share the existing canonical preferences with the exporter.
+    # They stay available even when the nesting task panel is closed.
+    from IPNestingSettings import read_search_settings, write_search_setting
+    preferences = App.ParamGet(PREFERENCES)
+    search_settings = read_search_settings(preferences)
+
+    bitmap_resolution_spin = QtGui.QDoubleSpinBox()
+    bitmap_resolution_spin.setDecimals(6)
+    bitmap_resolution_spin.setRange(0.000001, 1000000.0)
+    bitmap_resolution_spin.setSingleStep(0.1)
+    bitmap_resolution_spin.setValue(search_settings['resolution'])
+    bitmap_resolution_spin.setLayoutDirection(QtCore.Qt.LeftToRight)
+    ui_call(bitmap_resolution_spin, 'setToolTip', tr('resolution_mm_per_px_tooltip'))
+    _menu.addAction(_menu_control_action(_menu, tr('resolution_mm_per_px'), bitmap_resolution_spin))
+    bitmap_resolution_spin.valueChanged.connect(
+        lambda value: write_search_setting('resolution', value, preferences))
+    _menu._bitmap_resolution_spin = bitmap_resolution_spin
+
+    search_step_spin = QtGui.QSpinBox()
+    search_step_spin.setRange(1, 100000)
+    search_step_spin.setValue(search_settings['bitmapSearchStepPx'])
+    search_step_spin.setLayoutDirection(QtCore.Qt.LeftToRight)
+    ui_call(search_step_spin, 'setToolTip', tr('bitmap_search_step_px_tooltip'))
+    _menu.addAction(_menu_control_action(_menu, tr('bitmap_search_step_px'), search_step_spin))
+    search_step_spin.valueChanged.connect(
+        lambda value: write_search_setting('bitmapSearchStepPx', value, preferences))
+    _menu._search_step_spin = search_step_spin
+
+    cache_combo = QtGui.QComboBox()
+    ui_call(cache_combo, 'addItems', [tr('common.no'), tr('common.yes')])
+    cache_combo.setCurrentIndex(1 if search_settings['cacheRejects'] else 0)
+    ui_call(cache_combo, 'setToolTip', tr('cache_rejects_tooltip'))
+    _menu.addAction(_menu_control_action(_menu, tr('cache_rejects'), cache_combo))
+    cache_combo.currentIndexChanged.connect(
+        lambda index: write_search_setting('cacheRejects', index == 1, preferences))
+    _menu._cache_combo = cache_combo
+
+    # CLI contact-contour simplification is separate from FreeCAD curve tessellation.
+    curve_spin = QtGui.QDoubleSpinBox()
+    curve_spin.setDecimals(6)
+    curve_spin.setRange(0.0, 1000000.0)
+    curve_spin.setSingleStep(0.1)
+    curve_spin.setValue(search_settings['curveTolerance'])
+    curve_spin.setLayoutDirection(QtCore.Qt.LeftToRight)
+    ui_call(curve_spin, 'setToolTip', tr('contact_simplification_tooltip'))
+    _menu.addAction(_menu_control_action(_menu, tr('contact_simplification_mm'), curve_spin))
+    curve_spin.valueChanged.connect(
+        lambda value: write_search_setting('curveTolerance', value, preferences))
+    _menu._curve_spin = curve_spin
 
     # Language selection submenu is shown last in the settings list.
     _menu.addMenu(languages)

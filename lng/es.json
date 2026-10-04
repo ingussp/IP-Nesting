@@ -541,5 +541,10 @@
   "mark_holes_button": "Marcar agujeros de la pieza seleccionada", "show_gpus": "Mostrar GPU", "looking_for_graphic_cards": "Buscando tarjetas gráficas",
   "nesting_wait_timed_seconds_s": "Espere mientras se distribuyen las piezas. Se ha seleccionado un intervalo de %s segundos para buscar la mejor distribución.", "nesting_wait_continuous_cancel_s": "Las piezas se distribuyen sin límite de tiempo. Pulse «%s» para detener el proceso.",
   "default_rotations": "Orientaciones predeterminadas:",
-  "default_rotations_tooltip": "Número de orientaciones que se prueban para cada pieza nueva. Más orientaciones pueden mejorar la distribución, pero aumentan el tiempo de cálculo."
+  "default_rotations_tooltip": "Número de orientaciones que se prueban para cada pieza nueva. Más orientaciones pueden mejorar la distribución, pero aumentan el tiempo de cálculo.",
+  "mode.fast_first": "Rápido:first",
+  "mode.timed": "Con límite de tiempo:timed",
+  "mode.continuous": "Continuo:continuous",
+  "contact_simplification_mm": "Simplificación para contactos (mm):",
+  "contact_simplification_tooltip": "Simplificación del contorno en el CLI para buscar puntos de contacto; independiente de la aproximación de curvas de FreeCAD."
 }

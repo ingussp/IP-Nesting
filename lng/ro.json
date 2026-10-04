@@ -541,5 +541,10 @@
   "mark_holes_button": "Marchează găurile piesei selectate", "show_gpus": "Afișează GPU", "looking_for_graphic_cards": "Se caută plăci grafice",
   "nesting_wait_timed_seconds_s": "Așteptați în timp ce piesele sunt aranjate. A fost ales un interval de %s secunde pentru găsirea celui mai bun aranjament.", "nesting_wait_continuous_cancel_s": "Piesele sunt aranjate fără limită de timp. Apăsați „%s” pentru a opri procesul.",
   "default_rotations": "Număr implicit de orientări:",
-  "default_rotations_tooltip": "Numărul de orientări testate pentru fiecare piesă nouă. Mai multe orientări pot îmbunătăți amplasarea, dar măresc timpul de calcul."
+  "default_rotations_tooltip": "Numărul de orientări testate pentru fiecare piesă nouă. Mai multe orientări pot îmbunătăți amplasarea, dar măresc timpul de calcul.",
+  "mode.fast_first": "Rapid:first",
+  "mode.timed": "Cu limită de timp:timed",
+  "mode.continuous": "Continuu:continuous",
+  "contact_simplification_mm": "Simplificare pentru contacte (mm):",
+  "contact_simplification_tooltip": "Simplificarea conturului în CLI pentru căutarea punctelor de contact; distinctă de aproximarea curbelor în FreeCAD."
 }

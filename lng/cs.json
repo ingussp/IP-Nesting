@@ -541,5 +541,10 @@
   "mark_holes_button": "Označit otvory vybraného dílu", "show_gpus": "Zobrazit GPU", "looking_for_graphic_cards": "Vyhledávání grafických karet",
   "nesting_wait_timed_seconds_s": "Počkejte prosím, než se díly rozmístí. Pro nalezení nejlepšího rozmístění byl zvolen interval %s sekund.", "nesting_wait_continuous_cancel_s": "Díly se rozmísťují bez časového omezení. Proces zastavíte tlačítkem „%s“.",
   "default_rotations": "Výchozí počet orientací:",
-  "default_rotations_tooltip": "Počet orientací zkoušených pro každý nově přidaný díl. Více orientací může zlepšit rozmístění, ale prodlužuje výpočet."
+  "default_rotations_tooltip": "Počet orientací zkoušených pro každý nově přidaný díl. Více orientací může zlepšit rozmístění, ale prodlužuje výpočet.",
+  "mode.fast_first": "Rychle:first",
+  "mode.timed": "S časovým limitem:timed",
+  "mode.continuous": "Nepřetržitě:continuous",
+  "contact_simplification_mm": "Zjednodušení pro kontakty (mm):",
+  "contact_simplification_tooltip": "Zjednodušení obrysu v CLI pro hledání kontaktních bodů; oddělené od aproximace křivek ve FreeCAD."
 }

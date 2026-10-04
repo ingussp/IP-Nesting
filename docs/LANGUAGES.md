@@ -13,7 +13,7 @@ the supplied September 2026 screenshot. English names are sorted alphabetically
 down six columns, or seven on wider screens, followed by native names. Scrolling
 keeps the chooser usable on smaller displays. Search accepts either name or code.
 
-All 50 entries have a separate JSON catalog with the same 546 message keys.
+All 50 entries have a separate JSON catalog with the same 551 message keys.
 The catalogs include translated labels, dialog text, tooltips and diagnostics.
 Technical identifiers (such as `Shape.Area`, function names and file names),
 format placeholders and genuine cognates can remain identical to English.
@@ -21,6 +21,11 @@ Catalogs are prepared ahead of time; the workbench does not call a translation
 service. The completed catalogs include offline machine-assisted translations.
 Automated validation checks coverage and formatting, not linguistic accuracy;
 native-speaker review of the technical terminology is still recommended.
+
+The search-mode combo shows translated captions (`Fast:first`, `Timed:timed`,
+`Continuous:continuous` in English). Each item's data contains its fixed CLI
+identifier. Always read that data for export, persistence, control enablement
+and progress messages; never infer the identifier from a translated caption.
 
 ## Technical terminology
 

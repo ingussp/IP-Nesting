@@ -541,5 +541,10 @@
   "mark_holes_button": "선택한 부품의 구멍 표시", "show_gpus": "GPU 표시", "looking_for_graphic_cards": "그래픽 카드 검색 중",
   "nesting_wait_timed_seconds_s": "부품을 배치하는 동안 기다려 주세요. 최적의 배치를 찾기 위해 %s초의 시간이 선택되었습니다.", "nesting_wait_continuous_cancel_s": "시간 제한 없이 부품을 배치하고 있습니다. 작업을 중지하려면 “%s”을 누르세요.",
   "default_rotations": "기본 방향 수:",
-  "default_rotations_tooltip": "새로 추가한 각 부품에 대해 시험할 방향 수입니다. 방향 수가 많으면 배치가 개선될 수 있지만 계산 시간이 늘어납니다."
+  "default_rotations_tooltip": "새로 추가한 각 부품에 대해 시험할 방향 수입니다. 방향 수가 많으면 배치가 개선될 수 있지만 계산 시간이 늘어납니다.",
+  "mode.fast_first": "빠른 배치:first",
+  "mode.timed": "시간 제한:timed",
+  "mode.continuous": "연속:continuous",
+  "contact_simplification_mm": "접촉점 탐색용 단순화 (mm):",
+  "contact_simplification_tooltip": "접촉점 탐색을 위한 CLI 윤곽 단순화입니다. FreeCAD 곡선 근사와 별개의 설정입니다."
 }

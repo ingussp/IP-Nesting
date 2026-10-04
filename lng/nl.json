@@ -541,5 +541,10 @@
   "mark_holes_button": "Markeer gaten van het geselecteerde onderdeel", "show_gpus": "GPU's tonen", "looking_for_graphic_cards": "Zoeken naar grafische kaarten",
   "nesting_wait_timed_seconds_s": "Wacht terwijl de onderdelen worden geplaatst. Er is een periode van %s seconden gekozen om de beste indeling te zoeken.", "nesting_wait_continuous_cancel_s": "De onderdelen worden zonder tijdslimiet geplaatst. Druk op “%s” om het proces te stoppen.",
   "default_rotations": "Standaardaantal oriëntaties:",
-  "default_rotations_tooltip": "Aantal oriëntaties dat voor elk nieuw onderdeel wordt getest. Meer oriëntaties kunnen de indeling verbeteren, maar verlengen de rekentijd."
+  "default_rotations_tooltip": "Aantal oriëntaties dat voor elk nieuw onderdeel wordt getest. Meer oriëntaties kunnen de indeling verbeteren, maar verlengen de rekentijd.",
+  "mode.fast_first": "Snel:first",
+  "mode.timed": "Met tijdslimiet:timed",
+  "mode.continuous": "Continu:continuous",
+  "contact_simplification_mm": "Vereenvoudiging voor contacten (mm):",
+  "contact_simplification_tooltip": "Contourvereenvoudiging in de CLI voor het zoeken naar contactpunten; los van de curvebenadering in FreeCAD."
 }

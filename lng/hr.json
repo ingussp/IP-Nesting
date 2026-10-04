@@ -541,5 +541,10 @@
   "mark_holes_button": "Označi rupe odabranog dijela", "show_gpus": "Prikaži GPU", "looking_for_graphic_cards": "Traženje grafičkih kartica",
   "nesting_wait_timed_seconds_s": "Pričekajte dok se dijelovi raspoređuju. Za pronalaženje najboljeg rasporeda odabran je interval od %s sekundi.", "nesting_wait_continuous_cancel_s": "Dijelovi se raspoređuju bez vremenskog ograničenja. Pritisnite „%s” za zaustavljanje postupka.",
   "default_rotations": "Zadani broj orijentacija:",
-  "default_rotations_tooltip": "Broj orijentacija koje se provjeravaju za svaki novi dio. Više orijentacija može poboljšati raspored, ali produljuje izračun."
+  "default_rotations_tooltip": "Broj orijentacija koje se provjeravaju za svaki novi dio. Više orijentacija može poboljšati raspored, ali produljuje izračun.",
+  "mode.fast_first": "Brzo:first",
+  "mode.timed": "S vremenskim ograničenjem:timed",
+  "mode.continuous": "Kontinuirano:continuous",
+  "contact_simplification_mm": "Pojednostavljenje za kontakte (mm):",
+  "contact_simplification_tooltip": "Pojednostavljenje konture u CLI-ju za traženje kontaktnih točaka; odvojeno od aproksimacije krivulja u FreeCAD-u."
 }

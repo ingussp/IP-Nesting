@@ -541,5 +541,10 @@
   "mark_holes_button": "Seçilmiş hissənin deşiklərini işarələ", "show_gpus": "GPU-ları göstər", "looking_for_graphic_cards": "Qrafik kartlar axtarılır",
   "nesting_wait_timed_seconds_s": "Hissələr yerləşdirilərkən gözləyin. Ən yaxşı düzülüşü tapmaq üçün %s saniyəlik müddət seçilib.", "nesting_wait_continuous_cancel_s": "Hissələr vaxt məhdudiyyəti olmadan yerləşdirilir. Prosesi dayandırmaq üçün “%s” düyməsini basın.",
   "default_rotations": "Standart istiqamətlərin sayı:",
-  "default_rotations_tooltip": "Hər yeni detal üçün yoxlanılan istiqamətlərin sayı. Daha çox istiqamət yerləşdirməni yaxşılaşdıra bilər, lakin hesablama vaxtını artırır."
+  "default_rotations_tooltip": "Hər yeni detal üçün yoxlanılan istiqamətlərin sayı. Daha çox istiqamət yerləşdirməni yaxşılaşdıra bilər, lakin hesablama vaxtını artırır.",
+  "mode.fast_first": "Sürətli:first",
+  "mode.timed": "Vaxt məhdudiyyətli:timed",
+  "mode.continuous": "Davamlı:continuous",
+  "contact_simplification_mm": "Təmas üçün sadələşdirmə (mm):",
+  "contact_simplification_tooltip": "Təmas nöqtələrini axtarmaq üçün CLI konturunun sadələşdirilməsi; FreeCAD əyrilərinin yaxınlaşdırılmasından ayrıdır."
 }
