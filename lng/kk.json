@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Бөлшектер орналастырылғанша күтіңіз. Ең жақсы орналасуды табу үшін %s секунд уақыт таңдалды.", "nesting_wait_continuous_cancel_s": "Бөлшектер уақыт шектеуінсіз орналастырылады. Процесті тоқтату үшін «%s» түймесін басыңыз.",
   "default_rotations": "Әдепкі бағдарлар саны:",
   "default_rotations_tooltip": "Әрбір жаңа бөлшек үшін тексерілетін бағдарлар саны. Көбірек бағдар жайғастыруды жақсартуы мүмкін, бірақ есептеу уақытын ұзартады.",
-  "mode.fast_first": "Жылдам:first",
-  "mode.timed": "Уақытпен шектелген:timed",
-  "mode.continuous": "Үздіксіз:continuous",
+  "mode.fast_first": "Жылдам",
+  "mode.timed": "Уақытпен шектелген",
+  "mode.continuous": "Үздіксіз",
   "contact_simplification_mm": "Жанасу үшін оңайлату (mm):",
   "contact_simplification_tooltip": "Жанасу нүктелерін іздеу үшін CLI контурын оңайлату; FreeCAD қисықтарын жуықтаудан бөлек."
 }

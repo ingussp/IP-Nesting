@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Parçalar yerleştirilirken lütfen bekleyin. En iyi yerleşimi bulmak için %s saniyelik süre seçildi.", "nesting_wait_continuous_cancel_s": "Parçalar zaman sınırı olmadan yerleştiriliyor. İşlemi durdurmak için “%s” düğmesine basın.",
   "default_rotations": "Varsayılan yönelim sayısı:",
   "default_rotations_tooltip": "Eklenen her yeni parça için denenen yönelim sayısı. Daha fazla yönelim yerleşimi iyileştirebilir ancak hesaplama süresini artırır.",
-  "mode.fast_first": "Hızlı:first",
-  "mode.timed": "Süre sınırlı:timed",
-  "mode.continuous": "Sürekli:continuous",
+  "mode.fast_first": "Hızlı",
+  "mode.timed": "Süre sınırlı",
+  "mode.continuous": "Sürekli",
   "contact_simplification_mm": "Temas için sadeleştirme (mm):",
   "contact_simplification_tooltip": "Temas noktalarını aramak için CLI kontur sadeleştirmesi; FreeCAD eğri yaklaşımından ayrıdır."
 }

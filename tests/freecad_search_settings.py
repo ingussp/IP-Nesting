@@ -91,6 +91,7 @@ class SearchSettingsIntegration(unittest.TestCase):
                 with self.subTest(language=language, mode=code):
                     panel.mode_combo.setCurrentIndex(index)
                     self.assertEqual(panel.mode_combo.currentText(), str(L.tr(key)))
+                    self.assertNotIn(':', panel.mode_combo.currentText())
                     self.assertEqual(panel.mode_combo.currentData(), code)
                     self.assertEqual(self.preferences.values['SearchMode'], code)
                     self.assertEqual(E._read_search_mode(panel), code)
@@ -103,7 +104,7 @@ class SearchSettingsIntegration(unittest.TestCase):
         self.preferences.values['SearchMode'] = 'timed'
         restored = self.make_panel()
         self.assertEqual(restored.mode_combo.currentData(), 'timed')
-        self.assertEqual(restored.mode_combo.currentText(), 'Ar laika limitu:timed')
+        self.assertEqual(restored.mode_combo.currentText(), 'Ar laika limitu')
 
     def test_settings_menu_order_live_values_and_real_json_export(self):
         panel = self.panel

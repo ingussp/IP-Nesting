@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Jekk jogħġbok stenna waqt li l-partijiet jitqiegħdu. Intgħażel intervall ta’ %s sekondi biex jinstab l-aħjar tqassim.", "nesting_wait_continuous_cancel_s": "Il-partijiet qed jitqiegħdu mingħajr limitu ta’ żmien. Agħfas “%s” biex twaqqaf il-proċess.",
   "default_rotations": "Numru ta’ orjentazzjonijiet prestabbilit:",
   "default_rotations_tooltip": "In-numru ta’ orjentazzjonijiet ittestjati għal kull parti ġdida. Aktar orjentazzjonijiet jistgħu jtejbu t-tqassim, iżda jżidu l-ħin tal-kalkolu.",
-  "mode.fast_first": "Mgħaġġel:first",
-  "mode.timed": "B’limitu ta’ ħin:timed",
-  "mode.continuous": "Kontinwu:continuous",
+  "mode.fast_first": "Mgħaġġel",
+  "mode.timed": "B’limitu ta’ ħin",
+  "mode.continuous": "Kontinwu",
   "contact_simplification_mm": "Simplifikazzjoni għall-kuntatt (mm):",
   "contact_simplification_tooltip": "Simplifikazzjoni tal-kontorn fil-CLI biex jinstabu punti ta’ kuntatt; separata mill-approssimazzjoni tal-kurvi ta’ FreeCAD."
 }

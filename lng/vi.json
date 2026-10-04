@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Vui lòng đợi trong khi các chi tiết được sắp xếp. Đã chọn khoảng thời gian %s giây để tìm bố cục tốt nhất.", "nesting_wait_continuous_cancel_s": "Các chi tiết đang được sắp xếp không giới hạn thời gian. Nhấn “%s” để dừng quá trình.",
   "default_rotations": "Số hướng mặc định:",
   "default_rotations_tooltip": "Số hướng được thử cho mỗi chi tiết mới. Nhiều hướng hơn có thể cải thiện cách bố trí nhưng làm tăng thời gian tính toán.",
-  "mode.fast_first": "Nhanh:first",
-  "mode.timed": "Có giới hạn thời gian:timed",
-  "mode.continuous": "Liên tục:continuous",
+  "mode.fast_first": "Nhanh",
+  "mode.timed": "Có giới hạn thời gian",
+  "mode.continuous": "Liên tục",
   "contact_simplification_mm": "Đơn giản hóa cho tiếp xúc (mm):",
   "contact_simplification_tooltip": "Đơn giản hóa đường bao trong CLI để tìm điểm tiếp xúc; riêng biệt với xấp xỉ đường cong của FreeCAD."
 }

@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Bitte warten Sie, während die Teile angeordnet werden. Für die Suche nach der besten Anordnung wurde ein Zeitraum von %s Sekunden gewählt.", "nesting_wait_continuous_cancel_s": "Die Teile werden ohne Zeitlimit angeordnet. Drücken Sie „%s“, um den Vorgang zu beenden.",
   "default_rotations": "Standardanzahl der Ausrichtungen:",
   "default_rotations_tooltip": "Anzahl der Ausrichtungen, die für jedes neu hinzugefügte Teil geprüft werden. Mehr Ausrichtungen können die Anordnung verbessern, verlängern aber die Berechnung.",
-  "mode.fast_first": "Schnell:first",
-  "mode.timed": "Zeitbegrenzt:timed",
-  "mode.continuous": "Kontinuierlich:continuous",
+  "mode.fast_first": "Schnell",
+  "mode.timed": "Zeitbegrenzt",
+  "mode.continuous": "Kontinuierlich",
   "contact_simplification_mm": "Kontaktkontur-Vereinfachung (mm):",
   "contact_simplification_tooltip": "CLI-Konturvereinfachung für die Kontaktpunktsuche; unabhängig von der FreeCAD-Kurvenapproximation."
 }

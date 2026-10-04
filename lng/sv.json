@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Vänta medan delarna placeras. Ett tidsintervall på %s sekunder har valts för att hitta den bästa placeringen.", "nesting_wait_continuous_cancel_s": "Delarna placeras utan tidsgräns. Tryck på ”%s” för att stoppa processen.",
   "default_rotations": "Förvalt antal orienteringar:",
   "default_rotations_tooltip": "Antal orienteringar som provas för varje ny del. Fler orienteringar kan förbättra placeringen men ökar beräkningstiden.",
-  "mode.fast_first": "Snabb:first",
-  "mode.timed": "Tidsbegränsad:timed",
-  "mode.continuous": "Kontinuerlig:continuous",
+  "mode.fast_first": "Snabb",
+  "mode.timed": "Tidsbegränsad",
+  "mode.continuous": "Kontinuerlig",
   "contact_simplification_mm": "Förenkling för kontakter (mm):",
   "contact_simplification_tooltip": "Konturförenkling i CLI för att söka kontaktpunkter; separat från kurvapproximation i FreeCAD."
 }

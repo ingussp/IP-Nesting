@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Sila tunggu semasa bahagian disusun. Tempoh %s saat telah dipilih untuk mencari susunan terbaik.", "nesting_wait_continuous_cancel_s": "Bahagian disusun tanpa had masa. Tekan “%s” untuk menghentikan proses.",
   "default_rotations": "Bilangan orientasi lalai:",
   "default_rotations_tooltip": "Bilangan orientasi yang diuji bagi setiap komponen baharu. Lebih banyak orientasi boleh menambah baik susun atur, tetapi menambah masa pengiraan.",
-  "mode.fast_first": "Pantas:first",
-  "mode.timed": "Had masa:timed",
-  "mode.continuous": "Berterusan:continuous",
+  "mode.fast_first": "Pantas",
+  "mode.timed": "Had masa",
+  "mode.continuous": "Berterusan",
   "contact_simplification_mm": "Pemudahan untuk sentuhan (mm):",
   "contact_simplification_tooltip": "Pemudahan kontur CLI untuk mencari titik sentuhan; berasingan daripada penghampiran lengkung FreeCAD."
 }

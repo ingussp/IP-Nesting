@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "សូមរង់ចាំ ខណៈពេលកំពុងរៀបចំបំណែក។ បានជ្រើសរើសរយៈពេល %s វិនាទី ដើម្បីស្វែងរកការរៀបចំល្អបំផុត។", "nesting_wait_continuous_cancel_s": "កំពុងរៀបចំបំណែកដោយគ្មានកំណត់ពេលវេលា។ ចុច «%s» ដើម្បីបញ្ឈប់ដំណើរការ។",
   "default_rotations": "ចំនួនទិសដៅលំនាំដើម៖",
   "default_rotations_tooltip": "ចំនួនទិសដៅដែលត្រូវសាកល្បងសម្រាប់ផ្នែកថ្មីនីមួយៗ។ ទិសដៅកាន់តែច្រើនអាចធ្វើឱ្យការរៀបចំប្រសើរឡើង ប៉ុន្តែបង្កើនពេលវេលាគណនា។",
-  "mode.fast_first": "លឿន:first",
-  "mode.timed": "មានកំណត់ពេល:timed",
-  "mode.continuous": "បន្ត:continuous",
+  "mode.fast_first": "លឿន",
+  "mode.timed": "មានកំណត់ពេល",
+  "mode.continuous": "បន្ត",
   "contact_simplification_mm": "ការសម្រួលសម្រាប់ចំណុចប៉ះ (mm):",
   "contact_simplification_tooltip": "ការសម្រួលបន្ទាត់វណ្ឌវង្កនៅក្នុង CLI ដើម្បីស្វែងរកចំណុចប៉ះ ដែលដាច់ដោយឡែកពីការប៉ាន់ប្រមាណខ្សែកោងរបស់ FreeCAD។"
 }

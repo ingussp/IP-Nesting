@@ -542,9 +542,9 @@
   "nesting_wait_timed_seconds_s": "Počkajte, kým sa diely rozmiestnia. Na nájdenie najlepšieho rozmiestnenia bol zvolený interval %s sekúnd.", "nesting_wait_continuous_cancel_s": "Diely sa rozmiestňujú bez časového obmedzenia. Proces zastavíte tlačidlom „%s“.",
   "default_rotations": "Predvolený počet orientácií:",
   "default_rotations_tooltip": "Počet orientácií skúšaných pre každý nový diel. Viac orientácií môže zlepšiť rozmiestnenie, ale predlžuje výpočet.",
-  "mode.fast_first": "Rýchlo:first",
-  "mode.timed": "S časovým limitom:timed",
-  "mode.continuous": "Nepretržite:continuous",
+  "mode.fast_first": "Rýchlo",
+  "mode.timed": "S časovým limitom",
+  "mode.continuous": "Nepretržite",
   "contact_simplification_mm": "Zjednodušenie pre kontakty (mm):",
   "contact_simplification_tooltip": "Zjednodušenie obrysu v CLI na hľadanie kontaktných bodov; oddelené od aproximácie kriviek vo FreeCAD."
 }
