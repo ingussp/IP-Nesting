@@ -64,6 +64,24 @@ except Exception:
     GrainPreparer = None
 
 
+class _PlacementStrategiesComboBox(QtGui.QComboBox):
+    """Keep long translated captions from widening the whole settings column."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.setMinimumContentsLength(8)
+
+    def showPopup(self):
+        # Only the detached dropdown grows with its contents, including after
+        # a live language switch. The closed control follows the grid's width.
+        metrics = self.fontMetrics()
+        longest = max((metrics.boundingRect(self.itemText(i)).width()
+                       for i in range(self.count())), default=0)
+        self.view().setMinimumWidth(max(self.width(), longest + 40))
+        super().showPopup()
+
+
 class _ProportionalHeader(QtGui.QHeaderView):
     """Horizontal header that keeps a fixed column at its width and shares the
     remaining space between the other columns in proportion to their content
@@ -1652,7 +1670,8 @@ class NestingTaskPanel:
         label,
         items,
         default_index=0,
-        tooltip=""
+        tooltip="",
+        combo_class=QtGui.QComboBox,
     ):
         row = QtGui.QHBoxLayout()
 
@@ -1660,7 +1679,7 @@ class NestingTaskPanel:
             QtGui.QLabel, label
         )
 
-        combo = QtGui.QComboBox()
+        combo = combo_class()
         ui_call(combo, 'addItems', list(items))
         combo.setCurrentIndex(int(default_index))
         combo._setting_label = label_widget
@@ -1719,6 +1738,7 @@ class NestingTaskPanel:
              tr('trials.compact_holes_large'), tr('trials.all')],
             1,
             tr('trials_tooltip'),
+            combo_class=_PlacementStrategiesComboBox,
         )
         self.trials_label = self.trials_combo._setting_label
         for index, count in enumerate((1, 2, 3, 4)):

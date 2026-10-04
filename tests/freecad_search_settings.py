@@ -75,6 +75,9 @@ class SearchSettingsIntegration(unittest.TestCase):
             panel.form.deleteLater()
         App.closeDocument(self.document.Name)
         self.parent.close()
+        self.parent.deleteLater()
+        # Finish Qt destruction before the next test enumerates allWidgets().
+        APPLICATION.sendPostedEvents(None, QtCore.QEvent.DeferredDelete)
         APPLICATION.processEvents()
         for item in reversed(self.patches): item.stop()
         L._active_language = None
@@ -141,6 +144,36 @@ class SearchSettingsIntegration(unittest.TestCase):
         restored.mode_combo.setCurrentIndex(1)
         APPLICATION.processEvents()
         restored.form.grab().save(str(output / 'main-panel-strategies-lv.png'))
+
+    def test_strategy_caption_length_does_not_widen_settings_column(self):
+        panel = self.panel
+        panel.form.resize(1100, 850)
+        panel.form.show()
+        L.set_language('lv')
+        panel.trials_combo.setCurrentIndex(2)
+        APPLICATION.processEvents()
+        combo = panel.trials_combo
+        right = combo.parentWidget()
+        left = panel.offcuts_table.parentWidget()
+        self.assertLess(right.width(), left.width() * 0.6)
+        original = combo.itemText(2)
+        original_width = right.width()
+        combo.setItemText(2, original * 4)
+        panel.form.layout().activate()
+        APPLICATION.processEvents()
+        self.assertEqual(right.width(), original_width)
+        combo.setItemText(2, original)
+        combo.showPopup()
+        APPLICATION.processEvents()
+        longest = max(combo.fontMetrics().boundingRect(combo.itemText(i)).width()
+                      for i in range(combo.count()))
+        self.assertGreaterEqual(combo.view().viewport().width(), longest + 8)
+        output = ROOT.parent / 'ip-search-settings-tests'
+        combo.view().parentWidget().grab().save(str(output / 'strategy-dropdown-lv.png'))
+        combo.hidePopup()
+        APPLICATION.processEvents()
+        panel.form.grab().save(str(output / 'main-panel-width-lv.png'))
+        print('Settings columns (left/right): %d/%d px' % (left.width(), right.width()))
 
     def test_settings_menu_order_live_values_and_real_json_export(self):
         panel = self.panel

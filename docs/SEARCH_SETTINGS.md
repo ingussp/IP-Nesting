@@ -29,6 +29,11 @@ ignores `trials` and always runs one largest-first, bottom-left strategy, so the
 selector and its label are disabled. Its selection is retained for switching
 back to Timed or Continuous. Changing language also preserves the numeric value.
 
+Long captions do not determine the closed selector's minimum width, keeping the
+settings grid's original 2:1 column proportions. The opened dropdown expands to
+show the full translated strategy names, recalculating its width after language
+changes.
+
 ## Advanced settings
 
 The gear/Settings menu contains the advanced search settings directly below the
