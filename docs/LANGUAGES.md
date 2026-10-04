@@ -13,7 +13,7 @@ the supplied September 2026 screenshot. English names are sorted alphabetically
 down six columns, or seven on wider screens, followed by native names. Scrolling
 keeps the chooser usable on smaller displays. Search accepts either name or code.
 
-All 50 entries have a separate JSON catalog with the same 506 message keys.
+All 50 entries have a separate JSON catalog with the same 546 message keys.
 The catalogs include translated labels, dialog text, tooltips and diagnostics.
 Technical identifiers (such as `Shape.Area`, function names and file names),
 format placeholders and genuine cognates can remain identical to English.
@@ -21,6 +21,40 @@ Catalogs are prepared ahead of time; the workbench does not call a translation
 service. The completed catalogs include offline machine-assisted translations.
 Automated validation checks coverage and formatting, not linguistic accuracy;
 native-speaker review of the technical terminology is still recommended.
+
+## Technical terminology
+
+English is the source language. Translate the manufacturing/CAD meaning, rather
+than the everyday meaning of an isolated word. In particular:
+
+| English | Meaning in this workbench | Latvian example |
+| --- | --- | --- |
+| Sheet | Stock sheet or panel; not necessarily paper or metal | Loksne |
+| Offcut | Remaining stock that can be reused | Atgriezums |
+| Face | A face of a geometric solid, not a human face | Skaldne |
+| Wire | Connected chain of geometric edges; may be open | Malu ķēde |
+| Vertex | Geometric vertex, not a vertical direction | Virsotne |
+| BoundBox | Three-dimensional bounding box in diagnostics | Aptverošā kaste |
+| Bounding box strategy | Minimise the rectangular bounds of the 2D layout | Aptverošais taisnstūris |
+| Hole-to-part clearance | Minimum separation from the hole edge to the part edge | Atstarpe starp caurumu un detaļu |
+| Unplaced parts | Parts that were not placed; not replacement parts | Neizvietotās detaļas |
+| Cache rejected positions | Remember failed placement positions; not rejected parts | Saglabāt nederīgās pozīcijas |
+
+Keep `Solids`, `Shells`, `Faces`, `Wires`, `Edges`, `Vertices` and `BoundBox`
+unchanged when they identify FreeCAD API collections/properties in diagnostics.
+Keep CLI values (`first`, `timed`, `continuous`), axes and numeric placeholders
+unchanged too. A rotation about Z stays in the XY plane; rotations about X or Y
+can change which face points upward.
+
+The contour approximation tolerance is a geometric distance in document units.
+It is distinct from the CLI bitmap resolution in mm/px. Reducing either tolerance
+or pixel size means greater precision; a smaller pixel size also increases
+memory **usage**, not the computer's available memory.
+
+The October 2026 review checks every catalog's coverage and formatting, and
+corrects shared technical terminology, rotation explanations, result summaries
+and the affected diagnostic messages. Automated checks do not certify the
+idiomatic quality of every sentence in all 50 languages.
 
 ## Live text updates
 

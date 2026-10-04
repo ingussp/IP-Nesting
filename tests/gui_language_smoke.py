@@ -53,9 +53,9 @@ def main():
         panel.offcut_controller._append_offcut_table_row(material)
         offcuts = OffcutShowDialog([material], panel=panel)
         # Existing input, options and user-defined names must survive unchanged.
-        panel.placement_strategy.blockSignals(True)
-        panel.placement_strategy.setCurrentIndex(2)
-        panel.placement_strategy.blockSignals(False)
+        panel.mode_combo.blockSignals(True)
+        panel.mode_combo.setCurrentIndex(2)
+        panel.mode_combo.blockSignals(False)
         panel.table.blockSignals(True)
         panel.table.insertRow(0)
         name_item = QtGui.QTableWidgetItem('Settings')
@@ -68,7 +68,7 @@ def main():
         panel.table.blockSignals(False)
         values = [(widget, widget.text()) for widget in panel.form.findChildren(QtGui.QLineEdit)]
         signals = []
-        panel.placement_strategy.currentIndexChanged.connect(signals.append)
+        panel.mode_combo.currentIndexChanged.connect(signals.append)
         panel.table.itemChanged.connect(signals.append)
         document = App.newDocument('LanguageSmoke')
         part = document.addObject('Part::Feature', 'SourcePart')
@@ -77,7 +77,7 @@ def main():
         placement = part.Placement.toMatrix().A
         caption = document.addObject('App::FeaturePython', 'GrainCaption')
         caption.addProperty('App::PropertyStringList', 'Text')
-        languages.tag_perimeter(caption, 'Parts with grain direction', 'label')
+        languages.tag_perimeter(caption, 'Parts with texture direction', 'label')
         parent = QtGui.QWidget()
         Gui.getMainWindow = lambda: parent
         action = QtGui.QAction(parent)
@@ -93,7 +93,8 @@ def main():
             assert dialog.layoutDirection() == direction
             assert offcuts.layoutDirection() == direction
             assert parent.layoutDirection() == QtCore.Qt.LeftToRight
-            assert panel.placement_strategy.currentIndex() == 2
+            assert panel.mode_combo.currentIndex() == 2
+            assert panel.mode_combo.currentText() == 'continuous'
             assert panel.table.item(0, 0).text() == 'Settings'
             assert panel.table.item(0, 0).data(QtCore.Qt.UserRole) == 'TestPart'
             assert panel.table.item(0, 1).text() == '7'
