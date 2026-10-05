@@ -41,6 +41,12 @@ except Exception:
     Part = None
 
 
+try:
+    import Draft
+except Exception:
+    Draft = None
+
+
 def _normalize_result(data, session):
     """Adapt CLI sheets[].parts[] while retaining legacy result support."""
     import copy
@@ -75,9 +81,12 @@ def _normalize_result(data, session):
         raise ValueError("Result placement count does not match its geometry")
     result["placements"] = placements
     result["sourceParts"] = list(sources.values())
+    # Prefer the CLI's own utilisation spelling; fall back to "utilization"
+    # when older results still use the American spelling.
+    utilisation = result.get("utilisation", result.get("utilization", 0))
     result["summary"] = dict(placed_count=len(placements),
                              unplaced_count=len(result.get("unplaced", [])),
-                             utilisation=result.get("utilization", 0))
+                             utilisation=utilisation)
     return result
 
 
@@ -321,6 +330,9 @@ class NestingResultImporter(object):
         self.session_parts_by_index = {}
         self.sheets_by_index = {}
 
+        self._sheet_layout_x = 0.0
+        self._sheet_max_y = 0.0
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
@@ -383,6 +395,9 @@ class NestingResultImporter(object):
                 self.result_doc.recompute()
             except Exception:
                 pass
+
+            self._create_result_info()
+            self._create_unplaced_group()
 
             if previous_doc is not None and previous_doc.Name in App.listDocuments():
                 App.closeDocument(previous_doc.Name)
@@ -634,6 +649,7 @@ class NestingResultImporter(object):
         imported_count = 0
         self.sheet_groups = {}
         display_x = 0.0
+        max_sheet_y = 0.0
         for index, sheet in enumerate(
             self.result_data.get(
                 "sheets",
@@ -660,6 +676,7 @@ class NestingResultImporter(object):
                     group.addObject(sheet_object)
                     group.Placement.Base = App.Vector(display_x, 0, 0)
                     display_x += sheet_object.Shape.BoundBox.XLength + 50.0
+                    max_sheet_y = max(max_sheet_y, sheet_object.Shape.BoundBox.YMax)
                     self.sheet_groups[index] = group
                     imported_count += 1
                     sheet_object.Label = (
@@ -676,6 +693,8 @@ class NestingResultImporter(object):
                     + traceback.format_exc()
                 )
 
+        self._sheet_layout_x = display_x
+        self._sheet_max_y = max_sheet_y
         return imported_count
 
     # Create a rectangle wire or a polygon face with holes at the result document origin.
@@ -1252,6 +1271,237 @@ class NestingResultImporter(object):
 
         except Exception:
             pass
+
+    # ------------------------------------------------------------------
+    # Result info / unplaced parts annotations
+    # ------------------------------------------------------------------
+
+    # Return the numeric values shown in the result info tree.
+    def _result_summary_values(self):
+        summary = self.result_data.get("summary", {}) or {}
+        placed_count = _safe_int(
+            summary.get(
+                "placed_count",
+                len(self.result_data.get("placements", []) or []),
+            )
+        )
+        unplaced_count = _safe_int(
+            summary.get(
+                "unplaced_count",
+                len(self.result_data.get("unplaced", []) or []),
+            )
+        )
+        utilisation = _safe_float(summary.get("utilisation", 0.0))
+        waste = max(0.0, min(100.0, 100.0 - utilisation))
+        return dict(
+            placed_count=placed_count,
+            total_count=placed_count + unplaced_count,
+            unplaced_count=unplaced_count,
+            utilisation=utilisation,
+            waste=waste,
+            sheet_count=len(self.result_data.get("sheets", []) or []),
+            total_area=self._total_sheet_area(),
+        )
+
+    # Sum the area of every returned sheet record.
+    def _total_sheet_area(self):
+        total = 0.0
+        for sheet in self.result_data.get("sheets", []) or []:
+            sheet_type = str(sheet.get("type", "rect")).lower()
+            if sheet_type in ("rect", "rectangle", "rectangular"):
+                width = _safe_float(sheet.get("width"))
+                height = _safe_float(sheet.get("height"))
+                total += max(0.0, width) * max(0.0, height)
+                continue
+            points = _close_vectors(
+                _points_to_vectors(sheet.get("outer", []))
+            )
+            if len(points) >= 4 and Part is not None:
+                try:
+                    total += abs(Part.Face(Part.makePolygon(points)).Area)
+                except Exception:
+                    pass
+        return total
+
+    # Create a Draft text annotation and keep the result view alive when possible.
+    def _make_annotation(self, text, position, font_size):
+        if Draft is None:
+            return None
+        try:
+            try:
+                obj = Draft.make_text(
+                    [text], placement=position, height=font_size
+                )
+            except TypeError:
+                obj = Draft.make_text([text], position)
+                if obj is not None:
+                    view = getattr(obj, "ViewObject", None)
+                    if view is not None:
+                        for attribute in ("FontSize", "TextSize"):
+                            if hasattr(view, attribute):
+                                setattr(view, attribute, float(font_size))
+                                break
+            return obj
+        except Exception:
+            return None
+
+    # Build the "Result info" App::Part holding one text line per summary value.
+    def _create_result_info(self):
+        values = self._result_summary_values()
+        unit = str(self.result_data.get("units", "mm") or "mm")
+        font_size = max(12.0, min(200.0, self._sheet_max_y * 0.02))
+        lines = [
+            tr('result_info_placed_total') % (values["placed_count"], values["total_count"]),
+            tr('result_info_utilisation') % values["utilisation"],
+            tr('result_info_waste') % values["waste"],
+            tr('result_info_sheets') % values["sheet_count"],
+            tr('result_info_sheet_area') % (values["total_area"], unit),
+        ]
+
+        start_x = self._sheet_layout_x
+        if start_x <= 0.0:
+            start_x = 100.0
+        start_y = self._sheet_max_y if self._sheet_max_y > 0.0 else 200.0
+
+        group = self.result_doc.addObject("App::Part", "Result_info")
+        group.Label = tr('result_info')
+
+        x = start_x + font_size
+        y = start_y
+        for line in lines:
+            obj = self._make_annotation(line, App.Vector(x, y, 0), font_size)
+            if obj is not None:
+                try:
+                    group.addObject(obj)
+                except Exception:
+                    pass
+            y -= font_size * 1.6
+
+        return group
+
+    # Resolve the source index of one unplaced entry.
+    def _unplaced_source_index(self, entry):
+        meta = entry.get("_ip_nesting", {}) or {}
+        value = meta.get(
+            "source_part_index",
+            entry.get("source_part_index", entry.get("source")),
+        )
+        return _safe_int(value)
+
+    # Resolve a normalized 2D outline for a source part.
+    def _source_display_points(self, source_part):
+        source_part = source_part or {}
+        points = source_part.get("points")
+        if not points:
+            return []
+        return _close_vectors(_points_to_vectors(points))
+
+    # Draw the distinct unplaced part outlines inside a red boundary below the sheets.
+    def _create_unplaced_group(self):
+        if Part is None:
+            return None
+        unplaced = self.result_data.get("unplaced", []) or []
+        if not unplaced:
+            return None
+
+        distinct = {}
+        for entry in unplaced:
+            idx = self._unplaced_source_index(entry)
+            if idx in distinct:
+                continue
+            points = self._source_display_points(self._get_source_part(idx))
+            if len(points) < 3:
+                continue
+            distinct[idx] = points
+        if not distinct:
+            return None
+
+        font_size = max(12.0, min(200.0, self._sheet_max_y * 0.02))
+        gap = max(2.0, font_size * 0.5)
+        max_w = 0.0
+        max_h = 0.0
+        for points in distinct.values():
+            xs = [p.x for p in points]
+            ys = [p.y for p in points]
+            max_w = max(max_w, max(xs) - min(xs))
+            max_h = max(max_h, max(ys) - min(ys))
+        cell_w = max_w + gap
+        cell_h = max_h + gap
+        count = len(distinct)
+        cols = max(1, int(math.ceil(math.sqrt(count))))
+        rows = int(math.ceil(count / float(cols)))
+        rect_w = cols * cell_w + gap
+        rect_h = rows * cell_h + gap
+        label_offset = font_size * 1.6
+        margin_y = max(50.0, font_size * 2.0)
+
+        group = self.result_doc.addObject("App::Part", "Unplaced_parts")
+        group.Label = tr('unplaced_parts')
+
+        label = self._make_annotation(
+            tr('unplaced_parts_label') % count,
+            App.Vector(gap, -margin_y, 0),
+            font_size,
+        )
+        if label is not None:
+            try:
+                group.addObject(label)
+            except Exception:
+                pass
+
+        rect_top = -margin_y - label_offset
+        rect_bottom = rect_top - rect_h
+        rect_points = [
+            App.Vector(0.0, rect_top, 0.0),
+            App.Vector(rect_w, rect_top, 0.0),
+            App.Vector(rect_w, rect_bottom, 0.0),
+            App.Vector(0.0, rect_bottom, 0.0),
+            App.Vector(0.0, rect_top, 0.0),
+        ]
+        try:
+            border = self.result_doc.addObject("Part::Feature", "Unplaced_border")
+            border.Shape = Part.makePolygon(rect_points)
+            border.Label = tr('unplaced_parts_border')
+            try:
+                border.ViewObject.LineColor = (1.0, 0.0, 0.0)
+                border.ViewObject.LineWidth = 2.0
+                border.ViewObject.DisplayMode = "Wireframe"
+            except Exception:
+                pass
+            group.addObject(border)
+        except Exception:
+            pass
+
+        for position, idx in enumerate(distinct):
+            points = distinct[idx]
+            col = position % cols
+            row = position // cols
+            cell_x = gap + col * cell_w
+            cell_top = rect_top - gap - row * cell_h
+            min_x = min(p.x for p in points)
+            min_y = min(p.y for p in points)
+            tx = cell_x + gap * 0.5 - min_x
+            ty = cell_top - cell_h + gap * 0.5 - min_y
+            translated = _close_vectors(
+                [App.Vector(p.x + tx, p.y + ty, 0.0) for p in points]
+            )
+            if len(translated) < 4:
+                continue
+            try:
+                obj = self.result_doc.addObject("Part::Feature", "Unplaced_%d" % position)
+                obj.Shape = Part.makePolygon(translated)
+                obj.Label = str(self._get_source_part(idx).get("label", idx))
+                try:
+                    obj.ViewObject.LineColor = (0.8, 0.0, 0.0)
+                    obj.ViewObject.LineWidth = 1.0
+                    obj.ViewObject.DisplayMode = "Wireframe"
+                except Exception:
+                    pass
+                group.addObject(obj)
+            except Exception:
+                pass
+
+        return group
 
 
 # ----------------------------------------------------------------------
