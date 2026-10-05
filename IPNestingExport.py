@@ -595,7 +595,21 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
     else:
         if shape.BoundBox.ZLength > 1e-7:
             raise ValueError("The part profile must be parallel to XY")
-        wires = shape.Wires
+        wires = list(shape.Wires)
+        if not wires:
+            # Bare edge compounds (for example a profile imported from several
+            # arcs) expose no Wires. Join the edges into closed wires first.
+            edges = list(shape.Edges)
+            if edges:
+                try:
+                    groups = Part.sortEdges(edges)
+                except Exception:
+                    groups = []
+                for group in groups:
+                    try:
+                        wires.append(Part.Wire(group))
+                    except Exception:
+                        continue
     candidates = []
     for wire in wires:
         if not wire.isClosed():

@@ -147,7 +147,24 @@ def _try_make_faces_from_wires(shp):
             wires = []
 
         if not wires:
-            return None
+            # DXF/SVG imports often deliver a bare compound of edges, which
+            # exposes no Wires. Sort the edges into connected wires so closed
+            # contours (for example a profile built from several arcs) still
+            # become faces.
+            try:
+                edges = list(getattr(shp, "Edges", [])) or []
+            except Exception:
+                edges = []
+            if edges:
+                try:
+                    groups = Part.sortEdges(edges)
+                except Exception:
+                    groups = []
+                for group in groups:
+                    try:
+                        wires.append(Part.Wire(group))
+                    except Exception:
+                        continue
 
         for w in wires:
             try:
