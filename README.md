@@ -1,5 +1,18 @@
 Šeit atrodas tikai pēdējā strādājošā versija
 
+**Import DXF** supports selecting multiple files with Ctrl/Shift or Ctrl+A.
+Each file becomes a separate part row with quantity 1 and the configured default
+rotation count. The preview layout is refreshed once after the batch. Files that
+fail to import are listed in one warning; remaining files are still processed.
+
+The batch import regression uses real Qt tables and FreeCAD geometry, with
+temporary DXF fixtures and a mocked file chooser. Run it with FreeCAD's bundled
+Python from the repository root, for example on Windows:
+
+```powershell
+& 'C:\Program Files\FreeCAD 1.0\bin\python.exe' tests/freecad_dxf_batch_import.py
+```
+
 
 GPU discovery is explicit: use **Show GPU's** next to the GPU device setting.
 The **Looking for graphic cards** progress window is painted before a background
