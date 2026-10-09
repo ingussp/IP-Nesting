@@ -5,7 +5,7 @@ import FreeCAD as App
 import Part
 from PySide import QtCore, QtGui
 from IPNestingLanguages import current_language
-from IPNestingGrainMatchModel import edges, polygon, solve, transform
+from IPNestingGrainMatchModel import edges, polygon, solve, transform, rotate
 
 
 # This prototype has English/Latvian captions; other locales use English.
@@ -37,6 +37,34 @@ _MESSAGES = {
 
 def text(key):
     return _MESSAGES[key][1 if current_language() == 'lv' else 0]
+
+
+def _invert_zoom():
+    """Read FreeCAD's 'invert zoom' preference so the preview matches the main window."""
+    try:
+        params = App.ParamGet('User parameter:BaseApp/Preferences/View')
+        return bool(params.GetBool('InvertZoom', False))
+    except Exception:
+        return False
+
+
+class ZoomView(QtGui.QGraphicsView):
+    """Preview view that only zooms with the mouse wheel, matching FreeCAD."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+        if delta == 0:
+            event.ignore()
+            return
+        forward = (delta > 0) != _invert_zoom()
+        factor = 1.15 if forward else 1.0 / 1.15
+        self.scale(factor, factor)
+        event.accept()
 
 
 def validate_layout(parts, poses, spacing):
@@ -131,7 +159,8 @@ class GrainMatchingDialog(QtGui.QDialog):
         for heading in ('parts', 'assembly'):
             column = QtGui.QVBoxLayout(); views.addLayout(column)
             column.addWidget(QtGui.QLabel(text(heading)))
-            view = QtGui.QGraphicsView(); view.setScene(QtGui.QGraphicsScene(view))
+            view = ZoomView() if heading == 'assembly' else QtGui.QGraphicsView()
+            view.setScene(QtGui.QGraphicsScene(view))
             view.setRenderHint(QtGui.QPainter.Antialiasing)
             view.setMinimumHeight(260); column.addWidget(view, 1); self.views.append(view)
         form = QtGui.QFormLayout(); root.addLayout(form)
@@ -181,11 +210,21 @@ class GrainMatchingDialog(QtGui.QDialog):
             rect = rect.adjusted(-margin, -margin, margin, margin)
             view.scene().setSceneRect(rect)
             view.fitInView(rect, QtCore.Qt.KeepAspectRatio)
-            scale = max(view.transform().m11(), 1e-9)
-            for label, x, y in getattr(view, 'labels', []):
-                label.setScale(1/scale)
-                bounds = label.boundingRect()
-                label.setPos(x-bounds.width()/(2*scale), y-bounds.height()/(2*scale))
+            self._position_labels(view)
+
+    def _position_labels(self, view):
+        scale = max(view.transform().m11(), 1e-9)
+        for label, x, y, nx, ny in getattr(view, 'labels', []):
+            label.setScale(1/scale)
+            bounds = label.boundingRect()
+            offset_x = offset_y = 0.0
+            if nx is not None and ny is not None:
+                # Shift edge numbers inward so they sit inside their part.
+                shift = (abs(nx)*bounds.width()/2 + abs(ny)*bounds.height()/2 + 3.0)/scale
+                offset_x = nx*shift
+                offset_y = ny*shift
+            label.setPos(x+offset_x-bounds.width()/(2*scale),
+                         y+offset_y-bounds.height()/(2*scale))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -207,7 +246,7 @@ class GrainMatchingDialog(QtGui.QDialog):
             cx = (min(p[0] for p in points)+max(p[0] for p in points))/2
             cy = (min(p[1] for p in points)+max(p[1] for p in points))/2
             label = scene.addSimpleText(part['label'])
-            view.labels.append((label, cx, -cy))
+            view.labels.append((label, cx, -cy, None, None))
         view.outline_rect = outline
         for edge in numbered:
             if poses[edge['part']] is None:
@@ -216,16 +255,26 @@ class GrainMatchingDialog(QtGui.QDialog):
             # Put one label near the middle of each complete CAD boundary.
             lengths = [math.dist(a, b) for a, b in zip(path, path[1:])]
             remaining = sum(lengths)/2
-            anchor = edge['a']
+            anchor = edge['a']; tangent = None
             for a, b, length in zip(path, path[1:], lengths):
                 if remaining <= length and length > 0:
-                    anchor = [a[k]+(b[k]-a[k])*remaining/length for k in (0, 1)]; break
+                    f = remaining/length
+                    anchor = [a[k]+(b[k]-a[k])*f for k in (0, 1)]
+                    tangent = [b[0]-a[0], b[1]-a[1]]; break
                 remaining -= length
-            x, y = transform([anchor], poses[edge['part']])[0]
+            if tangent is None:
+                tangent = [path[-1][0]-path[0][0], path[-1][1]-path[0][1]]
+            # Interior lies left of a CCW boundary; rotate the inward normal with the pose.
+            dx, dy = tangent; length = math.hypot(dx, dy)
+            nx = -dy/length if length > 1e-7 else 0.0
+            ny = dx/length if length > 1e-7 else 0.0
+            pose = poses[edge['part']]
+            nx, ny = rotate([nx, ny], pose[2])
+            x, y = transform([anchor], pose)[0]
             label = scene.addSimpleText(str(edge['number']))
             label.setBrush(QtGui.QBrush(QtGui.QColor('#666666' if edge.get('curved') else '#ab2424')))
             font = label.font(); font.setBold(True); label.setFont(font)
-            view.labels.append((label, x, -y))
+            view.labels.append((label, x, -y, nx, -ny))
 
     def update_preview(self, *_):
         self.poses = None
