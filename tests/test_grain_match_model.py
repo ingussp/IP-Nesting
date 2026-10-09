@@ -91,6 +91,18 @@ class GrainModelTests(unittest.TestCase):
         raw = dict(placed=3, sheets=[])
         self.assertEqual(expand_result(raw, {}), raw)
 
+    def test_partial_components_and_named_cycle_error(self):
+        parts, _ = cabinet()
+        for i, p in enumerate(parts):
+            p['label'] = 'Front%d' % i
+        self.assertEqual(solve(parts, [[None, None]]*3, 12, partial=True), [None]*4)
+        partial = solve(parts, [[2, 8], [None, None], [None, None]], 12, partial=True)
+        self.assertTrue(all(p is not None for p in partial[:2]))
+        self.assertEqual(partial[2:], [None, None])
+        self.assertEqual(sum(p is not None for p in solve(parts, [[2, 8], [10, 16]], 12, partial=True)), 4)
+        with self.assertRaisesRegex(ValueError, 'Front2, Front3'):
+            solve(parts, [[2, 8], [6, 4], [None, None]], 12, partial=True)
+
 
 if __name__ == '__main__':
     unittest.main()

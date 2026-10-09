@@ -1,18 +1,23 @@
 Šeit atrodas tikai pēdējā strādājošā versija
 
-### Grain matching (continuous grain)
+### Texture matching (continuous texture)
 
-Select at least two part rows and click **Match grain**, below **Mark selected
-part holes**. The editor numbers the outline edges across all selected parts.
+Select at least two part rows and click **Match texture**, below **Mark selected
+part holes**. The editor numbers native CAD boundaries across all selected parts,
+not the line segments used to approximate curves for nesting. Each curved
+boundary has a single grey reference number; choose straight edges to join
+parts. Curved references are disabled in the edge selectors.
 For N parts, select N−1 pairs of edges to join. The live preview centres each
 pair of edges and separates them by the current part spacing, in millimetres.
-Connections must form one connected group without overlaps. Save the group;
+The group preview starts empty and shows connected parts after the first pair
+is selected. Cycles name the still-unconnected parts and retain the valid partial
+preview. Connections must form one connected group without overlaps. Save the group;
 select any member and click the button again to edit or remove its connections.
 
-![Grain-matching editor with a door and three drawers](docs/grain-matching-dialog.png)
+![Texture-matching editor with a door and three drawers](docs/grain-matching-dialog.png)
 
 The engine receives one ordinary rectangular perimeter enclosing the assembled
-parts. It receives no group, member or grain-matching data. Python retains the
+parts. It receives no group, member or texture-matching data. Python retains the
 relative poses and original shape snapshots in `nesting_session.json`, then
 expands every returned perimeter placement into separate original FreeCAD
 parts, including the perimeter's rotation. Keep the session alongside its
@@ -39,6 +44,9 @@ CLI. Set `CLINESTING_EXE` to test another executable, or `GRAIN_MATCH_SCREENSHOT
 to save a screenshot of the editor. It checks real table selection, group
 editing/removal, FCStd persistence, engine-only perimeter export, two rotated
 copies, 12 mm spacing, original 3D holes and continuous result updates.
+Curved-profile regressions also check native boundary numbering, partial previews,
+cycle diagnostics and saved boundary mappings. Legacy straight-edge links are
+migrated when the editor opens; links to curve fragments require reselection.
 
 **Import DXF** supports selecting multiple files with Ctrl/Shift or Ctrl+A.
 Each file becomes a separate part row with quantity 1 and the configured default

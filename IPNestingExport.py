@@ -525,7 +525,7 @@ def _polygons_same_2d(poly_a, poly_b, tolerance=1e-6):
 
 # Extract all candidate closed-wire polygons from a preview object, rotated into
 # on-screen orientation but not yet normalized/translated.
-def _extract_part_candidate_wires(obj, deflection=0.01):
+def _extract_part_candidate_wires(obj, deflection=0.01, native_wires=None):
     """Extract one planar profile, never projected side-wall wires.
 
     Shape already includes the object's Placement. Only flat profiles and
@@ -611,6 +611,7 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
                     except Exception:
                         continue
     candidates = []
+    original_wires = {}
     for wire in wires:
         if not wire.isClosed():
             raise ValueError("The part contains an open contour")
@@ -623,6 +624,7 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
             raise ValueError("The part contains a self-intersecting or empty contour")
         if not any(_polygons_same_2d(points, old) for old in candidates):
             candidates.append(points)
+            original_wires[id(points)] = wire
     if not candidates:
         raise ValueError("The part has no closed profile")
     candidates.sort(key=_polygon_area, reverse=True)
@@ -638,6 +640,8 @@ def _extract_part_candidate_wires(obj, deflection=0.01):
         if any(inner.common(other).Area > 1e-7 for other in inner_faces):
             raise ValueError("Overlapping or nested hole contours are unsupported")
         inner_faces.append(inner)
+    if native_wires is not None:
+        native_wires.extend(original_wires[id(points)] for points in candidates)
     return candidates
 
 

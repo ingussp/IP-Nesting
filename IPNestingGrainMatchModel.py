@@ -43,29 +43,67 @@ def edges(parts):
     result = []
     for i, part in enumerate(parts):
         points = polygon(part['points'])
-        for side, (a, b) in enumerate(zip(points, points[1:]+points[:1])):
-            result.append(dict(number=len(result)+1, part=i, side=side, a=a, b=b))
+        boundaries = part.get('matching_edges')
+        if boundaries is None:
+            boundaries = [dict(a=a, b=b) for a, b in zip(points, points[1:]+points[:1])]
+        for side, boundary in enumerate(boundaries):
+            result.append(dict(boundary, number=len(result)+1, part=i, side=side))
     return result
 
 
-def solve(parts, links, spacing):
+def solve(parts, links, spacing, partial=False):
     """Join edge midpoints, opposing their directions; links must form a tree."""
     spacing = float(spacing)
     if not math.isfinite(spacing) or spacing < 0:
         raise ValueError('Part spacing must be finite and nonnegative.')
-    if len(parts) < 2 or len(links) != len(parts)-1:
+    if len(parts) < 2 or (not partial and len(links) != len(parts)-1):
         raise ValueError('Use exactly one fewer connection than the number of parts.')
     numbered = {e['number']: e for e in edges(parts)}
-    graph = [[] for _ in parts]; used = set()
+    graph = [[] for _ in parts]; used = set(); roots = list(range(len(parts)))
+    def root(i):
+        while roots[i] != i:
+            i = roots[i]
+        return i
     for first, second in links:
+        if partial and (first is None or second is None):
+            continue
         if first not in numbered or second not in numbered:
             raise ValueError('Select both edges in every connection.')
         a, b = numbered[first], numbered[second]
+        if a.get('curved') or b.get('curved'):
+            raise ValueError('Choose straight edges for texture matching; curved boundaries are shown only as references.')
         if a['part'] == b['part'] or first in used or second in used:
             raise ValueError('Connect different parts; each edge can be used only once.')
+        if root(a['part']) == root(b['part']):
+            missing = [p.get('label', p.get('name', str(i+1))) for i, p in enumerate(parts) if not graph[i]]
+            raise ValueError('These connections create a cycle between already joined parts.' +
+                             (' Parts still unconnected: '+', '.join(missing)+'.' if missing else ''))
+        roots[root(b['part'])] = root(a['part'])
         used.update((first, second))
         graph[a['part']].append((a, b)); graph[b['part']].append((b, a))
-    poses = {0: [0., 0., 0.]}; pending = [0]
+    active = [i for i in range(len(parts)) if graph[i]]
+    if partial and not active:
+        return [None]*len(parts)
+    poses = {}; next_x = 0.
+    # Each connected component can be previewed before the whole tree is complete.
+    for start in active if partial else [0]:
+        if start in poses:
+            continue
+        component = _solve_component(graph, start, spacing)
+        shapes = [transform(parts[i]['points'], pose) for i, pose in component.items()]
+        xmin = min(x for poly in shapes for x, y in poly); ymin = min(y for poly in shapes for x, y in poly)
+        xmax = max(x for poly in shapes for x, y in poly)
+        for i, pose in component.items():
+            poses[i] = [pose[0]-xmin+next_x, pose[1]-ymin, pose[2]]
+        next_x += xmax-xmin+max(20, spacing*2)
+    if not partial and len(poses) != len(parts):
+        missing = [p.get('label', p.get('name', str(i+1))) for i, p in enumerate(parts) if i not in poses]
+        raise ValueError('Connect all parts. Still unconnected: '+', '.join(missing)+'.')
+    return [poses.get(i) for i in range(len(parts))]
+
+
+def _solve_component(graph, start, spacing):
+    poses = {start: [0., 0., 0.]}; pending = [start]
     while pending:
         parent = pending.pop(0)
         for a, b in graph[parent]:
@@ -80,11 +118,7 @@ def solve(parts, links, spacing):
             poses[child] = [(pa[0]+pb[0])/2 + spacing*dy/length-mid[0],
                             (pa[1]+pb[1])/2 - spacing*dx/length-mid[1], angle]
             pending.append(child)
-    if len(poses) != len(parts):
-        raise ValueError('Connections must join all parts into one group, without a cycle.')
-    shapes = [transform(p['points'], poses[i]) for i, p in enumerate(parts)]
-    xmin = min(x for poly in shapes for x, y in poly); ymin = min(y for poly in shapes for x, y in poly)
-    return [[poses[i][0]-xmin, poses[i][1]-ymin, poses[i][2]] for i in range(len(parts))]
+    return poses
 
 
 def allowed_angles(part):
@@ -106,19 +140,23 @@ def pack_groups(parts, definitions, spacing, validate):
     for number, definition in enumerate(definitions):
         names = definition['names']
         if len(names) != len(set(names)) or occupied.intersection(names):
-            raise ValueError('A part can belong to only one grain-matching group.')
+            raise ValueError('A part can belong to only one texture-matching group.')
         if any(name not in originals for name in names):
-            raise ValueError('A grain-matching part was removed. Edit or remove its matching group.')
+            raise ValueError('A texture-matching part was removed. Edit or remove its matching group.')
         members = [originals[name] for name in names]
         if [polygon(p['points']) for p in members] != definition['outlines']:
-            raise ValueError('Grain-matching geometry changed. Reopen and confirm the group.')
+            raise ValueError('Texture-matching geometry changed. Reopen and confirm the group.')
         if len({p['quantity'] for p in members}) != 1:
-            raise ValueError('All parts of a grain-matching group must have the same quantity.')
+            raise ValueError('All parts of a texture-matching group must have the same quantity.')
+        if 'matching_edges' in definition:
+            if len(definition['matching_edges']) != len(members):
+                raise ValueError('Texture matching boundaries changed. Reopen the group.')
+            members = [dict(p, matching_edges=boundary) for p, boundary in zip(members, definition['matching_edges'])]
         poses = solve(members, definition['links'], spacing)
         validate(members, poses, spacing)
         angles = group_angles(members, poses)
         if not angles:
-            raise ValueError('The selected edges conflict with the parts\' rotation/grain rules.')
+            raise ValueError('The selected edges conflict with the parts\' rotation/texture rules.')
         transformed = [transform(p['points'], pose) for p, pose in zip(members, poses)]
         width = max(x for poly in transformed for x, y in poly)
         height = max(y for poly in transformed for x, y in poly)
@@ -129,7 +167,7 @@ def pack_groups(parts, definitions, spacing, validate):
                      holes=[], quantity=members[0]['quantity'], allowedAngles=angles,
                      _ip_nesting=dict(job_id=members[0]['_ip_nesting']['job_id']))
         recipes.append(dict(id=proxy_id, members=records))
-        first = min(parts.index(p) for p in members)
+        first = min(i for i, p in enumerate(parts) if p['_ip_nesting']['preview_object_name'] in names)
         replacements[first] = proxy; removed.update(names); occupied.update(names)
     return ([replacements[i] if i in replacements else p for i, p in enumerate(parts)
              if i in replacements or p['_ip_nesting']['preview_object_name'] not in removed], recipes)
