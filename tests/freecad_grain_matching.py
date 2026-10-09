@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT))
 import IPNestingExport as E
 import IPNestingResult as R
 import IPNestingGrainMatch as G
-from IPNestingGrainMatchModel import solve
+from IPNestingGrainMatchModel import solve, edges, polygon, pack_groups
 from test_grain_match_model import cabinet
 
 APPLICATION = QtGui.QApplication.instance() or QtGui.QApplication([])
@@ -41,6 +41,7 @@ class GrainIntegrationTests(unittest.TestCase):
             part['label'] = ['Door', 'Drawer 1', 'Drawer 2', 'Drawer 3'][i]
         dialog = G.GrainMatchingDialog(parts, 12)
         self.assertFalse(dialog.save_button.isEnabled())
+        self.assertEqual(dialog.views[1].scene().items(), [])
         for pair, values in zip(dialog.pairs, definition['links']):
             for combo, value in zip(pair, values):
                 combo.setCurrentIndex(combo.findData(value))
@@ -88,7 +89,9 @@ class GrainIntegrationTests(unittest.TestCase):
              patch.object(QtGui.QMessageBox, 'warning', side_effect=lambda *a: errors.append(a[-1])):
             panel.match_grain_btn.click()
         self.assertFalse(errors)
-        self.assertEqual(G.read_groups(doc), [definition])
+        saved = G.read_groups(doc)[0]
+        self.assertEqual({key: saved[key] for key in definition}, definition)
+        self.assertEqual(len(saved['matching_edges']), 4)
         panel.table.clearSelection(); panel.table.selectRow(1)
         # Even if quantities no longer match, the user can remove the group.
         panel.table.blockSignals(True); panel.table.item(0, 1).setText('2'); panel.table.blockSignals(False)
@@ -101,6 +104,56 @@ class GrainIntegrationTests(unittest.TestCase):
             G.open_editor(panel)
         self.assertEqual(G.read_groups(doc), [])
         panel.form.close(); panel.form.deleteLater()
+
+    def test_curved_cad_boundaries_partial_preview_and_cycle(self):
+        doc = App.newDocument('Curved_Matching')
+        parts = []
+        for i in range(3):
+            obj = doc.addObject('Part::Feature', 'Curved%d' % i)
+            obj.Shape = Part.makeBox(434, 344, 18).cut(Part.makeCylinder(130, 18, App.Vector(217, 420, 0)))
+            native = []
+            candidates = E._extract_part_candidate_wires(obj, .01, native_wires=native)
+            points = E._extract_part_points(obj, candidates=candidates)
+            boundary = G.boundaries_from_wire(points, native[0], [0, 0])
+            self.assertGreater(len(points), 50)
+            self.assertEqual(len(boundary), 6)
+            self.assertEqual(sum(e['curved'] for e in boundary), 1)
+            parts.append(dict(points=points, matching_edges=boundary, label=obj.Name, quantity=1,
+                              id='part_%d' % i, rotations=4,
+                              _ip_nesting=dict(preview_object_name=obj.Name, source_part_index=i, job_id='curved')))
+        dialog = G.GrainMatchingDialog(parts, 12)
+        self.assertIn('texture', dialog.windowTitle().lower())
+        self.assertFalse(dialog.views[1].scene().items())
+        def choose(row, pair):
+            for combo, number in zip(dialog.pairs[row], pair):
+                combo.setCurrentIndex(combo.findData(number))
+        choose(0, [2, 10])
+        self.assertFalse(dialog.save_button.isEnabled())
+        self.assertIn('2 of 3', dialog.status.text())
+        self.assertEqual(sum(isinstance(x, QtGui.QGraphicsPolygonItem) for x in dialog.views[1].scene().items()), 2)
+        choose(1, [8, 4])  # Reconnect the same two parts; third is missing.
+        self.assertFalse(dialog.save_button.isEnabled())
+        self.assertIn('Curved2', dialog.status.text())
+        self.assertIn('cycle', dialog.status.text())
+        self.assertTrue(dialog.views[1].scene().items())
+        choose(1, [8, 16])
+        self.assertTrue(dialog.save_button.isEnabled(), dialog.status.text())
+        definition = dict(names=[p['label'] for p in parts], outlines=[polygon(p['points']) for p in parts],
+                          matching_edges=[p['matching_edges'] for p in parts], links=dialog.links())
+        # Export receives freshly extracted parts without the editor-only boundaries.
+        original = [{k: v for k, v in p.items() if k != 'matching_edges'} for p in parts]
+        packed, recipes = pack_groups(original, [definition], 12, G.validate_layout)
+        self.assertEqual(len(packed), 1)
+        self.assertEqual(len(recipes[0]['members']), 3)
+        self.assertNotIn('matching_edges', json.dumps(packed))
+        self.assertEqual(recipes[0]['members'][0]['points'], original[0]['points'])
+        # Legacy curve-fragment links require reselection instead of silent renumbering.
+        legacy = edges([dict(points=p['points']) for p in parts])
+        old_second_bottom = next(e['number'] for e in legacy if e['part']==1 and e['a'][1]==0 and e['b'][1]==0)
+        self.assertEqual(G.migrate_links(parts, [[2, old_second_bottom]]), [[2, 8]])
+        with self.assertRaisesRegex(ValueError, 'straight edges'):
+            solve(parts, [[2, 11], [8, 16]], 12)
+        dialog.close()
 
     def test_export_cli_and_import_repeated_rotated_fronts(self):
         parts, definition = cabinet(2)

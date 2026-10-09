@@ -1936,7 +1936,7 @@ class NestingTaskPanel:
            - row (table.rowCount()-4): Rotate controls
            - row (table.rowCount()-3): Change grain direction controls
            - row (table.rowCount()-2): Mark selected part holes
-           - row (table.rowCount()-1): Match grain
+           - row (table.rowCount()-1): Match texture
         """
         try:
             total_rows = self.table.rowCount()
