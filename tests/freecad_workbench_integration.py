@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 import FreeCAD as App
 import Part
 from PySide import QtCore, QtGui
+sys.path.insert(0, str(ROOT))  # FreeCAD prepends installed workbenches during import.
 import IPNestingExport as E
 import IPNestingResult as R
 from IPNestingRuntime import snapshot_part
@@ -145,6 +146,10 @@ class WorkbenchTests(unittest.TestCase):
         before = self.source.Shape.copy()
         import IPNestingGui as G
         panel = G.NestingTaskPanel()
+        # Do not inherit the user's potentially hours-long timed/continuous mode.
+        blocked = panel.mode_combo.blockSignals(True)
+        panel.mode_combo.setCurrentIndex(panel.mode_combo.findData('first'))
+        panel.mode_combo.blockSignals(blocked)
         panel.preview_doc_name = self.doc.Name
         panel.offcuts = [dict(type='rectangular', outer=[[0, 0], [100, 0], [100, 100], [0, 100]], quantity=1)]
         panel.table.insertRow(0)
