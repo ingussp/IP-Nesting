@@ -272,7 +272,7 @@ class NestingTaskPanel:
         self.grid_spacing = 250 
 
         # Number of control rows at bottom of table (rotate, grain, mark holes)
-        self.control_rows = 3
+        self.control_rows = 4
 
         self._suppress_selection_update = False
         self._suppress_qty_update = False
@@ -1931,21 +1931,21 @@ class NestingTaskPanel:
         """Wire per-row grain widgets - delegates to grain controller."""
         self._grain._connect_grain_widgets(grain_cb, grain_combo, preview_obj_name)
 
-    # Create three control rows at the bottom: - row (table.rowCount()-3): Rotate controls - row
-    # (table.rowCount()-2): Change grain direction controls - row (table.rowCount()-1): Mark holes
     def _create_control_rows(self):
-        """Create three control rows at the bottom:
-           - row (table.rowCount()-3): Rotate controls
-           - row (table.rowCount()-2): Change grain direction controls
-           - row (table.rowCount()-1): Mark selected part holes
+        """Create four control rows at the bottom:
+           - row (table.rowCount()-4): Rotate controls
+           - row (table.rowCount()-3): Change grain direction controls
+           - row (table.rowCount()-2): Mark selected part holes
+           - row (table.rowCount()-1): Match grain
         """
         try:
             total_rows = self.table.rowCount()
             # ensure we have exactly control_rows rows reserved at bottom; they are already created at init
             # Top control row index:
             top_idx = total_rows - self.control_rows
-            bottom_idx = total_rows - 2
-            mark_idx = total_rows - 1
+            bottom_idx = total_rows - 3
+            mark_idx = total_rows - 2
+            match_idx = total_rows - 1
 
             # --- Top control row: Rotate controls ---
             # Clean existing cell widgets/items in that row
@@ -2076,15 +2076,38 @@ class NestingTaskPanel:
             control_item3.setFlags(QtCore.Qt.NoItemFlags)
             self.table.setItem(mark_idx, 0, control_item3)
 
-            # Hide the row-number labels for the three control rows so the
+            # Hide the row-number labels for the control rows so the
             # button rows show no index in the leftmost header.
-            for row in (top_idx, bottom_idx, mark_idx):
+            from IPNestingGrainMatch import text as matching_text
+            matching_container = QtGui.QWidget()
+            matching_layout = QtGui.QHBoxLayout(matching_container)
+            matching_layout.setContentsMargins(5, 2, 5, 2)
+            matching_layout.addStretch()
+            self.match_grain_btn = QtGui.QPushButton(matching_text('title'))
+            self.match_grain_btn.setMinimumWidth(160)
+            self.match_grain_btn.clicked.connect(self._on_match_grain_clicked)
+            matching_layout.addWidget(self.match_grain_btn)
+            matching_layout.addStretch()
+            self.table.setCellWidget(match_idx, 0, matching_container)
+            self.table.setSpan(match_idx, 0, 1, self.table.columnCount())
+            matching_item = QtGui.QTableWidgetItem('')
+            matching_item.setFlags(QtCore.Qt.NoItemFlags)
+            self.table.setItem(match_idx, 0, matching_item)
+            for row in (top_idx, bottom_idx, mark_idx, match_idx):
                 vitem = ui_widget(QtGui.QTableWidgetItem, "")
                 vitem.setFlags(QtCore.Qt.NoItemFlags)
                 self.table.setVerticalHeaderItem(row, vitem)
 
         except Exception:
             App.Console.PrintError(tr('failed_to_create_control_rows') + traceback.format_exc())
+
+    def _on_match_grain_clicked(self):
+        from IPNestingGrainMatch import open_editor, text as matching_text
+        try:
+            open_editor(self)
+        except Exception as exc:
+            App.Console.PrintError(str(exc) + '\n')
+            QtGui.QMessageBox.warning(self.form, matching_text('title'), str(exc))
 
     # Open the Custom angle dialog only for rows where both Grain Direction and Custom angle are
     # enabled.

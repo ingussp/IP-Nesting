@@ -5,6 +5,7 @@ from types import SimpleNamespace as NS
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import FreeCAD as App, Part
 from PySide import QtCore
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import IPNestingExport as E
 import IPNestingOffcuts as O
 import IPNestingResult as R
@@ -131,11 +132,12 @@ class GeometryTests(unittest.TestCase):
         importer=R.NestingResultImporter(NS(preview_doc_name=self.doc.Name))
         self.assertTrue(importer.import_result(result,show_summary=False))
         previous=importer.result_doc.Name
-        groups=[o for o in importer.result_doc.Objects if o.TypeId=="App::Part"]
+        groups=[o for o in importer.result_doc.Objects if o.Name.startswith("SheetGroup_")]
         self.assertEqual(len(groups),2)
         self.assertGreater(groups[1].Placement.Base.x,groups[0].Placement.Base.x+10)
         self.assertTrue(importer.import_result(result,show_summary=False))
-        self.assertNotIn(previous,App.listDocuments())
+        self.assertEqual(importer.result_doc.Name, previous)
+        self.assertIn(previous,App.listDocuments())
         self.assertIn(existing.Name,App.listDocuments())
 
     def test_continuous_snapshot_keeps_polling_until_exit(self):

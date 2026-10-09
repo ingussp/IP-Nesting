@@ -1782,6 +1782,15 @@ def export_nesting_steps(panel):
                 pass
             return False
 
+        from IPNestingGrainMatch import read_groups, validate_layout
+        from IPNestingGrainMatchModel import pack_groups
+        grain_groups = read_groups(p_doc)
+        try:
+            engine_parts, grain_recipes = pack_groups(parts, grain_groups, spacing, validate_layout)
+        except ValueError as exc:
+            QtGui.QMessageBox.warning(panel.form, tr('cannot_start_nesting'), str(exc))
+            return False
+
         payload = {
             "units": "mm",
             "schema_version": 1,
@@ -1799,7 +1808,7 @@ def export_nesting_steps(panel):
             },
             "config": config,
             "sheets": sheets,
-            "parts": parts,
+            "parts": engine_parts,
             "output": {
                 "json": "result.json",
                 "cancelFile": ".clinesting-cancel-" + job_id
@@ -1821,6 +1830,8 @@ def export_nesting_steps(panel):
         )
 
         session_payload = {
+            "grain_matching_proxies": grain_recipes,
+            "grain_matching_groups": grain_groups,
             "schema_version": 1,
             "job_id": job_id,
             "created_at": created_at,

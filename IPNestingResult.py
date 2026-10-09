@@ -49,8 +49,8 @@ except Exception:
 
 def _normalize_result(data, session):
     """Adapt CLI sheets[].parts[] while retaining legacy result support."""
-    import copy
-    result = copy.deepcopy(data)
+    from IPNestingGrainMatchModel import expand_result
+    result = expand_result(data, session)
     if "placements" in result:
         return result
     if not isinstance(result.get("sheets"), list):
@@ -345,6 +345,9 @@ class NestingResultImporter(object):
         session_data=None,
         show_summary=True
     ):
+        previous_state = self.__dict__.copy()
+        transaction_doc = None
+        created_doc = None
         try:
             if not isinstance(
                 result_data,
@@ -383,12 +386,26 @@ class NestingResultImporter(object):
             if self.result_doc is None:
                 return False
 
+            if self.result_doc is not previous_doc:
+                created_doc = self.result_doc
+            # Keep the MDI view alive throughout continuous updates. A
+            # transaction preserves the last complete layout if import fails.
+            self.result_doc.UndoMode = 1
+            self.result_doc.openTransaction("Update nesting result")
+            transaction_doc = self.result_doc
+            App.setActiveDocument(self.result_doc.Name)
+            if created_doc is None:
+                try:
+                    Gui.Selection.clearSelection(self.result_doc.Name)
+                except (AttributeError, RuntimeError):
+                    pass
+                for name in reversed([obj.Name for obj in self.result_doc.Objects]):
+                    self.result_doc.removeObject(name)
+
             sheet_count = self._import_sheets()
             imported_count = self._import_placements()
             expected = sum(1 for p in self.result_data.get("placements", []) if p.get("placed", True))
             if sheet_count != len(self.result_data.get("sheets", [])) or imported_count != expected:
-                App.closeDocument(self.result_doc.Name)
-                self.result_doc = previous_doc
                 raise ValueError("Result import was incomplete; previous result preserved")
 
             try:
@@ -399,8 +416,12 @@ class NestingResultImporter(object):
             self._create_result_info()
             self._create_unplaced_group()
 
-            if previous_doc is not None and previous_doc.Name in App.listDocuments():
-                App.closeDocument(previous_doc.Name)
+            self.result_doc.recompute()
+            transaction_doc.commitTransaction()
+            transaction_doc = None
+            # This generated document is replaced wholesale; retaining every
+            # previous BREP in its undo stack would grow memory without bound.
+            self.result_doc.clearUndos()
             self._show_result_view()
             if show_summary:
                 self._show_result_summary()
@@ -408,6 +429,12 @@ class NestingResultImporter(object):
             return True
 
         except Exception:
+            if transaction_doc is not None:
+                transaction_doc.abortTransaction()
+            if created_doc is not None:
+                App.closeDocument(created_doc.Name)
+            self.__dict__.clear()
+            self.__dict__.update(previous_state)
             App.Console.PrintError(
                 tr('nestingresultimporter_import_result_failed')
                 + traceback.format_exc()
@@ -626,9 +653,15 @@ class NestingResultImporter(object):
     # Result document
     # ------------------------------------------------------------------
 
-    # Close any existing Nesting_Result document and create a replacement.
+    # Reuse only this importer's document; unrelated user documents are intact.
     def _create_result_document(self):
         try:
+            if self.result_doc is not None:
+                try:
+                    if App.getDocument(self.result_doc.Name) is self.result_doc:
+                        return self.result_doc
+                except (NameError, ReferenceError, RuntimeError):
+                    pass  # The user closed the previous result.
             return App.newDocument(
                 "Nesting_Result"
             )
@@ -1810,6 +1843,17 @@ class NestingProcessManager(object):
             return ""
 
     def _check_result(self):
+        # Native GUI calls may dispatch queued events during an import.
+        # Never let a nested timeout replace geometry still being constructed.
+        if getattr(self, "_checking_result", False):
+            return
+        self._checking_result = True
+        try:
+            self._check_result_once()
+        finally:
+            self._checking_result = False
+
+    def _check_result_once(self):
         try:
             if self._finished:
                 return
