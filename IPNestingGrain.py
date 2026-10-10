@@ -274,6 +274,7 @@ class GrainPreparer:
         subset_names=None,
         custom_label="Parts without texture direction",
         line_color=None,
+        matched=False,
     ):
         """
         Draws a perimeter around objects + label.
@@ -283,6 +284,9 @@ class GrainPreparer:
         line_color:
           - None -> default red for "without grain" and blue for "with grain"
           - tuple (r,g,b) in [0..1]
+
+        matched:
+          - True -> green perimeter for texture-matched groups
         """
         try:
             if preview_doc_name not in App.listDocuments():
@@ -291,13 +295,20 @@ class GrainPreparer:
             if p_doc is None:
                 return
 
-            # Suffix determines unique names for this specific group (Main vs Grain)
+            # Suffix determines unique names for this specific group (Main vs Grain vs Matched)
             suffix = "Main"
-            if "with texture" in custom_label:
+            if matched:
+                suffix = "Matched"
+            elif "with texture" in custom_label:
                 suffix = "Grain"
 
             # Keep group identity in canonical names; only presentation is translated.
-            display_label = tr("perimeter.with_grain" if suffix == "Grain" else "perimeter.without_grain")
+            if matched:
+                display_label = tr("perimeter.matched")
+            elif suffix == "Grain":
+                display_label = tr("perimeter.with_grain")
+            else:
+                display_label = tr("perimeter.without_grain")
 
             feat_name_poly = "GrainPerimeter_" + suffix
             feat_name_label = "GrainPerimeterLabel_" + suffix
@@ -307,6 +318,9 @@ class GrainPreparer:
                 if suffix == "Grain":
                     # (4) Grain perimeter should be blue
                     line_color = (0.0, 0.0, 1.0)
+                elif suffix == "Matched":
+                    # Texture-matched groups are drawn green.
+                    line_color = (0.0, 0.7, 0.0)
                 else:
                     line_color = (1.0, 0.0, 0.0)
 

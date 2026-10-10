@@ -1599,6 +1599,8 @@ def export_nesting_steps(panel):
         parts = []
         snapshots = {}
 
+        from IPNestingGrainMatch import GROUP_ROW_KIND, ROW_KIND_ROLE
+
         data_rows = max(
             0,
             panel.table.rowCount()
@@ -1625,6 +1627,10 @@ def export_nesting_steps(panel):
 
                 if not name_item:
                     raise ValueError("Missing part name")
+
+                # The texture-matched summary row has no geometry; skip it.
+                if name_item.data(ROW_KIND_ROLE) == GROUP_ROW_KIND:
+                    continue
 
                 try:
                     quantity = int(str(qty_item.text()).strip())

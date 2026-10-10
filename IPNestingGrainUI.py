@@ -35,6 +35,11 @@ class GrainUIController:
             item = self.panel.table.item(row, 0)
             if item is None:
                 continue
+            try:
+                if item.data(QtCore.Qt.UserRole + 2) in ('texture_group', 'texture_member'):
+                    continue
+            except Exception:
+                pass
             names = item.data(QtCore.Qt.UserRole + 1)
             if isinstance(names, str):
                 try:
@@ -171,6 +176,54 @@ class GrainUIController:
         grain_combo.currentIndexChanged.connect(partial(self._on_grain_axis_changed,
                                                        preview_obj_name, grain_cb, grain_combo))
 
+    def _connect_group_grain_widgets(self, group_names, grain_cb, grain_combo):
+        grain_cb.stateChanged.connect(partial(self._on_group_grain_checkbox_state_changed,
+                                             group_names, grain_cb, grain_combo))
+        grain_combo.currentIndexChanged.connect(partial(self._on_group_grain_axis_changed,
+                                                       group_names, grain_cb, grain_combo))
+
+    def _on_group_grain_checkbox_state_changed(self, group_names, grain_cb, grain_combo, state):
+        """Treat a matched group as one grain part: move it and draw its arrow."""
+        try:
+            if GrainPreparer is None or self.panel.preview_doc_name not in App.listDocuments():
+                return
+            doc = App.getDocument(self.panel.preview_doc_name)
+            checked = grain_cb.isChecked()
+            axis = grain_combo.currentText() if grain_combo else 'X'
+            self._set_group_grain(doc, group_names, axis if checked else None)
+            if not checked:
+                for name in group_names:
+                    GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, name)
+            doc.recompute()
+            self._apply_live_layout()
+        except Exception:
+            App.Console.PrintError(tr('grain_checkbox_callback_failed') + traceback.format_exc())
+
+    def _on_group_grain_axis_changed(self, group_names, grain_cb, grain_combo, index):
+        """Apply an axis change to a checked matched group immediately."""
+        try:
+            if not grain_cb.isChecked() or self.panel.preview_doc_name not in App.listDocuments():
+                return
+            doc = App.getDocument(self.panel.preview_doc_name)
+            self._set_group_grain(doc, group_names, grain_combo.currentText() if grain_combo else 'X')
+            self._apply_live_layout()
+        except Exception:
+            App.Console.PrintError(tr('grain_axis_callback_failed') + traceback.format_exc())
+
+    def _set_group_grain(self, doc, group_names, axis):
+        """Store (or clear) the group's texture axis in its saved definition."""
+        from IPNestingGrainMatch import read_groups, write_groups
+        groups = read_groups(doc)
+        target = set(group_names)
+        for group in groups:
+            if set(group.get('names', [])) == target:
+                if axis in ('X', 'Y'):
+                    group['grain'] = axis
+                else:
+                    group.pop('grain', None)
+                write_groups(doc, groups)
+                return
+
     def _on_bulk_grain_changed(self, index):
         """Apply the axis to all checked rows, then rebuild the preview only once."""
         try:
@@ -224,6 +277,13 @@ class GrainUIController:
             return
 
         try:
+            from IPNestingGrainMatch import (
+                GROUP_ROW_KIND, MEMBER_ROW_KIND, ROW_KIND_ROLE, GROUP_NAMES_ROLE,
+            )
+        except Exception:
+            GROUP_ROW_KIND = MEMBER_ROW_KIND = ROW_KIND_ROLE = GROUP_NAMES_ROLE = None
+
+        try:
             p_doc = App.getDocument(self.panel.preview_doc_name) if self.panel.preview_doc_name in App.listDocuments() else None
             if not p_doc:
                 return
@@ -232,11 +292,56 @@ class GrainUIController:
 
             standard_parts = []
             grain_parts = []
+            matched_parts = []
+            group_grain_names = set()
             grain_axis_by_name = {}
 
             for r in range(data_rows):
                 name_item = self.panel.table.item(r, 0)
                 if not name_item:
+                    continue
+
+                kind = name_item.data(ROW_KIND_ROLE) if ROW_KIND_ROLE is not None else None
+
+                # Texture-matched members are nested as one rigid unit and are
+                # handled through their summary row below.
+                if kind == MEMBER_ROW_KIND:
+                    continue
+
+                if kind == GROUP_ROW_KIND:
+                    # A matched group is one part. Its grain checkbox decides
+                    # whether it sits in the green (matched) or blue (grain) box.
+                    group_names = name_item.data(GROUP_NAMES_ROLE)
+                    if isinstance(group_names, str):
+                        try:
+                            group_names = json.loads(group_names)
+                        except Exception:
+                            group_names = []
+                    if not isinstance(group_names, (list, tuple)):
+                        group_names = []
+                    if not group_names:
+                        continue
+
+                    is_grain = False
+                    axis = "X"
+                    try:
+                        grain_widget = self.panel.table.cellWidget(r, 4)
+                        if grain_widget:
+                            cb = grain_widget.findChild(QtGui.QCheckBox)
+                            is_grain = bool(cb and cb.isChecked())
+                            combo = grain_widget.findChild(QtGui.QComboBox)
+                            if combo:
+                                axis = combo.currentText() or "X"
+                    except Exception:
+                        axis = "X"
+
+                    if is_grain:
+                        for nm in group_names:
+                            grain_axis_by_name[nm] = axis
+                        grain_parts.extend(group_names)
+                        group_grain_names.update(group_names)
+                    else:
+                        matched_parts.extend(group_names)
                     continue
 
                 # Get names
@@ -361,6 +466,8 @@ class GrainUIController:
             # NEW STEP: rotate all grain parts so their grain direction becomes parallel to +X
             try:
                 for nm in grain_parts:
+                    if nm in group_grain_names:
+                        continue
                     try:
                         obj = p_doc.getObject(nm)
                         if not obj:
@@ -503,58 +610,54 @@ class GrainUIController:
             except Exception:
                 pass
             
-            # 1) Pack grain parts to temporary location y=0 (stable bbox)
+            # 1) Pack grain and matched parts to a temporary stable location first.
             if grain_parts:
                 try:
                     GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, grain_parts, target_x=0.0, target_y=0.0)
                 except TypeError:
                     GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, grain_parts)
-
-            # 2) Compute red bottom (standard min_y)
-            red_found, _, red_min_y, _, _ = _bbox_for_names(standard_parts)
-
-            # 3) Compute blue bbox after packing
-            blue_found, _, blue_min_y, _, blue_max_y = _bbox_for_names(grain_parts)
-
-            # 4) Apply non-overlapping rule using actual perimeter margins
-            if grain_parts and red_found and blue_found:
-                blue_h = max(1e-6, float(blue_max_y - blue_min_y))
-
-                red_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=standard_parts)
-                blue_info = GrainPreparer.get_subset_bbox_and_margin(self.panel.preview_doc_name, subset_names=grain_parts)
-
-                red_margin = float(red_info[6]) if red_info and red_info[0] else 0.0
-                blue_margin = float(blue_info[6]) if blue_info and blue_info[0] else 0.0
-
-                # Optional: make bbox values consistent with perimeter bbox collector
+            if matched_parts:
                 try:
-                    if red_info and red_info[0]:
-                        red_min_y = float(red_info[2])
-                except Exception:
-                    pass
-                try:
-                    if blue_info and blue_info[0]:
-                        blue_min_y = float(blue_info[2])
-                        blue_max_y = float(blue_info[4])
-                        blue_h = max(1e-6, float(blue_max_y - blue_min_y))
-                except Exception:
-                    pass
+                    GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, matched_parts, target_x=0.0, target_y=0.0)
+                except TypeError:
+                    GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, matched_parts)
 
-                # Fit the lower group's caption between borders without a fixed world-unit minimum.
-                gap = GrainPreparer._compute_group_gap(
-                    self.panel.preview_doc_name, p_doc, blue_info
-                ) if blue_info and blue_info[0] else 0.30 * blue_h
+            # 2) Stack the groups vertically using actual perimeter margins: green
+            # (matched) sits below red (standard), and blue (grain) below that.
+            def _stack_lower_below_upper(upper_parts, lower_parts):
+                if not lower_parts:
+                    return
+                upper_found, _, upper_min_y, _, _ = _bbox_for_names(upper_parts)
+                lower_found, _, lower_min_y, _, lower_max_y = _bbox_for_names(lower_parts)
+                if not upper_found or not lower_found:
+                    return
+                upper_info = GrainPreparer.get_subset_bbox_and_margin(
+                    self.panel.preview_doc_name, subset_names=upper_parts)
+                lower_info = GrainPreparer.get_subset_bbox_and_margin(
+                    self.panel.preview_doc_name, subset_names=lower_parts)
+                upper_margin = float(upper_info[6]) if upper_info and upper_info[0] else 0.0
+                lower_margin = float(lower_info[6]) if lower_info and lower_info[0] else 0.0
+                if upper_info and upper_info[0]:
+                    upper_min_y = float(upper_info[2])
+                if lower_info and lower_info[0]:
+                    lower_min_y = float(lower_info[2])
+                    lower_max_y = float(lower_info[4])
+                lower_h = max(1e-6, float(lower_max_y - lower_min_y))
+                gap = (GrainPreparer._compute_group_gap(self.panel.preview_doc_name, p_doc, lower_info)
+                       if lower_info and lower_info[0] else 0.30 * lower_h)
+                desired_lower_max_y = float(upper_min_y) - upper_margin - float(gap) - lower_margin
+                dy = desired_lower_max_y - float(lower_max_y)
+                _shift_names_y(lower_parts, dy)
 
-                # Want: (blue_max_y + blue_margin) <= (red_min_y - red_margin) - gap
-                desired_blue_max_y = float(red_min_y) - float(red_margin) - float(gap) - float(blue_margin)
-                dy = desired_blue_max_y - float(blue_max_y)
+            _stack_lower_below_upper(standard_parts, matched_parts)
+            _stack_lower_below_upper(matched_parts if matched_parts else standard_parts, grain_parts)
 
-                _shift_names_y(grain_parts, dy)
-                
             # --- NEW: auto-rotate grain parts to X if GrainAngleDeg not 0/180 ---
             try:
                 # Only rotate checked grain parts; apply once after moving
                 for nm in grain_parts:
+                    if nm in group_grain_names:
+                        continue
                     try:
                         obj = p_doc.getObject(nm)
                         if not obj:
@@ -604,7 +707,15 @@ class GrainUIController:
                 custom_label="Parts without texture direction"
             )
 
-            # 6) Draw Grain Perimeter (blue handled in IPNestingGrain.py)
+            # 6) Draw Matched Perimeter (green)
+            GrainPreparer.draw_perimeter_and_label(
+                self.panel.preview_doc_name,
+                subset_names=matched_parts,
+                custom_label="Texture matched parts",
+                matched=True
+            )
+
+            # 7) Draw Grain Perimeter (blue handled in IPNestingGrain.py)
             if grain_parts:
                 GrainPreparer.draw_perimeter_and_label(
                     self.panel.preview_doc_name,
@@ -617,13 +728,12 @@ class GrainUIController:
                     subset_names=[],
                     custom_label="Parts with texture direction"
                 )
-                
-            # 7) Redraw grain arrows after the parts have been moved.
+
+            # 8) Redraw grain arrows after the parts have been moved.
             #
-            # All grain parts were normalized above so that their grain direction
-            # is parallel to the global X axis. Therefore the final displayed arrow
-            # must always be horizontal, regardless of whether the user originally
-            # selected X, Y, or Custom angle.
+            # Normal grain parts were normalized above so their grain direction is
+            # parallel to the global X axis. Matched groups are not rotated, so their
+            # arrow follows the user's selected X/Y axis.
             try:
                 if grain_parts:
                     for nm in grain_parts:
@@ -632,7 +742,7 @@ class GrainUIController:
                                 self.panel.preview_doc_name,
                                 nm,
                                 enable=True,
-                                axis="X"
+                                axis=grain_axis_by_name.get(nm, "X")
                             )
 
                         except Exception:

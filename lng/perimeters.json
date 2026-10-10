@@ -3,301 +3,351 @@
     "perimeter.with_grain": "Parts with texture direction",
     "perimeter.without_grain": "Parts without texture direction",
     "perimeter.border": "%s Border",
-    "perimeter.label": "%s Label"
+    "perimeter.label": "%s Label",
+    "perimeter.matched": "Texture matched parts"
   },
   "lv": {
     "perimeter.border": "%s Perimetrs",
     "perimeter.label": "%s Uzraksts",
     "perimeter.with_grain": "Detaļas ar tekstūras virzienu",
-    "perimeter.without_grain": "Detaļas bez tekstūras virziena"
+    "perimeter.without_grain": "Detaļas bez tekstūras virziena",
+    "perimeter.matched": "Ar tekstūru saskaņotās detaļas"
   },
   "ja": {
     "perimeter.with_grain": "テクスチャ方向ありの部品",
     "perimeter.without_grain": "テクスチャ方向なしの部品",
     "perimeter.border": "%s 境界",
-    "perimeter.label": "%s ラベル"
+    "perimeter.label": "%s ラベル",
+    "perimeter.matched": "テクスチャ一致パーツ"
   },
   "th": {
     "perimeter.with_grain": "ชิ้นงานที่มีทิศทางพื้นผิว",
     "perimeter.without_grain": "ชิ้นงานที่ไม่มีทิศทางพื้นผิว",
     "perimeter.border": "ขอบเขต %s",
-    "perimeter.label": "ป้ายกำกับ %s"
+    "perimeter.label": "ป้ายกำกับ %s",
+    "perimeter.matched": "ชิ้นส่วนที่พื้นผิวตรงกัน"
   },
   "ar": {
     "perimeter.with_grain": "أجزاء ذات اتجاه النسيج",
     "perimeter.without_grain": "أجزاء بدون اتجاه النسيج",
     "perimeter.border": "محيط %s",
-    "perimeter.label": "تسمية %s"
+    "perimeter.label": "تسمية %s",
+    "perimeter.matched": "أجزاء مطابقة للنسيج"
   },
   "az": {
     "perimeter.with_grain": "Tekstura istiqamətli hissələr",
     "perimeter.without_grain": "Tekstura istiqamətsiz hissələr",
     "perimeter.border": "%s Kontur",
-    "perimeter.label": "%s Yazı"
+    "perimeter.label": "%s Yazı",
+    "perimeter.matched": "Teksturası uyğunlaşdırılmış hissələr"
   },
   "bn": {
     "perimeter.with_grain": "টেক্সচার দিকসহ অংশ",
     "perimeter.without_grain": "টেক্সচার দিক ছাড়া অংশ",
     "perimeter.border": "%s বহিরেখা",
-    "perimeter.label": "%s লেবেল"
+    "perimeter.label": "%s লেবেল",
+    "perimeter.matched": "টেক্সচার মিলানো অংশ"
   },
   "bg": {
     "perimeter.with_grain": "Части с посока на текстурата",
     "perimeter.without_grain": "Части без посока на текстурата",
     "perimeter.border": "%s Контур",
-    "perimeter.label": "%s Надпис"
+    "perimeter.label": "%s Надпис",
+    "perimeter.matched": "Части със съвпадаща текстура"
   },
   "hr": {
     "perimeter.with_grain": "Dijelovi sa smjerom teksture",
     "perimeter.without_grain": "Dijelovi bez smjera teksture",
     "perimeter.border": "%s Obris",
-    "perimeter.label": "%s Oznaka"
+    "perimeter.label": "%s Oznaka",
+    "perimeter.matched": "Dijelovi s podudarnom teksturom"
   },
   "cs": {
     "perimeter.with_grain": "Části se směrem textury",
     "perimeter.without_grain": "Části bez směru textury",
     "perimeter.border": "%s Obrys",
-    "perimeter.label": "%s Popisek"
+    "perimeter.label": "%s Popisek",
+    "perimeter.matched": "Díly se sladěnou texturou"
   },
   "da": {
     "perimeter.with_grain": "Stykker med teksturretning",
     "perimeter.without_grain": "Stykker uden teksturretning",
     "perimeter.border": "%s Omrids",
-    "perimeter.label": "%s Etiket"
+    "perimeter.label": "%s Etiket",
+    "perimeter.matched": "Dele med matchende tekstur"
   },
   "et": {
     "perimeter.with_grain": "Detailid tekstuuri suunaga",
     "perimeter.without_grain": "Detailid tekstuuri suunata",
     "perimeter.border": "%s Piirjoon",
-    "perimeter.label": "%s Silt"
+    "perimeter.label": "%s Silt",
+    "perimeter.matched": "Sobiva tekstuuriga osad"
   },
   "fil": {
     "perimeter.with_grain": "Mga bahagi na may direksyon ng tekstura",
     "perimeter.without_grain": "Mga bahagi na walang direksyon ng tekstura",
     "perimeter.border": "%s Balangkas",
-    "perimeter.label": "%s Etiketa"
+    "perimeter.label": "%s Etiketa",
+    "perimeter.matched": "Mga bahaging tumutugma ang tekstura"
   },
   "fi": {
     "perimeter.with_grain": "Osat tekstuurin suunnalla",
     "perimeter.without_grain": "Osat ilman tekstuurin suuntaa",
     "perimeter.border": "%s Ääriviiva",
-    "perimeter.label": "%s Tunniste"
+    "perimeter.label": "%s Tunniste",
+    "perimeter.matched": "Kappaleet, joilla vastaava tekstuuri"
   },
   "el": {
     "perimeter.with_grain": "Μέρη με κατεύθυνση υφής",
     "perimeter.without_grain": "Μέρη χωρίς κατεύθυνση υφής",
     "perimeter.border": "%s Περίγραμμα",
-    "perimeter.label": "%s Ετικέτα"
+    "perimeter.label": "%s Ετικέτα",
+    "perimeter.matched": "Μέρη με ταιριαστή υφή"
   },
   "he": {
     "perimeter.with_grain": "חלקים עם כיוון מרקם",
     "perimeter.without_grain": "חלקים ללא כיוון מרקם",
     "perimeter.border": "%s קו מתאר",
-    "perimeter.label": "%s תווית"
+    "perimeter.label": "%s תווית",
+    "perimeter.matched": "חלקים עם מרקם תואם"
   },
   "hi": {
     "perimeter.with_grain": "बनावट दिशा वाले भाग",
     "perimeter.without_grain": "बनावट दिशा रहित भाग",
     "perimeter.border": "%s बाहरी रेखा",
-    "perimeter.label": "%s लेबल"
+    "perimeter.label": "%s लेबल",
+    "perimeter.matched": "बनावट मिलान वाले भाग"
   },
   "hu": {
     "perimeter.with_grain": "Textúra irányú alkatrészek",
     "perimeter.without_grain": "Textúra irány nélküli alkatrészek",
     "perimeter.border": "%s Körvonal",
-    "perimeter.label": "%s Felirat"
+    "perimeter.label": "%s Felirat",
+    "perimeter.matched": "Illeszkedő textúrájú alkatrészek"
   },
   "ga": {
     "perimeter.with_grain": "Páirteanna le treo uigeachta",
     "perimeter.without_grain": "Páirteanna gan treo uigeachta",
     "perimeter.border": "%s Imlíne",
-    "perimeter.label": "%s Lipéad"
+    "perimeter.label": "%s Lipéad",
+    "perimeter.matched": "Codanna le huigeacht chomhoiriúnaithe"
   },
   "kk": {
     "perimeter.with_grain": "Текстура бағыты бар бөлшектер",
     "perimeter.without_grain": "Текстура бағыты жоқ бөлшектер",
     "perimeter.border": "%s Контур",
-    "perimeter.label": "%s Жазу"
+    "perimeter.label": "%s Жазу",
+    "perimeter.matched": "Текстурасы сәйкес бөлшектер"
   },
   "km": {
     "perimeter.with_grain": "ផ្នែកដែលមានទិសវាយនភាព",
     "perimeter.without_grain": "ផ្នែកដែលគ្មានទិសវាយនភាព",
     "perimeter.border": "%s គ្រោង",
-    "perimeter.label": "%s ស្លាក"
+    "perimeter.label": "%s ស្លាក",
+    "perimeter.matched": "ផ្នែកដែលផ្គូផ្គងវាយនភាព"
   },
   "ko": {
     "perimeter.with_grain": "질감 방향이 있는 부품",
     "perimeter.without_grain": "질감 방향이 없는 부품",
     "perimeter.border": "%s 외곽선",
-    "perimeter.label": "%s 레이블"
+    "perimeter.label": "%s 레이블",
+    "perimeter.matched": "질감 일치 부품"
   },
   "lt": {
     "perimeter.with_grain": "Dalys su tekstūros kryptimi",
     "perimeter.without_grain": "Dalys be tekstūros krypties",
     "perimeter.border": "%s Kontūras",
-    "perimeter.label": "%s Užrašas"
+    "perimeter.label": "%s Užrašas",
+    "perimeter.matched": "Dalys su suderinta tekstūra"
   },
   "ms": {
     "perimeter.with_grain": "Bahagian dengan arah tekstur",
     "perimeter.without_grain": "Bahagian tanpa arah tekstur",
     "perimeter.border": "%s Garis luar",
-    "perimeter.label": "%s Label"
+    "perimeter.label": "%s Label",
+    "perimeter.matched": "Bahagian dengan tekstur padan"
   },
   "mt": {
     "perimeter.with_grain": "Partijiet b'direzzjoni tan-nisġa",
     "perimeter.without_grain": "Partijiet mingħajr direzzjoni tan-nisġa",
     "perimeter.border": "%s Kontorn",
-    "perimeter.label": "%s Tikketta"
+    "perimeter.label": "%s Tikketta",
+    "perimeter.matched": "Partijiet b'tessut imqabbel"
   },
   "my": {
     "perimeter.with_grain": "အသွင်အပြင် ဦးတည်ချက်ရှိသော အပိုင်းများ",
     "perimeter.without_grain": "အသွင်အပြင် ဦးတည်ချက်မရှိသော အပိုင်းများ",
     "perimeter.border": "%s အနားသတ်မျဉ်း",
-    "perimeter.label": "%s အညွှန်း"
+    "perimeter.label": "%s အညွှန်း",
+    "perimeter.matched": "အသွင်အပြင်ကိုက်ညီသော အပိုင်းများ"
   },
   "ne": {
     "perimeter.with_grain": "बनावट दिशा भएका भागहरू",
     "perimeter.without_grain": "बनावट दिशा नभएका भागहरू",
     "perimeter.border": "%s बाहिरी रेखा",
-    "perimeter.label": "%s लेबल"
+    "perimeter.label": "%s लेबल",
+    "perimeter.matched": "बनावट मिलान भएका भागहरू"
   },
   "ps": {
     "perimeter.with_grain": "د بافت لوري لرونکي برخې",
     "perimeter.without_grain": "د بافت لوري پرته برخې",
     "perimeter.border": "%s بهرنۍ کرښه",
-    "perimeter.label": "%s نښه"
+    "perimeter.label": "%s نښه",
+    "perimeter.matched": "د بافت سره سمون لرونکې برخې"
   },
   "fa": {
     "perimeter.with_grain": "قطعات دارای جهت بافت",
     "perimeter.without_grain": "قطعات بدون جهت بافت",
     "perimeter.border": "%s خط پیرامونی",
-    "perimeter.label": "%s برچسب"
+    "perimeter.label": "%s برچسب",
+    "perimeter.matched": "قطعات با بافت همسان"
   },
   "pl": {
     "perimeter.with_grain": "Części z kierunkiem tekstury",
     "perimeter.without_grain": "Części bez kierunku tekstury",
     "perimeter.border": "%s Obrys",
-    "perimeter.label": "%s Etykieta"
+    "perimeter.label": "%s Etykieta",
+    "perimeter.matched": "Części z dopasowaną teksturą"
   },
   "pt": {
     "perimeter.with_grain": "Peças com direção da textura",
     "perimeter.without_grain": "Peças sem direção da textura",
     "perimeter.border": "%s Contorno",
-    "perimeter.label": "%s Etiqueta"
+    "perimeter.label": "%s Etiqueta",
+    "perimeter.matched": "Peças com textura correspondente"
   },
   "ru": {
     "perimeter.with_grain": "Детали с направлением текстуры",
     "perimeter.without_grain": "Детали без направления текстуры",
     "perimeter.border": "%s Контур",
-    "perimeter.label": "%s Надпись"
+    "perimeter.label": "%s Надпись",
+    "perimeter.matched": "Детали с совпадающей текстурой"
   },
   "si": {
     "perimeter.with_grain": "වයනය දිශාව සහිත කොටස්",
     "perimeter.without_grain": "වයනය දිශාව නැති කොටස්",
     "perimeter.border": "%s පිටත දළ සටහන",
-    "perimeter.label": "%s ලේබලය"
+    "perimeter.label": "%s ලේබලය",
+    "perimeter.matched": "වයනය ගැළපෙන කොටස්"
   },
   "sk": {
     "perimeter.with_grain": "Časti so smerom textúry",
     "perimeter.without_grain": "Časti bez smeru textúry",
     "perimeter.border": "%s Obrys",
-    "perimeter.label": "%s Popis"
+    "perimeter.label": "%s Popis",
+    "perimeter.matched": "Diely so zladenou textúrou"
   },
   "sl": {
     "perimeter.with_grain": "Deli s smerjo teksture",
     "perimeter.without_grain": "Deli brez smeri teksture",
     "perimeter.border": "%s Obris",
-    "perimeter.label": "%s Oznaka"
+    "perimeter.label": "%s Oznaka",
+    "perimeter.matched": "Deli z ujemajočo teksturo"
   },
   "sv": {
     "perimeter.with_grain": "Delar med texturriktning",
     "perimeter.without_grain": "Delar utan texturriktning",
     "perimeter.border": "%s Kontur",
-    "perimeter.label": "%s Etikett"
+    "perimeter.label": "%s Etikett",
+    "perimeter.matched": "Delar med matchande textur"
   },
   "tg": {
     "perimeter.with_grain": "Қисмҳои дорои самти текстура",
     "perimeter.without_grain": "Қисмҳои бе самти текстура",
     "perimeter.border": "%s Хатти канорӣ",
-    "perimeter.label": "%s Навиштаҷот"
+    "perimeter.label": "%s Навиштаҷот",
+    "perimeter.matched": "Қисмҳои дорои матни мувофиқ"
   },
   "tr": {
     "perimeter.with_grain": "Doku yönlü parçalar",
     "perimeter.without_grain": "Doku yönü olmayan parçalar",
     "perimeter.border": "%s Dış hat",
-    "perimeter.label": "%s Etiket"
+    "perimeter.label": "%s Etiket",
+    "perimeter.matched": "Dokusu eşleşen parçalar"
   },
   "uk": {
     "perimeter.with_grain": "Деталі з напрямком текстури",
     "perimeter.without_grain": "Деталі без напрямку текстури",
     "perimeter.border": "%s Контур",
-    "perimeter.label": "%s Напис"
+    "perimeter.label": "%s Напис",
+    "perimeter.matched": "Деталі зі збіжною текстурою"
   },
   "ur": {
     "perimeter.with_grain": "بناوٹ کی سمت والے حصے",
     "perimeter.without_grain": "بناوٹ کی سمت کے بغیر حصے",
     "perimeter.border": "%s بیرونی خاکہ",
-    "perimeter.label": "%s لیبل"
+    "perimeter.label": "%s لیبل",
+    "perimeter.matched": "بناوٹ سے ملتے پرزے"
   },
   "uz": {
     "perimeter.with_grain": "Tekstura yo'nalishli qismlar",
     "perimeter.without_grain": "Tekstura yo'nalishisiz qismlar",
     "perimeter.border": "%s Kontur",
-    "perimeter.label": "%s Yozuv"
+    "perimeter.label": "%s Yozuv",
+    "perimeter.matched": "Teksturasi mos qismlar"
   },
   "vi": {
     "perimeter.with_grain": "Các phần có hướng kết cấu",
     "perimeter.without_grain": "Các phần không có hướng kết cấu",
     "perimeter.border": "%s Đường bao",
-    "perimeter.label": "%s Nhãn"
+    "perimeter.label": "%s Nhãn",
+    "perimeter.matched": "Chi tiết có vân khớp"
   },
   "zh-Hans": {
     "perimeter.with_grain": "有纹理方向的零件",
     "perimeter.without_grain": "无纹理方向的零件",
     "perimeter.border": "%s 边框",
-    "perimeter.label": "%s 标签"
+    "perimeter.label": "%s 标签",
+    "perimeter.matched": "纹理匹配零件"
   },
   "nl": {
     "perimeter.with_grain": "Onderdelen met textuurrichting",
     "perimeter.without_grain": "Onderdelen zonder textuurrichting",
     "perimeter.border": "%s-rand",
-    "perimeter.label": "%s-label"
+    "perimeter.label": "%s-label",
+    "perimeter.matched": "Onderdelen met overeenkomende textuur"
   },
   "fr": {
     "perimeter.with_grain": "Pièces avec sens de texture",
     "perimeter.without_grain": "Pièces sans sens de texture",
     "perimeter.border": "%s Contour",
-    "perimeter.label": "%s Libellé"
+    "perimeter.label": "%s Libellé",
+    "perimeter.matched": "Pièces à texture assortie"
   },
   "de": {
     "perimeter.with_grain": "Teile mit Texturrichtung",
     "perimeter.without_grain": "Teile ohne Texturrichtung",
     "perimeter.border": "%s Umrandung",
-    "perimeter.label": "%s Beschriftung"
+    "perimeter.label": "%s Beschriftung",
+    "perimeter.matched": "Teile mit passender Textur"
   },
   "id": {
     "perimeter.with_grain": "Bagian dengan arah tekstur",
     "perimeter.without_grain": "Bagian tanpa arah tekstur",
     "perimeter.border": "Batas %s",
-    "perimeter.label": "Label %s"
+    "perimeter.label": "Label %s",
+    "perimeter.matched": "Bagian dengan tekstur cocok"
   },
   "it": {
     "perimeter.with_grain": "Parti con direzione della texture",
     "perimeter.without_grain": "Parti senza direzione della texture",
     "perimeter.border": "Bordo %s",
-    "perimeter.label": "Etichetta %s"
+    "perimeter.label": "Etichetta %s",
+    "perimeter.matched": "Parti con trama corrispondente"
   },
   "ro": {
     "perimeter.with_grain": "Piese cu direcția texturii",
     "perimeter.without_grain": "Piese fără direcția texturii",
     "perimeter.border": "Contur %s",
-    "perimeter.label": "Etichetă %s"
+    "perimeter.label": "Etichetă %s",
+    "perimeter.matched": "Piese cu textură potrivită"
   },
   "es": {
     "perimeter.with_grain": "Piezas con dirección de textura",
     "perimeter.without_grain": "Piezas sin dirección de textura",
     "perimeter.border": "%s Contorno",
-    "perimeter.label": "%s Etiqueta"
+    "perimeter.label": "%s Etiqueta",
+    "perimeter.matched": "Piezas con textura coincidente"
   },
   "ar-legacy": {
     "perimeter.with_grain": "الجسم (اتجاه الألياف)",

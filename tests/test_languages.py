@@ -160,7 +160,7 @@ class LanguageTests(unittest.TestCase):
             with self.subTest(language=code):
                 self.assertEqual(aliases[code], {key: catalog[key] for key in (
                     'perimeter.with_grain', 'perimeter.without_grain',
-                    'perimeter.border', 'perimeter.label')})
+                    'perimeter.matched', 'perimeter.border', 'perimeter.label')})
 
     # The controls visible in the main panel must not silently fall back to
     # English in any selected catalog.

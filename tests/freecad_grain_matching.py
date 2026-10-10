@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT))
 import IPNestingExport as E
 import IPNestingResult as R
 import IPNestingGrainMatch as G
-from IPNestingGrainMatchModel import solve, edges, polygon, pack_groups
+from IPNestingGrainMatchModel import solve, edges, polygon, pack_groups, outer_contour
 from test_grain_match_model import cabinet
 
 APPLICATION = QtGui.QApplication.instance() or QtGui.QApplication([])
@@ -103,6 +103,51 @@ class GrainIntegrationTests(unittest.TestCase):
         with patch.object(G.GrainMatchingDialog, 'exec_', remove):
             G.open_editor(panel)
         self.assertEqual(G.read_groups(doc), [])
+        panel.form.close(); panel.form.deleteLater()
+
+    def test_group_row_is_a_full_part_row(self):
+        from IPNestingGui import NestingTaskPanel
+        panel = NestingTaskPanel()
+        doc = App.newDocument('Editor_Group_Row'); panel.preview_doc_name = doc.Name
+        parts, definition = cabinet()
+        panel.table.blockSignals(True)
+        for i, part in enumerate(parts):
+            obj = doc.addObject('Part::Feature', 'Front%d' % i)
+            obj.Shape = Part.makeBox(100, [200, 40, 40, 40][i], 18)
+            panel.table.insertRow(i)
+            item = QtGui.QTableWidgetItem(obj.Name); item.setData(QtCore.Qt.UserRole, obj.Name)
+            panel.table.setItem(i, 0, item)
+            panel.table.setItem(i, 1, QtGui.QTableWidgetItem('1'))
+            panel.table.setItem(i, 2, QtGui.QTableWidgetItem('4'))
+        panel.table.blockSignals(False); doc.recompute()
+        for row in range(4):
+            panel.table.selectionModel().select(panel.table.model().index(row, 0),
+                QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows)
+        original_exec = G.GrainMatchingDialog.exec_
+        def fill_and_save(dialog):
+            for pair, values in zip(dialog.pairs, definition['links']):
+                for combo, value in zip(pair, values):
+                    combo.setCurrentIndex(combo.findData(value))
+            QtCore.QTimer.singleShot(0, dialog.save_button.click)
+            return original_exec(dialog)
+        with patch.object(G.GrainMatchingDialog, 'exec_', fill_and_save):
+            panel.match_grain_btn.click()
+        group_row = None
+        for row in range(panel.table.rowCount() - panel.control_rows):
+            if G.row_kind(panel, row) == G.GROUP_ROW_KIND:
+                group_row = row
+                break
+        self.assertIsNotNone(group_row)
+        name = panel.table.item(group_row, 0).text()
+        self.assertTrue(name.startswith('Texture matched parts:'), name)
+        self.assertIn('Front0', name)
+        self.assertIn('Front3', name)
+        self.assertEqual(panel.table.item(group_row, 1).text(), '1')
+        self.assertEqual(panel.table.item(group_row, 2).text(), '4')
+        for col in (3, 4, 5):
+            widget = panel.table.cellWidget(group_row, col)
+            self.assertIsNotNone(widget)
+            self.assertTrue(widget.findChildren(QtGui.QCheckBox), col)
         panel.form.close(); panel.form.deleteLater()
 
     def test_curved_cad_boundaries_partial_preview_and_cycle(self):
@@ -225,6 +270,34 @@ class GrainIntegrationTests(unittest.TestCase):
             self.assertTrue(importer.import_result(result, session, show_summary=False))
             self.assertIs(importer.result_doc, first_doc)
         table.close(); form.close()
+
+    def test_outer_contour_union_uses_exact_outline_not_bounding_box(self):
+        def area(p):
+            return abs(sum(a[0]*b[1]-a[1]*b[0] for a, b in zip(p, p[1:]+p[:1])) / 2)
+
+        # Two edge-joined rectangles merge into one 60x20 outline.
+        outer, holes = outer_contour([[[0, 0], [30, 0], [30, 20], [0, 20]],
+                                      [[30, 0], [60, 0], [60, 20], [30, 20]]])
+        self.assertAlmostEqual(area(outer), 1200, places=3)
+        self.assertEqual(holes, [])
+
+        # An L-shaped assembly keeps its notch; a bounding box would be 40x40=1600.
+        outer, holes = outer_contour([[[0, 0], [20, 0], [20, 20], [0, 20]],
+                                      [[0, 20], [20, 20], [20, 40], [0, 40]]])
+        self.assertAlmostEqual(area(outer), 800, places=3)
+        self.assertEqual(holes, [])
+
+        # A member hole survives the union with a touching neighbour.
+        outer, holes = outer_contour(
+            [[[0, 0], [50, 0], [50, 50], [0, 50]], [[50, 0], [80, 0], [80, 50], [50, 50]]],
+            [[[[20, 20], [30, 20], [30, 30], [20, 30]]], None])
+        self.assertAlmostEqual(area(outer), 4000, places=3)
+        self.assertEqual(len(holes), 1)
+        self.assertAlmostEqual(area(holes[0]), 100, places=3)
+
+        # A rotated member keeps its outline; the contour is never the axis-aligned box.
+        outer, _ = outer_contour([[[5, 0], [10, 5], [5, 10], [0, 5]]])
+        self.assertAlmostEqual(area(outer), 50, places=3)
 
 
 if __name__ == '__main__':
