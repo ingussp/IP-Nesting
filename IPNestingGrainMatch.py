@@ -20,6 +20,7 @@ _MESSAGES = {
     'save': ('Save group', 'Saglabāt grupu'),
     'cancel': ('Cancel', 'Atcelt'),
     'remove': ('Remove matching', 'Noņemt sasaisti'),
+    'matched': ('Texture matched parts', 'Ar tekstūru saskaņotās detaļas'),
     'ready': ('Group is ready. It will be nested as one unit.', 'Grupa ir gatava. Tā tiks izkārtota kā viena vienība.'),
     'select': ('Select at least two part rows in the table.', 'Tabulā iezīmē vismaz divas detaļu rindas.'),
     'equal': ('All selected parts must have the same quantity.', 'Visām izvēlētajām detaļām jābūt vienādam skaitam.'),
@@ -123,6 +124,24 @@ def migrate_links(parts, links):
 
 
 _OBJECT = 'IPNestingGrainMatches'
+
+# Table roles used to mark deactivated members and the summary row.
+ROW_KIND_ROLE = QtCore.Qt.UserRole + 2
+GROUP_NAMES_ROLE = QtCore.Qt.UserRole + 3
+GROUP_ROW_KIND = 'texture_group'
+MEMBER_ROW_KIND = 'texture_member'
+
+
+def row_kind(panel, row):
+    """Return the texture-matching marker for a table row, or ''/None."""
+    item = panel.table.item(row, 0)
+    return item.data(ROW_KIND_ROLE) if item is not None else None
+
+
+def _set_row_kind(panel, row, kind):
+    item = panel.table.item(row, 0)
+    if item is not None:
+        item.setData(ROW_KIND_ROLE, kind or '')
 
 
 def read_groups(doc):
@@ -327,6 +346,8 @@ def open_editor(panel):
         selected.update(existing['names'])
     entries = {}
     for row in range(panel.table.rowCount()-panel.control_rows):
+        if row_kind(panel, row) == GROUP_ROW_KIND:
+            continue
         name = panel._primary_name_for_row(row)
         if name in selected:
             obj = doc.getObject(name)
@@ -362,13 +383,178 @@ def open_editor(panel):
                                 matching_edges=[p['matching_edges'] for p in parts]))
     write_groups(doc, replacement)
     refresh_labels(panel, replacement)
+    _refresh_grain_layout(panel)
+
+
+def _refresh_grain_layout(panel):
+    """Re-run the live grain layout so freshly grouped parts move to their square."""
+    try:
+        controller = getattr(panel, '_grain', None)
+        if controller is not None:
+            controller._apply_live_layout()
+    except Exception:
+        pass
+
+
+def _matched_part_info(panel, groups):
+    """Map each group to the (labels, quantity, names) currently shown in the table."""
+    info = {}
+    for row in range(panel.table.rowCount()-panel.control_rows):
+        item = panel.table.item(row, 0)
+        if item is None or row_kind(panel, row) == GROUP_ROW_KIND:
+            continue
+        name = panel._primary_name_for_row(row)
+        if not name:
+            continue
+        quantity = 1
+        qty_item = panel.table.item(row, 1)
+        if qty_item is not None:
+            try:
+                quantity = int(str(qty_item.text()).strip())
+            except Exception:
+                quantity = 1
+        info[name] = (item.text(), quantity)
+    result = []
+    for group in groups:
+        names = [n for n in group.get('names', []) if n in info]
+        if not names:
+            continue
+        result.append(([info[n][0] for n in names], info[names[0]][1], names))
+    return result
+
+
+def _set_member_row_active(panel, row, active):
+    """Grey out (or restore) a part row and disable (or enable) its controls."""
+    try:
+        for col in range(panel.table.columnCount()):
+            item = panel.table.item(row, col)
+            if item is None:
+                continue
+            flags = item.flags()
+            if active:
+                flags |= QtCore.Qt.ItemIsEditable
+                item.setBackground(QtGui.QBrush())
+            else:
+                flags &= ~QtCore.Qt.ItemIsEditable
+                item.setBackground(QtGui.QBrush(QtGui.QColor('#e4e4e4')))
+            item.setFlags(flags)
+        for col in (3, 4, 5):
+            widget = panel.table.cellWidget(row, col)
+            if widget is None:
+                continue
+            for checkbox in widget.findChildren(QtGui.QCheckBox):
+                checkbox.setEnabled(active)
+            for combo in widget.findChildren(QtGui.QComboBox):
+                combo.setEnabled(active)
+    except Exception:
+        pass
+
+
+def _render_summary_rows(panel, groups):
+    """Replace texture-matched summary rows with one full part row per group."""
+    table = panel.table
+    for row in range(table.rowCount()-panel.control_rows-1, -1, -1):
+        if row_kind(panel, row) == GROUP_ROW_KIND:
+            table.removeRow(row)
+    if not groups:
+        return
+    pos = max(0, table.rowCount()-panel.control_rows)
+    for labels, quantity, names in _matched_part_info(panel, groups):
+        table.insertRow(pos)
+        _fill_group_row(panel, pos, labels, quantity, names)
+        pos += 1
+
+
+def _fill_group_row(panel, row, labels, quantity, names):
+    """Populate a group row like a new part, named `Texture matched parts: …`."""
+    table = panel.table
+    name_item = QtGui.QTableWidgetItem('%s: %s' % (text('matched'), ', '.join(labels)))
+    name_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+    name_item.setBackground(QtGui.QBrush(QtGui.QColor('#e5f1df')))
+    name_item.setData(ROW_KIND_ROLE, GROUP_ROW_KIND)
+    name_item.setData(GROUP_NAMES_ROLE, json.dumps(names))
+    table.setItem(row, 0, name_item)
+
+    qty_item = QtGui.QTableWidgetItem(str(quantity))
+    qty_item.setTextAlignment(QtCore.Qt.AlignCenter)
+    qty_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+    table.setItem(row, 1, qty_item)
+
+    rotations_item = QtGui.QTableWidgetItem(str(panel.get_default_rotations()))
+    rotations_item.setTextAlignment(QtCore.Qt.AlignCenter)
+    rotations_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+    table.setItem(row, 2, rotations_item)
+
+    table.setCellWidget(row, 3, _centered_checkbox())
+    grain_widget = _grain_widget()
+    table.setCellWidget(row, 4, grain_widget)
+    _connect_group_grain_widgets(panel, names, grain_widget)
+    table.setCellWidget(row, 5, _centered_checkbox())
+
+    vertical = QtGui.QTableWidgetItem('')
+    vertical.setFlags(QtCore.Qt.NoItemFlags)
+    table.setVerticalHeaderItem(row, vertical)
+
+
+def _connect_group_grain_widgets(panel, names, grain_widget):
+    """Wire a group row's grain checkbox/combo to the panel's grain controller."""
+    try:
+        controller = getattr(panel, '_grain', None)
+        if controller is None:
+            return
+        cb = grain_widget.findChild(QtGui.QCheckBox)
+        combo = grain_widget.findChild(QtGui.QComboBox)
+        if cb is not None and combo is not None:
+            controller._connect_group_grain_widgets(names, cb, combo)
+    except Exception:
+        pass
+
+
+def _centered_checkbox():
+    """Build the standard centred checkbox container used by part rows."""
+    widget = QtGui.QWidget()
+    layout = QtGui.QHBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(0)
+    layout.addStretch()
+    layout.addWidget(QtGui.QCheckBox())
+    layout.addStretch()
+    return widget
+
+
+def _grain_widget():
+    """Build the grain-direction checkbox + axis combo used by part rows."""
+    widget = QtGui.QWidget()
+    layout = QtGui.QHBoxLayout(widget)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(4)
+    layout.addStretch()
+    layout.addWidget(QtGui.QCheckBox())
+    combo = QtGui.QComboBox()
+    combo.addItems(['X', 'Y'])
+    combo.setCurrentIndex(0)
+    combo.setFixedWidth(70)
+    layout.addWidget(combo)
+    layout.addStretch()
+    return widget
 
 
 def refresh_labels(panel, groups=None):
+    """Deactivate matched member rows and keep a bottom summary row up to date."""
     if groups is None:
         groups = read_groups(App.getDocument(panel.preview_doc_name))
+    matched = set()
+    for group in groups:
+        matched.update(group.get('names', []))
     for row in range(panel.table.rowCount()-panel.control_rows):
-        item = panel.table.item(row, 0); name = panel._primary_name_for_row(row)
-        group = next((i for i, g in enumerate(groups, 1) if name in g['names']), None)
-        item.setToolTip(('%s %d' % (text('title'), group)) if group else '')
-        item.setBackground(QtGui.QBrush(QtGui.QColor('#e5f1df')) if group else QtGui.QBrush())
+        if row_kind(panel, row) == GROUP_ROW_KIND:
+            continue
+        name = panel._primary_name_for_row(row)
+        is_member = bool(name and name in matched)
+        _set_row_kind(panel, row, MEMBER_ROW_KIND if is_member else None)
+        _set_member_row_active(panel, row, not is_member)
+        item = panel.table.item(row, 0)
+        if item is not None:
+            group = next((i for i, g in enumerate(groups, 1) if name in g['names']), None)
+            item.setToolTip(('%s %d' % (text('title'), group)) if group else '')
+    _render_summary_rows(panel, groups)

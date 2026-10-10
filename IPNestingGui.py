@@ -2609,6 +2609,18 @@ class NestingTaskPanel:
                 except Exception as e:
                     App.Console.PrintWarning(tr("debug.cleanup_step") % (temp_step_path, e))
 
+    # Return the table row where a new data row should be inserted. The texture-matched
+    # summary row (if any) stays pinned to the very bottom of the data section.
+    def _data_insert_position(self):
+        try:
+            from IPNestingGrainMatch import GROUP_ROW_KIND, row_kind
+            for row in range(max(0, self.table.rowCount() - self.control_rows)):
+                if row_kind(self, row) == GROUP_ROW_KIND:
+                    return row
+        except Exception:
+            pass
+        return max(0, self.table.rowCount() - self.control_rows)
+
     # Copy selected geometry into the preview, align it and add part rows before arranging
     # groups.
     def add_selected_objects(self):
@@ -2795,7 +2807,7 @@ class NestingTaskPanel:
 
                     self.added_count += 1
 
-                    insert_pos = max(0, self.table.rowCount() - self.control_rows)
+                    insert_pos = self._data_insert_position()
                     self.table.insertRow(insert_pos)
 
                     # Column 0: Body name (keep first column width)
@@ -3295,7 +3307,16 @@ class NestingTaskPanel:
             return
 
         control_start = self.table.rowCount() - self.control_rows
-        rows = sorted([index.row() for index in indices if index.row() < control_start], reverse=True)
+        try:
+            from IPNestingGrainMatch import GROUP_ROW_KIND, row_kind
+        except Exception:
+            GROUP_ROW_KIND, row_kind = None, None
+        rows = sorted([
+            index.row()
+            for index in indices
+            if index.row() < control_start
+            and (row_kind is None or row_kind(self, index.row()) != GROUP_ROW_KIND)
+        ], reverse=True)
         if not rows:
             App.Console.PrintMessage(tr('no_data_rows_selected_for_removal'))
             return
@@ -4543,7 +4564,9 @@ class NestingTaskPanel:
             if not obj:
                 return False
 
-            insert_pos = max(0, self.table.rowCount() - self.control_rows)
+            insert_pos = (self._data_insert_position()
+                          if hasattr(self, '_data_insert_position')
+                          else max(0, self.table.rowCount() - self.control_rows))
             self.table.insertRow(insert_pos)
 
             name_item = ui_widget(QtGui.QTableWidgetItem, obj.Label)

@@ -10,6 +10,7 @@
   "common.no": "No",
   "perimeter.with_grain": "Parts with texture direction",
   "perimeter.without_grain": "Parts without texture direction",
+  "perimeter.matched": "Texture matched parts",
   "perimeter.border": "%s Border",
   "perimeter.label": "%s Label",
   "debug.serialize_shape": "Serializing shape via STEP to avoid hash issues: %s\n",

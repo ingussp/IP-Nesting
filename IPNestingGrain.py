@@ -274,6 +274,7 @@ class GrainPreparer:
         subset_names=None,
         custom_label="Parts without texture direction",
         line_color=None,
+        matched=False,
     ):
         """
         Draws a perimeter around objects + label.
@@ -283,6 +284,9 @@ class GrainPreparer:
         line_color:
           - None -> default red for "without grain" and blue for "with grain"
           - tuple (r,g,b) in [0..1]
+
+        matched:
+          - True -> green perimeter for texture-matched groups
         """
         try:
             if preview_doc_name not in App.listDocuments():
@@ -291,13 +295,20 @@ class GrainPreparer:
             if p_doc is None:
                 return
 
-            # Suffix determines unique names for this specific group (Main vs Grain)
+            # Suffix determines unique names for this specific group (Main vs Grain vs Matched)
             suffix = "Main"
-            if "with texture" in custom_label:
+            if matched:
+                suffix = "Matched"
+            elif "with texture" in custom_label:
                 suffix = "Grain"
 
             # Keep group identity in canonical names; only presentation is translated.
-            display_label = tr("perimeter.with_grain" if suffix == "Grain" else "perimeter.without_grain")
+            if matched:
+                display_label = tr("perimeter.matched")
+            elif suffix == "Grain":
+                display_label = tr("perimeter.with_grain")
+            else:
+                display_label = tr("perimeter.without_grain")
 
             feat_name_poly = "GrainPerimeter_" + suffix
             feat_name_label = "GrainPerimeterLabel_" + suffix
@@ -307,6 +318,9 @@ class GrainPreparer:
                 if suffix == "Grain":
                     # (4) Grain perimeter should be blue
                     line_color = (0.0, 0.0, 1.0)
+                elif suffix == "Matched":
+                    # Texture-matched groups are drawn green.
+                    line_color = (0.0, 0.7, 0.0)
                 else:
                     line_color = (1.0, 0.0, 0.0)
 
@@ -481,6 +495,91 @@ class GrainPreparer:
                                 pass
                 except Exception:
                     pass
+
+            try:
+                p_doc.recompute()
+            except Exception:
+                pass
+
+        except Exception:
+            App.Console.PrintError(tr('grainpreparer_draw_perimeter_and_label_failed') + traceback.format_exc())
+
+
+    # Draw a thick green outline around each texture-matched group so the group stays
+    # visible as one unit even when it sits inside the blue (grain) box.
+    @staticmethod
+    def draw_group_highlights(preview_doc_name, groups):
+        """
+        Draw a thick green outline around each texture-matched group.
+
+        groups is a list of member-name lists. Passing an empty list removes any
+        previously drawn group highlights.
+        """
+        try:
+            if preview_doc_name not in App.listDocuments():
+                return
+            p_doc = App.getDocument(preview_doc_name)
+            if p_doc is None:
+                return
+
+            # Remove previously drawn group highlights.
+            for obj in list(p_doc.Objects):
+                try:
+                    n = getattr(obj, "Name", "") or ""
+                    if n.startswith("GrainGroupHighlight_"):
+                        p_doc.removeObject(n)
+                except Exception:
+                    continue
+
+            color = (0.0, 0.7, 0.0)
+            index = 0
+            for subset_names in (groups or []):
+                if not subset_names:
+                    continue
+                found, min_x, min_y, max_x, max_y, count = GrainPreparer._collect_subset_bbox(
+                    p_doc, subset_names=list(subset_names)
+                )
+                if not found or count == 0:
+                    continue
+                _, margin, _ = GrainPreparer._compute_font_and_margin(
+                    preview_doc_name, p_doc, min_x, min_y, max_x, max_y, count
+                )
+                min_x -= margin
+                min_y -= margin
+                max_x += margin
+                max_y += margin
+
+                p1 = App.Vector(min_x, min_y, 0)
+                p2 = App.Vector(max_x, min_y, 0)
+                p3 = App.Vector(max_x, max_y, 0)
+                p4 = App.Vector(min_x, max_y, 0)
+                pts = [p1, p2, p3, p4, p1]
+
+                index += 1
+                feat_name = "GrainGroupHighlight_%d" % index
+                try:
+                    if Part is not None:
+                        wire = Part.makePolygon(pts)
+                        feat = p_doc.addObject("Part::Feature", feat_name)
+                        feat.Label = "GrainGroupHighlight_%d" % index
+                        feat.Shape = wire
+                        try:
+                            vo = feat.ViewObject
+                            vo.LineWidth = 4
+                            vo.LineColor = color
+                            vo.DisplayMode = "Wireframe"
+                        except Exception:
+                            pass
+                    elif Draft is not None:
+                        w = Draft.make_wire([p1, p2, p3, p4], closed=True)
+                        w.Label = "GrainGroupHighlight_%d" % index
+                        try:
+                            w.ViewObject.LineWidth = 4
+                            w.ViewObject.LineColor = color
+                        except Exception:
+                            pass
+                except Exception:
+                    continue
 
             try:
                 p_doc.recompute()
@@ -761,24 +860,55 @@ class GrainPreparer:
                 App.Console.PrintMessage(tr('update_grain_arrow_object_s_not_found_in_preview') % str(obj_name))
                 return False
 
-            # compute bbox and center/top z
+            # Build a bound-box-like object for the shared arrow builder.
             try:
                 bb = obj.Shape.BoundBox
+            except Exception:
+                try:
+                    base = obj.Placement.Base
+                    bb = App.BoundBox(base.x - 5.0, base.y - 5.0, base.z,
+                                      base.x + 5.0, base.y + 5.0, base.z)
+                except Exception:
+                    bb = App.BoundBox(-5.0, -5.0, 0.0, 5.0, 5.0, 0.0)
+
+            return GrainPreparer._build_grain_arrow(
+                p_doc,
+                GrainPreparer._arrow_object_name_for(obj.Name),
+                "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name),
+                bb,
+                axis=axis,
+                length_factor=length_factor,
+                width_factor=width_factor,
+                z_offset=z_offset,
+                color=color,
+            )
+
+        except Exception:
+            App.Console.PrintError(tr('update_grain_arrow_failed') + traceback.format_exc())
+            return False
+
+    # Create or replace an X/Y arrow above one bounding box, using Part, Draft or a
+    # placeholder fallback.
+    @staticmethod
+    def _build_grain_arrow(p_doc, arrow_name, label, bb, axis='X',
+                           length_factor=0.5, width_factor=0.06, z_offset=0.5,
+                           color=(1.0, 0.0, 0.0)):
+        """
+        Create or replace an X/Y arrow above the supplied bounding box.
+
+        Shared by single parts and texture-matched groups so both callers draw
+        identical geometry.
+        """
+        try:
+            try:
                 bbox_w = max(0.0, bb.XMax - bb.XMin)
                 bbox_h = max(0.0, bb.YMax - bb.YMin)
-                bbox_z = max(0.0, bb.ZMax - bb.ZMin)
                 center_x = (bb.XMin + bb.XMax) / 2.0
                 center_y = (bb.YMin + bb.YMax) / 2.0
                 top_z = bb.ZMax
             except Exception:
-                try:
-                    base = obj.Placement.Base
-                    center_x, center_y, top_z = base.x, base.y, base.z
-                    bbox_w = bbox_h = max(10.0, 10.0)
-                except Exception:
-                    center_x = center_y = top_z = 0.0
-                    bbox_w = bbox_h = 10.0
-                    bbox_z = 0.0
+                center_x = center_y = top_z = 0.0
+                bbox_w = bbox_h = 10.0
 
             main_dim = max(bbox_w, bbox_h, 1.0)
 
@@ -841,14 +971,13 @@ class GrainPreparer:
                               z_plane) for (px, py) in poly2d]
             # Note: the conditional is redundant but kept for clarity; we translate both coords by center.
 
-            arrow_name = GrainPreparer._arrow_object_name_for(obj.Name)
             try:
                 if Part is not None:
                     wire = Part.makePolygon(pts)
                     try:
                         face = Part.Face(wire)
                         feat = p_doc.addObject("Part::Feature", arrow_name)
-                        feat.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                        feat.Label = label
                         feat.Shape = face
                         try:
                             vo = feat.ViewObject
@@ -860,7 +989,7 @@ class GrainPreparer:
                             pass
                     except Exception:
                         feat = p_doc.addObject("Part::Feature", arrow_name)
-                        feat.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                        feat.Label = label
                         feat.Shape = wire
                         try:
                             vo = feat.ViewObject
@@ -881,7 +1010,7 @@ class GrainPreparer:
                 if Draft is not None:
                     try:
                         dw = Draft.make_wire(pts, closed=True)
-                        dw.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                        dw.Label = label
                         try:
                             dw.ViewObject.LineColor = color
                             dw.ViewObject.LineWidth = 2
@@ -890,7 +1019,7 @@ class GrainPreparer:
                     except Exception:
                         try:
                             dw = Draft.makeWire(pts, closed=True)
-                            dw.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                            dw.Label = label
                             try:
                                 dw.ViewObject.LineColor = color
                                 dw.ViewObject.LineWidth = 2
@@ -898,7 +1027,7 @@ class GrainPreparer:
                                 pass
                         except Exception:
                             ph = p_doc.addObject("App::FeaturePython", arrow_name)
-                            ph.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                            ph.Label = label
                     try:
                         p_doc.recompute()
                     except Exception:
@@ -909,7 +1038,7 @@ class GrainPreparer:
 
             try:
                 ph = p_doc.addObject("App::FeaturePython", arrow_name)
-                ph.Label = "GrainArrow_" + (getattr(obj, "Label", obj.Name) or obj.Name)
+                ph.Label = label
                 try:
                     p_doc.recompute()
                 except Exception:
@@ -922,5 +1051,97 @@ class GrainPreparer:
         except Exception:
             App.Console.PrintError(tr('update_grain_arrow_failed') + traceback.format_exc())
             return False
-            
 
+    # Draw (or remove) a single grain arrow for a whole texture-matched group, using the
+    # group's combined outer contour as one bounding box.
+    @staticmethod
+    def update_group_grain_arrow(preview_doc_name, group_names, enable=True, axis='X',
+                                 length_factor=0.5, width_factor=0.06, z_offset=0.5,
+                                 color=(1.0, 0.0, 0.0)):
+        """
+        Draw or remove one shared arrow above a texture-matched group.
+
+        The group is treated as a single rigid unit, so a single arrow is placed over the
+        union of all member bounding boxes instead of one arrow per member.
+        """
+        try:
+            if preview_doc_name not in App.listDocuments():
+                return False
+            p_doc = App.getDocument(preview_doc_name)
+            if p_doc is None:
+                return False
+
+            arrow_name = ("GrainArrow_Group_" + str(group_names[0])) if group_names else "GrainArrow_Group"
+
+            # Remove any previous shared arrow plus leftover per-member arrows.
+            try:
+                existing = p_doc.getObject(arrow_name)
+                if existing:
+                    p_doc.removeObject(existing.Name)
+            except Exception:
+                pass
+            for nm in group_names:
+                try:
+                    GrainPreparer.remove_grain_arrow(preview_doc_name, nm)
+                except Exception:
+                    pass
+
+            if not enable:
+                try:
+                    p_doc.recompute()
+                except Exception:
+                    pass
+                return True
+
+            # Union bounding box across all members.
+            found = False
+            min_x = min_y = min_z = float('inf')
+            max_x = max_y = max_z = float('-inf')
+            for nm in group_names:
+                obj = GrainPreparer._find_preview_object(p_doc, nm)
+                if obj is None:
+                    continue
+                try:
+                    bb = obj.Shape.BoundBox
+                except Exception:
+                    continue
+                min_x = min(min_x, bb.XMin)
+                min_y = min(min_y, bb.YMin)
+                min_z = min(min_z, bb.ZMin)
+                max_x = max(max_x, bb.XMax)
+                max_y = max(max_y, bb.YMax)
+                max_z = max(max_z, bb.ZMax)
+                found = True
+
+            if not found:
+                return False
+
+            try:
+                bb = App.BoundBox(min_x, min_y, min_z, max_x, max_y, max_z)
+            except Exception:
+                class _GroupBox(object):
+                    pass
+                bb = _GroupBox()
+                bb.XMin = min_x
+                bb.YMin = min_y
+                bb.ZMin = min_z
+                bb.XMax = max_x
+                bb.YMax = max_y
+                bb.ZMax = max_z
+
+            label = "GrainArrow_" + ", ".join(str(n) for n in group_names)
+            return GrainPreparer._build_grain_arrow(
+                p_doc,
+                arrow_name,
+                label,
+                bb,
+                axis=axis,
+                length_factor=length_factor,
+                width_factor=width_factor,
+                z_offset=z_offset,
+                color=color,
+            )
+
+        except Exception:
+            App.Console.PrintError(tr('update_grain_arrow_failed') + traceback.format_exc())
+            return False

@@ -1,4 +1,5 @@
-"""Rigid edge-linked groups. Geometry and result transforms without Qt/FreeCAD."""
+"""Rigid edge-linked groups. Geometry and result transforms are Python-only except
+for the optional boolean union used by ``outer_contour`` (lazy FreeCAD Part import)."""
 import copy
 import math
 
@@ -121,6 +122,113 @@ def _solve_component(graph, start, spacing):
     return poses
 
 
+def _convex_hull(points):
+    """Monotone-chain convex hull of [x, y] points, returned CCW without a closing duplicate."""
+    pts = sorted({(round(float(x), 6), round(float(y), 6)) for x, y in points})
+    if len(pts) <= 2:
+        return [list(p) for p in pts]
+
+    def cross(o, a, b):
+        return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+
+    lower = []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    upper = []
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return [list(p) for p in lower[:-1] + upper[:-1]]
+
+
+def _close_duplicate(points, tol=1e-7):
+    if len(points) > 1 and math.hypot(points[0][0]-points[-1][0], points[0][1]-points[-1][1]) <= tol:
+        return points[:-1]
+    return points
+
+
+def _close_ring(points, tol=1e-9):
+    """Ensure the ring's first and last points match (needed by Part.makePolygon)."""
+    if len(points) < 3:
+        return list(points)
+    if abs(points[0][0]-points[-1][0]) > tol or abs(points[0][1]-points[-1][1]) > tol:
+        return list(points) + [points[0]]
+    return list(points)
+
+
+def outer_contour(polygons, holes_by_poly=None):
+    """Union outline of a set of closed [x, y] polygons.
+
+    Returns ``(outer, holes)`` in the same coordinate system as the input.
+    When FreeCAD's Part module is available the exact boolean union is used,
+    preserving inner holes; disconnected (spaced) assemblies and headless
+    runs fall back to the convex hull so the result is always a single
+    nestable outer polygon.
+    """
+    if not polygons:
+        return [], []
+    holes_by_poly = holes_by_poly or [None] * len(polygons)
+    try:
+        import Part
+        from FreeCAD import Vector
+
+        # Boolean union of coplanar faces keeps the faces partitioned, so fuse
+        # thin solids instead and take the bottom cap (same trick the part
+        # profile exporter uses). This merges touching/overlapping members into
+        # one face while preserving their internal holes.
+        solid = None
+        for pts, holes in zip(polygons, holes_by_poly):
+            outer_pts = _close_ring(
+                [Vector(float(x), float(y), 0.0) for x, y in pts])
+            if len(outer_pts) < 3:
+                continue
+            try:
+                face = Part.Face(Part.makePolygon(outer_pts))
+            except Exception:
+                continue
+            for hole in (holes or []):
+                hpts = _close_ring(
+                    [Vector(float(x), float(y), 0.0) for x, y in hole])
+                if len(hpts) < 3:
+                    continue
+                try:
+                    cut = face.cut(Part.Face(Part.makePolygon(hpts)))
+                    # cut of a face by an interior hole yields a shell; keep its face.
+                    face = cut.Faces[0] if len(cut.Faces) == 1 else face
+                except Exception:
+                    pass
+            ext = face.extrude(Vector(0, 0, 1))
+            solid = ext if solid is None else solid.fuse(ext)
+
+        if solid is not None:
+            solid = solid.removeSplitter()
+            bottom = [f for f in solid.Faces
+                      if f.BoundBox.ZLength < 1e-7 and abs(f.BoundBox.ZMin) < 1e-7]
+            # More than one bottom face means the members are disconnected;
+            # fall back to the convex hull below.
+            if len(bottom) == 1:
+                face = bottom[0]
+                outer_wire = face.OuterWire
+                outer = _close_duplicate(
+                    [[v.Point.x, v.Point.y] for v in outer_wire.OrderedVertexes], 1e-6)
+                holes = []
+                for wire in face.Wires:
+                    if wire.isSame(outer_wire):
+                        continue
+                    h = _close_duplicate(
+                        [[v.Point.x, v.Point.y] for v in wire.OrderedVertexes], 1e-6)
+                    if len(h) >= 3:
+                        holes.append(h)
+                if len(outer) >= 3:
+                    return outer, holes
+    except Exception:
+        pass
+    return _convex_hull([p for poly in polygons for p in poly]), []
+
+
 def allowed_angles(part):
     return part.get('allowedAngles', [360*i/int(part.get('rotations', 1)) for i in range(int(part.get('rotations', 1)))])
 
@@ -154,17 +262,26 @@ def pack_groups(parts, definitions, spacing, validate):
             members = [dict(p, matching_edges=boundary) for p, boundary in zip(members, definition['matching_edges'])]
         poses = solve(members, definition['links'], spacing)
         validate(members, poses, spacing)
-        angles = group_angles(members, poses)
-        if not angles:
-            raise ValueError('The selected edges conflict with the parts\' rotation/texture rules.')
-        transformed = [transform(p['points'], pose) for p, pose in zip(members, poses)]
-        width = max(x for poly in transformed for x, y in poly)
-        height = max(y for poly in transformed for x, y in poly)
+        if definition.get('grain') in ('X', 'Y'):
+            # A grain-matched group is placed as one unit and may only be
+            # flipped along its texture axis, so the envelope keeps 180-degree
+            # symmetry rather than the individual parts' rotation rules.
+            angles = [0.0, 180.0]
+        else:
+            angles = group_angles(members, poses)
+            if not angles:
+                raise ValueError('The selected edges conflict with the parts\' rotation/texture rules.')
+        transformed = [polygon(transform(p['points'], pose)) for p, pose in zip(members, poses)]
+        transformed_holes = [[transform(h, pose) for h in (p.get('holes', []) or [])]
+                             for p, pose in zip(members, poses)]
+        outer, holes = outer_contour(transformed, transformed_holes)
+        if len(outer) < 3:
+            raise ValueError('The texture-matching group has no usable outer contour.')
         records = [dict(source_part_index=p['_ip_nesting']['source_part_index'], pose=pose,
                         points=p['points'], holes=p.get('holes', [])) for p, pose in zip(members, poses)]
         proxy_id = 'part_%d' % (len(parts)+number)
-        proxy = dict(id=proxy_id, points=[[0, 0], [width, 0], [width, height], [0, height]],
-                     holes=[], quantity=members[0]['quantity'], allowedAngles=angles,
+        proxy = dict(id=proxy_id, points=outer, holes=holes,
+                     quantity=members[0]['quantity'], allowedAngles=angles,
                      _ip_nesting=dict(job_id=members[0]['_ip_nesting']['job_id']))
         recipes.append(dict(id=proxy_id, members=records))
         first = min(i for i, p in enumerate(parts) if p['_ip_nesting']['preview_object_name'] in names)

@@ -258,15 +258,22 @@ def _perimeter_catalogs():
     return _perimeters.values()
 
 
+# Resolve the stable caption key for a canonical perimeter label.
+def _perimeter_key(canonical):
+    if "matched" in canonical:
+        return "perimeter.matched"
+    return "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
+
+
 # Recognize saved perimeter captions in any supported language without translating group IDs.
 def perimeter_labels(canonical):
-    key = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
+    key = _perimeter_key(canonical)
     return {canonical} | {catalog.get(key, canonical) for catalog in _perimeter_catalogs()}
 
 
 # Match generated object labels using each catalog's caption and suffix template.
 def perimeter_object_labels(canonical, kind):
-    key = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
+    key = _perimeter_key(canonical)
     legacy = canonical + (" Label" if kind == "label" else " Border")
     result = {legacy}
     for catalog in _perimeter_catalogs():
@@ -282,7 +289,7 @@ def tag_perimeter(obj, canonical, kind):
         if name not in obj.PropertiesList:
             obj.addProperty("App::PropertyString", name, "IPNesting")
         obj.setEditorMode(name, 2)
-    obj.IPNestingCaptionKey = "perimeter.with_grain" if "with texture" in canonical else "perimeter.without_grain"
+    obj.IPNestingCaptionKey = _perimeter_key(canonical)
     obj.IPNestingCaptionKind = kind
 
 
@@ -296,7 +303,7 @@ def refresh_perimeters():
             key = getattr(obj, "IPNestingCaptionKey", "")
             kind = getattr(obj, "IPNestingCaptionKind", "")
             if not key and document.Name == "Nesting_Preview":
-                for canonical in ("Parts with texture direction", "Parts without texture direction"):
+                for canonical in ("Parts with texture direction", "Parts without texture direction", "Texture matched parts"):
                     if obj.Name.startswith("GrainPerimeter") and obj.Label in perimeter_object_labels(canonical, "border"):
                         tag_perimeter(obj, canonical, "border")
                     elif (obj.Label in perimeter_object_labels(canonical, "label")
@@ -305,7 +312,7 @@ def refresh_perimeters():
                         tag_perimeter(obj, canonical, "label")
                 key = getattr(obj, "IPNestingCaptionKey", "")
                 kind = getattr(obj, "IPNestingCaptionKind", "")
-            if key not in ("perimeter.with_grain", "perimeter.without_grain") or kind not in ("label", "border"):
+            if key not in ("perimeter.with_grain", "perimeter.without_grain", "perimeter.matched") or kind not in ("label", "border"):
                 continue
             caption = tr(key)
             obj.Label = tr("perimeter." + kind) % caption
