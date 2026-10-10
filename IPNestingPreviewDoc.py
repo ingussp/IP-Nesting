@@ -238,6 +238,25 @@ class PreviewDocManager:
                 if primary:
                     obj_names = [primary]
 
+            # Texture-matched group rows store their member names in a dedicated role;
+            # fall back to it so clicking the summary row selects every member.
+            if not obj_names:
+                try:
+                    from IPNestingGrainMatch import GROUP_NAMES_ROLE
+                except Exception:
+                    GROUP_NAMES_ROLE = None
+                if GROUP_NAMES_ROLE is not None:
+                    group_data = name_item.data(GROUP_NAMES_ROLE)
+                    if group_data:
+                        try:
+                            if isinstance(group_data, (list, tuple)):
+                                obj_names = list(group_data)
+                            else:
+                                parsed = json.loads(group_data)
+                                obj_names = parsed if isinstance(parsed, list) else [parsed]
+                        except Exception:
+                            obj_names = []
+
             # filter to only objects that actually exist in doc (avoid stale names)
             existing = []
             for n in obj_names:

@@ -194,6 +194,10 @@ class GrainUIController:
             if not checked:
                 for name in group_names:
                     GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, name)
+                try:
+                    GrainPreparer.remove_grain_arrow(self.panel.preview_doc_name, "Group_" + str(group_names[0]))
+                except Exception:
+                    pass
             doc.recompute()
             self._apply_live_layout()
         except Exception:
@@ -294,6 +298,7 @@ class GrainUIController:
             grain_parts = []
             matched_parts = []
             group_grain_names = set()
+            grain_groups = []
             grain_axis_by_name = {}
 
             for r in range(data_rows):
@@ -340,6 +345,7 @@ class GrainUIController:
                             grain_axis_by_name[nm] = axis
                         grain_parts.extend(group_names)
                         group_grain_names.update(group_names)
+                        grain_groups.append(list(group_names))
                     else:
                         matched_parts.extend(group_names)
                     continue
@@ -432,6 +438,20 @@ class GrainUIController:
                             continue
                         base = obj.Placement.Base
                         obj.Placement.Base = App.Vector(base.x, base.y + float(dy), base.z)
+                    except Exception:
+                        continue
+
+            # Translate the named preview objects along X while preserving Y, Z and rotation.
+            def _shift_names_x(names_list, dx):
+                if not names_list:
+                    return
+                for nm in names_list:
+                    try:
+                        obj = p_doc.getObject(nm)
+                        if not obj:
+                            continue
+                        base = obj.Placement.Base
+                        obj.Placement.Base = App.Vector(base.x + float(dx), base.y, base.z)
                     except Exception:
                         continue
 
@@ -622,8 +642,9 @@ class GrainUIController:
                 except TypeError:
                     GrainPreparer.pack_grain_parts(self.panel.preview_doc_name, matched_parts)
 
-            # 2) Stack the groups vertically using actual perimeter margins: green
-            # (matched) sits below red (standard), and blue (grain) below that.
+            # 2) Place the groups using their perimeter margins: green (matched)
+            # sits to the RIGHT of red (standard), and blue (grain) sits BELOW
+            # the combined red + green row.
             def _stack_lower_below_upper(upper_parts, lower_parts):
                 if not lower_parts:
                     return
@@ -649,8 +670,34 @@ class GrainUIController:
                 dy = desired_lower_max_y - float(lower_max_y)
                 _shift_names_y(lower_parts, dy)
 
-            _stack_lower_below_upper(standard_parts, matched_parts)
-            _stack_lower_below_upper(matched_parts if matched_parts else standard_parts, grain_parts)
+            def _place_right_of_left(left_parts, right_parts):
+                if not right_parts:
+                    return
+                left_found, _, _, left_max_x, _ = _bbox_for_names(left_parts)
+                right_found, right_min_x, _, _, _ = _bbox_for_names(right_parts)
+                if not left_found or not right_found:
+                    return
+                left_info = GrainPreparer.get_subset_bbox_and_margin(
+                    self.panel.preview_doc_name, subset_names=left_parts)
+                right_info = GrainPreparer.get_subset_bbox_and_margin(
+                    self.panel.preview_doc_name, subset_names=right_parts)
+                left_margin = float(left_info[6]) if left_info and left_info[0] else 0.0
+                right_margin = float(right_info[6]) if right_info and right_info[0] else 0.0
+                if left_info and left_info[0]:
+                    left_max_x = float(left_info[3])
+                if right_info and right_info[0]:
+                    right_min_x = float(right_info[1])
+                # A caption is drawn above each box, so a horizontal gap only
+                # needs proportional whitespace between the two borders.
+                gap = 2.0 * right_margin
+                desired_right_min_x = float(left_max_x) + left_margin + gap + right_margin
+                dx = desired_right_min_x - float(right_min_x)
+                _shift_names_x(right_parts, dx)
+
+            _place_right_of_left(standard_parts, matched_parts)
+
+            upper_parts = list(standard_parts) + list(matched_parts)
+            _stack_lower_below_upper(upper_parts, grain_parts)
 
             # --- NEW: auto-rotate grain parts to X if GrainAngleDeg not 0/180 ---
             try:
@@ -729,6 +776,16 @@ class GrainUIController:
                     custom_label="Parts with texture direction"
                 )
 
+            # 7b) Highlight each texture-matched group inside the grain box with a
+            # thick green outline so it stays visible as one rigid unit.
+            try:
+                GrainPreparer.draw_group_highlights(
+                    self.panel.preview_doc_name,
+                    [list(g) for g in grain_groups]
+                )
+            except Exception:
+                pass
+
             # 8) Redraw grain arrows after the parts have been moved.
             #
             # Normal grain parts were normalized above so their grain direction is
@@ -736,7 +793,10 @@ class GrainUIController:
             # arrow follows the user's selected X/Y axis.
             try:
                 if grain_parts:
+                    # Redraw a single arrow for every standalone grain part...
                     for nm in grain_parts:
+                        if nm in group_grain_names:
+                            continue
                         try:
                             GrainPreparer.update_grain_arrow(
                                 self.panel.preview_doc_name,
@@ -750,6 +810,29 @@ class GrainUIController:
                                 tr('failed_to_redraw_final_horizontal_grain_arrow_for_s_s')
                                 % (
                                     str(nm),
+                                    traceback.format_exc()
+                                )
+                            )
+                    # ...and one shared arrow per matched group so the whole
+                    # rigid unit is indicated by a single direction marker.
+                    for grp in grain_groups:
+                        try:
+                            axis = "X"
+                            for nm in grp:
+                                if nm in grain_axis_by_name:
+                                    axis = grain_axis_by_name[nm]
+                                    break
+                            GrainPreparer.update_group_grain_arrow(
+                                self.panel.preview_doc_name,
+                                list(grp),
+                                enable=True,
+                                axis=axis
+                            )
+                        except Exception:
+                            App.Console.PrintError(
+                                tr('failed_to_redraw_final_horizontal_grain_arrow_for_s_s')
+                                % (
+                                    str(grp),
                                     traceback.format_exc()
                                 )
                             )
